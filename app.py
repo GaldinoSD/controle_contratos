@@ -38,7 +38,16 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(120))
     email = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(255))
-    role = db.Column(db.String(20))  # admin / colaborador
+    role = db.Column(db.String(20))
+
+    # === FUNÇÕES QUE FALTAVAM! ===
+
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
 
 
 class Company(db.Model):
@@ -642,36 +651,28 @@ def painel_colaborador():
 # =====================================================
 # ALTERAR SENHA VIA MODAL (GET + POST)
 # =====================================================
-@app.route("/alterar-senha", methods=["GET", "POST"])
+@app.route("/alterar_senha", methods=["POST"])
 @login_required
 def alterar_senha():
-    if current_user.role != "colaborador":
-        return redirect("/")
+    data = request.get_json()
+    senha_atual = data.get("senha_atual")
+    nova_senha = data.get("nova_senha")
 
-    if request.method == "GET":
-        # Retorna apenas o HTML do modal
-        return render_template("modals/alterar_senha.html")
+    # Verifica senha atual
+    if not current_user.check_password(senha_atual):
+        return jsonify({
+            "sucesso": False,
+            "mensagem": "Senha atual incorreta."
+        })
 
-    # POST — troca de senha
-    senha_atual = request.form.get("senha_atual")
-    nova = request.form.get("nova_senha")
-    confirmar = request.form.get("confirmar_senha")
-
-    if not check_password_hash(current_user.password, senha_atual):
-        return jsonify({"erro": "Senha atual incorreta!"}), 400
-
-    if nova != confirmar:
-        return jsonify({"erro": "Senhas não coincidem!"}), 400
-
-    current_user.password = generate_password_hash(nova)
+    # Atualiza senha
+    current_user.set_password(nova_senha)
     db.session.commit()
 
-    return jsonify({"sucesso": "Senha alterada com sucesso!"}), 200
-
-
-
-
-
+    return jsonify({
+        "sucesso": True,
+        "mensagem": "Senha alterada com sucesso!"
+    })
 
 # =====================================================
 # ATIVIDADES REALIZADAS
