@@ -6,29 +6,37 @@
 <!-- ======================================================= -->
 <section class="mb-6">
 
-  <div class="rounded-xl p-5 bg-slate-900/80 backdrop-blur-xl 
-              border border-slate-800 shadow-lg flex items-center justify-between relative overflow-hidden">
+  <div class="rounded-xl p-5 
+              bg-white/80 dark:bg-slate-900/80 
+              backdrop-blur-xl border 
+              border-slate-300 dark:border-slate-800 
+              shadow-lg flex items-center justify-between 
+              relative overflow-hidden">
 
     <!-- Glow -->
-    <div class="absolute -top-8 -left-8 w-28 h-28 bg-blue-600/20 blur-2xl rounded-full"></div>
+    <div class="absolute -top-8 -left-8 w-28 h-28 
+                bg-blue-500/10 dark:bg-blue-600/20 
+                blur-2xl rounded-full"></div>
 
     <div class="relative flex items-center gap-4">
-      <div class="p-3 bg-blue-600/10 rounded-lg border border-blue-500/20">
-        <i class="fa-solid fa-user-group text-blue-400 text-xl"></i>
+      <div class="p-3 bg-blue-500/10 dark:bg-blue-600/20 
+                  rounded-lg border border-blue-300/30 dark:border-blue-500/20">
+        <i class="fa-solid fa-user-group text-blue-600 dark:text-blue-300 text-xl"></i>
       </div>
 
       <div>
-        <h1 class="text-2xl font-bold text-white tracking-tight">
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">
           Colaboradores
         </h1>
-        <p class="text-xs text-slate-400 mt-1">
+        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
           Gerencie colaboradores, funções e acesso ao sistema.
         </p>
       </div>
     </div>
 
     <button onclick="abrirModalColab()"
-      class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg shadow flex items-center gap-2">
+      class="px-5 py-2 bg-blue-600 hover:bg-blue-700 
+             text-white text-xs rounded-lg shadow flex items-center gap-2">
       <i class="fa-solid fa-user-plus"></i>
       Novo
     </button>
@@ -45,47 +53,63 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
 
   {% for c in colaboradores %}
-  <div class="bg-slate-900/60 backdrop-blur-xl rounded-xl border border-slate-800 shadow-lg 
-              hover:border-blue-500/40 transition-all p-0 overflow-hidden">
+  <div class="rounded-xl border 
+              bg-white/80 dark:bg-slate-900/60 
+              backdrop-blur-xl shadow-lg overflow-hidden
+              border-slate-300 dark:border-slate-800
+              hover:border-blue-400 dark:hover:border-blue-500/50
+              transition-all">
 
     <!-- HEADER DO CARD -->
-    <div class="bg-slate-800/40 border-b border-slate-700 p-5 text-center">
+    <div class="bg-slate-200/50 dark:bg-slate-800/40 
+                border-b border-slate-300 dark:border-slate-700 
+                p-5 text-center">
 
       <!-- Avatar compacto -->
-      <div class="mx-auto w-16 h-16 rounded-full bg-blue-600/10 border border-blue-500/20 
-                  flex items-center justify-center text-lg font-semibold text-blue-200">
+      <div class="mx-auto w-16 h-16 rounded-full 
+                  bg-blue-500/10 dark:bg-blue-600/20 
+                  border border-blue-300/40 dark:border-blue-500/30 
+                  flex items-center justify-center 
+                  text-lg font-semibold text-blue-700 dark:text-blue-200">
         {{ c.nome.split()[0][0] }}{{ c.nome.split()[-1][0] }}
       </div>
 
-      <h3 class="text-white font-semibold mt-3 text-sm">{{ c.nome }}</h3>
-      <p class="text-xs text-blue-300">{{ c.funcao }}</p>
+      <h3 class="text-slate-800 dark:text-white font-semibold mt-3 text-sm">{{ c.nome }}</h3>
+      <p class="text-xs text-blue-700 dark:text-blue-300">{{ c.funcao }}</p>
 
-      <span class="block mt-3 text-[10px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600">
+      <span class="block mt-3 text-[10px] px-2 py-0.5 
+                   rounded bg-slate-300 dark:bg-slate-700 
+                   text-slate-700 dark:text-slate-300 
+                   border border-slate-400 dark:border-slate-600">
         MATRÍCULA {{ c.matricula }}
       </span>
     </div>
 
     <!-- INFORMAÇÕES -->
-    <div class="p-5 text-slate-300 text-xs space-y-2">
+    <div class="p-5 text-slate-700 dark:text-slate-300 text-xs space-y-2">
 
-      <p><strong class="text-slate-100">Setor:</strong> {{ c.setor }}</p>
-      <p><strong class="text-slate-100">E-mail:</strong> {{ c.email or "-" }}</p>
-      <p><strong class="text-slate-100">Telefone:</strong> {{ c.telefone or "-" }}</p>
+      <p><strong class="text-slate-900 dark:text-slate-100">Setor:</strong> {{ c.setor }}</p>
+      <p><strong class="text-slate-900 dark:text-slate-100">E-mail:</strong> {{ c.email or "-" }}</p>
+      <p><strong class="text-slate-900 dark:text-slate-100">Telefone:</strong> {{ c.telefone or "-" }}</p>
 
       <p>
-        <strong class="text-slate-100">Status:</strong>
+        <strong class="text-slate-900 dark:text-slate-100">Status:</strong>
         {% if c.ativo %}
-          <span class="text-emerald-400 font-semibold">Ativo</span>
+          <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Ativo</span>
         {% else %}
-          <span class="text-red-400 font-semibold">Inativo</span>
+          <span class="text-red-600 dark:text-red-400 font-semibold">Inativo</span>
         {% endif %}
       </p>
 
       <!-- Botão Editar -->
       <div class="pt-3 flex justify-end">
         <button onclick="abrirModalEditar('{{ c.id }}')"
-          class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg 
-                 text-[11px] border border-slate-700 flex items-center gap-1">
+          class="px-3 py-1.5 bg-slate-200 dark:bg-slate-800 
+                 hover:bg-slate-300 dark:hover:bg-slate-700 
+                 text-slate-700 dark:text-slate-200 rounded-lg 
+                 text-[11px] border 
+                 border-slate-300 dark:border-slate-700 
+                 flex items-center gap-1">
           <i class="fa-solid fa-pen-to-square text-xs"></i> Editar
         </button>
       </div>
@@ -98,7 +122,9 @@
 </div>
 
 {% else %}
-<p class="text-slate-500 text-center mt-10 italic text-sm">Nenhum colaborador cadastrado.</p>
+<p class="text-slate-600 dark:text-slate-400 text-center mt-10 italic text-sm">
+  Nenhum colaborador cadastrado.
+</p>
 {% endif %}
 
 
@@ -109,15 +135,18 @@
 <div id="modalColaborador"
      class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
 
-  <div class="bg-slate-900/95 border border-slate-700 rounded-xl shadow-2xl p-6 w-full max-w-xl relative">
+  <div class="bg-white dark:bg-slate-900/95 
+              border border-slate-300 dark:border-slate-700 
+              rounded-xl shadow-2xl p-6 w-full max-w-xl relative">
 
     <!-- FECHAR -->
-    <button onclick="fecharModalColab()" class="absolute top-3 right-4 text-slate-300 hover:text-red-400 text-xl">
+    <button onclick="fecharModalColab()" 
+            class="absolute top-3 right-4 text-slate-500 dark:text-slate-300 hover:text-red-500 text-xl">
       &times;
     </button>
 
-    <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-      <i class="fa-solid fa-user-plus text-blue-400"></i>
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-user-plus text-blue-600 dark:text-blue-400"></i>
       Novo Colaborador
     </h2>
 
@@ -125,52 +154,81 @@
           class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
 
       <div>
-        <label class="text-slate-300 text-xs">Matrícula</label>
-        <input name="matricula" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100" required>
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Matrícula</label>
+        <input name="matricula"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100" required>
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">Nome Completo</label>
-        <input name="nome" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100" required>
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Nome Completo</label>
+        <input name="nome"
+               class="w-full bg-slate-100 dark:bg-slate-800
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100" required>
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">E-mail</label>
-        <input name="email" type="email" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100">
+        <label class="text-slate-700 dark:text-slate-300 text-xs">E-mail</label>
+        <input name="email" type="email"
+               class="w-full bg-slate-100 dark:bg-slate-800
+                      border border-slate-300 dark:border-slate-700 px-3 py-2 
+                      rounded-lg text-salte-800 dark:text-slate-100">
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">Telefone</label>
-        <input name="telefone" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100">
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Telefone</label>
+        <input name="telefone"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100">
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">Setor</label>
-        <input name="setor" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100" required>
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Setor</label>
+        <input name="setor"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100" required>
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">Função</label>
-        <input name="funcao" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100" required>
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Função</label>
+        <input name="funcao"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100" required>
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">Senha de Acesso</label>
-        <input type="password" name="password" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100" required>
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Senha de Acesso</label>
+        <input type="password" name="password"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100" required>
       </div>
 
       <div class="md:col-span-2">
-        <label class="text-slate-300 text-xs">Foto (opcional)</label>
-        <input type="file" name="foto" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100">
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Foto (opcional)</label>
+        <input type="file" name="foto"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100">
       </div>
 
       <div class="md:col-span-2 flex justify-end gap-3 mt-3">
         <button type="button" onclick="fecharModalColab()" 
-          class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs rounded-lg">
+          class="px-4 py-2 bg-slate-200 dark:bg-slate-800 
+                 hover:bg-slate-300 dark:hover:bg-slate-700 
+                 border border-slate-300 dark:border-slate-600 
+                 text-slate-700 dark:text-slate-300 
+                 text-xs rounded-lg">
           Cancelar
         </button>
 
-        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg shadow font-semibold">
+        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 
+                       text-white text-xs rounded-lg shadow font-semibold">
           Salvar
         </button>
       </div>
@@ -189,14 +247,18 @@
 <div id="modalEditar{{ c.id }}"
      class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
 
-  <div class="bg-slate-900/95 border border-slate-700 rounded-xl shadow-2xl p-6 w-full max-w-xl relative">
+  <div class="bg-white dark:bg-slate-900/95 
+              border border-slate-300 dark:border-slate-700 
+              rounded-xl shadow-2xl p-6 w-full max-w-xl relative">
 
-    <button onclick="fecharModalEditar('{{ c.id }}')" class="absolute top-3 right-4 text-slate-300 hover:text-red-400 text-xl">
+    <button onclick="fecharModalEditar('{{ c.id }}')" 
+            class="absolute top-3 right-4 text-slate-500 dark:text-slate-300 
+                   hover:text-red-500 text-xl">
       &times;
     </button>
 
-    <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-      <i class="fa-solid fa-pen-to-square text-blue-400"></i>
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-pen-to-square text-blue-600 dark:text-blue-400"></i>
       Editar Colaborador
     </h2>
 
@@ -204,54 +266,77 @@
           class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
 
       <div>
-        <label class="text-slate-300 text-xs">Matrícula</label>
-        <input name="matricula" value="{{ c.matricula }}" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100" required>
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Matrícula</label>
+        <input name="matricula" value="{{ c.matricula }}"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100" required>
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">Nome Completo</label>
-        <input name="nome" value="{{ c.nome }}" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100" required>
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Nome Completo</label>
+        <input name="nome" value="{{ c.nome }}"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100" required>
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">E-mail</label>
-        <input name="email" type="email" value="{{ c.email }}" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100">
+        <label class="text-slate-700 dark:text-slate-300 text-xs">E-mail</label>
+        <input name="email" type="email" value="{{ c.email }}"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100">
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">Telefone</label>
-        <input name="telefone" value="{{ c.telefone }}" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100">
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Telefone</label>
+        <input name="telefone" value="{{ c.telefone }}"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100">
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">Setor</label>
-        <input name="setor" value="{{ c.setor }}" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100" required>
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Setor</label>
+        <input name="setor" value="{{ c.setor }}"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100" required>
       </div>
 
       <div>
-        <label class="text-slate-300 text-xs">Função</label>
-        <input name="funcao" value="{{ c.funcao }}" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100" required>
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Função</label>
+        <input name="funcao" value="{{ c.funcao }}"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100" required>
       </div>
 
       <div class="md:col-span-2">
-        <label class="text-slate-300 text-xs">Nova Foto (opcional)</label>
-        <input type="file" name="foto" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-slate-100">
+        <label class="text-slate-700 dark:text-slate-300 text-xs">Nova Foto (opcional)</label>
+        <input type="file" name="foto"
+               class="w-full bg-slate-100 dark:bg-slate-800 
+                      border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-slate-800 dark:text-slate-100">
       </div>
 
       <div class="md:col-span-2 flex justify-end mt-4">
-        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow text-xs">
+        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 
+                       text-white rounded-lg shadow text-xs">
           Salvar Alterações
         </button>
       </div>
     </form>
-
 
     <!-- EXCLUIR -->
     <form action="/colaboradores/excluir/{{ c.id }}" method="POST"
           class="mt-4 flex justify-start"
           onsubmit="return confirm('Deseja realmente excluir este colaborador?');">
 
-      <button class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow text-xs">
+      <button class="px-4 py-1.5 bg-red-600 
+                     hover:bg-red-700 text-white 
+                     rounded-lg shadow text-xs">
         <i class="fa-solid fa-trash"></i> Excluir
       </button>
 

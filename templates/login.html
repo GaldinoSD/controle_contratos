@@ -11,73 +11,101 @@
 </head>
 
 <body class="h-full flex items-center justify-center 
-             bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800
-             relative overflow-hidden text-white">
+             bg-gradient-to-br 
+             from-slate-100 via-slate-200 to-slate-300 
+             dark:from-slate-950 dark:via-slate-900 dark:to-slate-800
+             relative overflow-hidden 
+             text-slate-800 dark:text-white">
 
-  <!-- EFEITOS DE FUNDO PROFISSIONAIS -->
+  <!-- EFEITOS DE FUNDO -->
   <div class="absolute inset-0 pointer-events-none">
     <div class="absolute -top-32 -left-20 w-[450px] h-[450px] 
-                bg-blue-600/20 rounded-full blur-[120px]"></div>
+                bg-blue-300/30 dark:bg-blue-600/20 
+                rounded-full blur-[130px]"></div>
+
     <div class="absolute bottom-0 right-0 w-[350px] h-[350px] 
-                bg-purple-600/20 rounded-full blur-[110px]"></div>
+                bg-purple-300/20 dark:bg-purple-600/20 
+                rounded-full blur-[120px]"></div>
   </div>
 
-  <!-- CARD DE LOGIN GLASS -->
+  <!-- CARD GLASS -->
   <form action="/login" method="POST"
         class="relative z-10 w-full max-w-md backdrop-blur-2xl
-               bg-white/5 border border-white/10 rounded-2xl 
-               shadow-2xl p-10">
+               bg-white/50 dark:bg-white/5 
+               border border-white/40 dark:border-white/10 
+               rounded-2xl shadow-2xl p-10">
 
     <!-- LOGO -->
     <div class="w-full flex justify-center mb-8">
       <img src="{{ url_for('static', filename='logo.png') }}" 
-           alt="Logo" class="w-24 h-24 object-contain opacity-95 drop-shadow-lg">
+           alt="Logo" 
+           class="w-24 h-24 object-contain opacity-95 drop-shadow-lg">
     </div>
 
     <!-- TÍTULO -->
-    <h1 class="text-2xl text-center font-bold text-white/90 mb-8 tracking-wide">
-      <i class="fa-solid fa-user-shield text-blue-400 mr-2"></i>
+    <h1 class="text-2xl text-center font-bold 
+               text-slate-700 dark:text-white/90 
+               mb-8 tracking-wide">
+      <i class="fa-solid fa-user-shield 
+                text-blue-600 dark:text-blue-400 mr-2"></i>
       Acesso ao Sistema
     </h1>
 
-    <!-- CAMPO EMAIL -->
+    <!-- EMAIL -->
     <div class="mb-6">
-      <label class="text-sm font-medium text-blue-200">E-mail</label>
-      <div class="flex items-center mt-1 bg-white/10 border border-white/20 backdrop-blur 
-                  rounded-xl px-4 py-3 shadow-lg">
-        <i class="fa-solid fa-envelope text-blue-300 mr-3"></i>
+      <label class="text-sm font-medium text-slate-700 dark:text-blue-200">E-mail</label>
+
+      <div class="flex items-center mt-1 
+                  bg-white/60 dark:bg-white/10 
+                  border border-slate-300 dark:border-white/20 
+                  backdrop-blur rounded-xl px-4 py-3 shadow-lg">
+        <i class="fa-solid fa-envelope 
+                  text-blue-600 dark:text-blue-300 mr-3"></i>
+
         <input name="email"
-               class="bg-transparent w-full text-white placeholder-gray-400 focus:outline-none"
+               class="bg-transparent w-full 
+                      text-slate-800 dark:text-white
+                      placeholder-slate-500 dark:placeholder-gray-400 
+                      focus:outline-none"
                placeholder="Digite seu e-mail" required>
       </div>
     </div>
 
-    <!-- CAMPO SENHA -->
+    <!-- SENHA -->
     <div class="mb-10">
-      <label class="text-sm font-medium text-blue-200">Senha</label>
-      <div class="flex items-center mt-1 bg-white/10 border border-white/20 backdrop-blur 
-                  rounded-xl px-4 py-3 shadow-lg">
-        <i class="fa-solid fa-lock text-blue-300 mr-3"></i>
+      <label class="text-sm font-medium text-slate-700 dark:text-blue-200">Senha</label>
+
+      <div class="flex items-center mt-1 
+                  bg-white/60 dark:bg-white/10 
+                  border border-slate-300 dark:border-white/20 
+                  backdrop-blur rounded-xl px-4 py-3 shadow-lg">
+        <i class="fa-solid fa-lock 
+                  text-blue-600 dark:text-blue-300 mr-3"></i>
+
         <input name="password" type="password"
-               class="bg-transparent w-full text-white placeholder-gray-400 focus:outline-none"
+               class="bg-transparent w-full 
+                      text-slate-800 dark:text-white
+                      placeholder-slate-500 dark:placeholder-gray-400
+                      focus:outline-none"
                placeholder="Digite sua senha" required>
       </div>
     </div>
 
     <!-- BOTÃO -->
-    <button class="w-full py-3 rounded-xl font-semibold text-white text-lg
-                   bg-blue-600 hover:bg-blue-700 shadow-xl
+    <button class="w-full py-3 rounded-xl font-semibold text-lg
+                   bg-blue-600 hover:bg-blue-700 text-white 
+                   shadow-xl
                    transition-all duration-300 transform 
                    hover:-translate-y-[2px] active:scale-95">
       Entrar
     </button>
 
-    <!-- ALERTA DE ERRO (LOGIN) -->
+    <!-- ERRO -->
     {% with mensagens = get_flashed_messages(with_categories=True) %}
       {% if mensagens %}
         {% for categoria, msg in mensagens %}
           {% if categoria == 'login' %}
-            <p class="text-red-400 text-center mt-4 font-semibold tracking-wide">
+            <p class="text-red-500 dark:text-red-400 text-center mt-4 font-semibold">
               {{ msg }}
             </p>
           {% endif %}

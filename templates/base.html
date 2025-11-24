@@ -15,6 +15,30 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <script>
+    /* ===============================================
+       CONFIGURAÇÃO TAILWIND (DARK MODE VIA CLASS)
+    =============================================== */
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {}
+      }
+    };
+
+    /* ===============================================
+       APLICA TEMA INICIAL (LOCALSTORAGE)
+    =============================================== */
+    (function () {
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    })();
+  </script>
+
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
@@ -22,7 +46,10 @@
   </style>
 </head>
 
-<body class="h-full bg-slate-950 text-slate-100">
+<body class="h-full
+             bg-slate-100 text-slate-800
+             dark:bg-slate-950 dark:text-slate-100
+             transition-colors duration-300">
 
 <div class="min-h-screen flex">
 
@@ -31,21 +58,28 @@
   ==================================================== -->
   <aside 
     class="group fixed top-0 left-0 h-full 
-           bg-slate-900/90 border-r border-slate-800 
+           bg-white/90 border-r border-slate-200
+           dark:bg-slate-900/90 dark:border-slate-800
            flex flex-col transition-all duration-300 
            w-16 hover:w-56 overflow-hidden z-50">
 
       <!-- LOGO -->
-      <div class="p-4 border-b border-slate-800 flex items-center gap-3">
+      <div class="p-4 border-b 
+                  border-slate-200 dark:border-slate-800 
+                  flex items-center gap-3">
 
-          <!-- IMAGEM DA LOGO -->
           <img src="{{ url_for('static', filename='logo.png') }}"
                class="w-10 h-10 rounded-xl object-cover shadow-lg">
 
-          <!-- Texto aparece apenas quando sidebar abre -->
           <div class="opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <h1 class="text-lg font-bold whitespace-nowrap">SupervisorPro</h1>
-            <p class="text-xs text-slate-400">Gestão Técnica</p>
+            <h1 class="text-lg font-bold whitespace-nowrap 
+                       text-slate-800 dark:text-white">
+              SupervisorPro
+            </h1>
+            <p class="text-xs 
+                      text-slate-500 dark:text-slate-400">
+              Gestão Técnica
+            </p>
           </div>
 
       </div>
@@ -56,56 +90,66 @@
         {% if current_user.is_authenticated %}
         {% if current_user.role == 'admin' %}
 
-        <!-- ======================= -->
-        <!--       DASHBOARD         -->
-        <!-- ======================= -->
+        <!-- DASHBOARD -->
         <a href="{{ url_for('dashboard') }}"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
-          <i class="fa-solid fa-gauge-high text-blue-400 text-xl"></i>
+           class="flex items-center gap-3 px-3 py-2 rounded-lg 
+                  hover:bg-slate-200 dark:hover:bg-slate-800/80 
+                  transition">
+          <i class="fa-solid fa-gauge-high text-blue-500 dark:text-blue-400 text-xl"></i>
           <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
             Dashboard
           </span>
         </a>
 
-        <!-- SEÇÃO ADMINISTRAÇÃO -->
-        <p class="text-[11px] text-slate-500 font-semibold tracking-wide mt-5 ml-3
-                  opacity-0 group-hover:opacity-100 transition duration-300">
+        <!-- TÍTULO ADMINISTRAÇÃO -->
+        <p class="text-[11px] mt-5 ml-3 font-semibold tracking-wide
+                  opacity-0 group-hover:opacity-100 transition duration-300
+                  text-slate-500 dark:text-slate-500">
           Administração
         </p>
 
         <a href="/contracts"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
-          <i class="fa-regular fa-folder-open text-blue-300 text-xl"></i>
+           class="flex items-center gap-3 px-3 py-2 rounded-lg 
+                  hover:bg-slate-200 dark:hover:bg-slate-800/80 
+                  transition">
+          <i class="fa-regular fa-folder-open text-blue-500 dark:text-blue-300 text-xl"></i>
           <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
             Contratos
           </span>
         </a>
 
         <a href="/atividades"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
-          <i class="fa-solid fa-list-check text-blue-300 text-xl"></i>
+           class="flex items-center gap-3 px-3 py-2 rounded-lg 
+                  hover:bg-slate-200 dark:hover:bg-slate-800/80 
+                  transition">
+          <i class="fa-solid fa-list-check text-blue-500 dark:text-blue-300 text-xl"></i>
           <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
             Atividades
           </span>
         </a>
 
         <a href="/colaboradores"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
-          <i class="fa-solid fa-users text-blue-300 text-xl"></i>
+           class="flex items-center gap-3 px-3 py-2 rounded-lg 
+                  hover:bg-slate-200 dark:hover:bg-slate-800/80 
+                  transition">
+          <i class="fa-solid fa-users text-blue-500 dark:text-blue-300 text-xl"></i>
           <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
             Colaboradores
           </span>
         </a>
 
-        <!-- CONFIGURAÇÕES -->
-        <p class="text-[11px] text-slate-500 font-semibold tracking-wide mt-4 ml-3
-                  opacity-0 group-hover:opacity-100 transition duration-300">
+        <!-- TÍTULO CONFIGURAÇÕES -->
+        <p class="text-[11px] mt-4 ml-3 font-semibold tracking-wide 
+                  opacity-0 group-hover:opacity-100 transition duration-300
+                  text-slate-500 dark:text-slate-500">
           Configurações
         </p>
 
         <a href="/administradores"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
-          <i class="fa-solid fa-user-shield text-blue-300 text-xl"></i>
+           class="flex items-center gap-3 px-3 py-2 rounded-lg 
+                  hover:bg-slate-200 dark:hover:bg-slate-800/80 
+                  transition">
+          <i class="fa-solid fa-user-shield text-blue-500 dark:text-blue-300 text-xl"></i>
           <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
             Administradores
           </span>
@@ -113,22 +157,23 @@
 
         {% else %}
 
-        <!-- ======================= -->
-        <!--       COLABORADOR       -->
-        <!-- ======================= -->
+        <!-- ===================== COLABORADOR ===================== -->
 
         <a href="/painel-colaborador"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
-          <i class="fa-solid fa-list-check text-blue-300 text-xl"></i>
+           class="flex items-center gap-3 px-3 py-2 rounded-lg 
+                  hover:bg-slate-200 dark:hover:bg-slate-800/80 
+                  transition">
+          <i class="fa-solid fa-list-check text-blue-500 dark:text-blue-300 text-xl"></i>
           <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
             Minhas Atividades
           </span>
         </a>
 
-        <button 
-           onclick="abrirModalSenha()"
-           class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
-          <i class="fa-solid fa-key text-blue-300 text-xl"></i>
+        <button onclick="abrirModalSenha()"
+                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg 
+                       hover:bg-slate-200 dark:hover:bg-slate-800/80 
+                       transition">
+          <i class="fa-solid fa-key text-blue-500 dark:text-blue-300 text-xl"></i>
           <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
             Alterar Senha
           </span>
@@ -137,10 +182,12 @@
         {% endif %}
         {% endif %}
 
-        <!-- SAIR -->
+        <!-- Sair -->
         <a href="/logout"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-900/40 text-red-400 mt-6 transition">
-          <i class="fa-solid fa-arrow-right-from-bracket text-red-400 text-xl"></i>
+           class="flex items-center gap-3 px-3 py-2 rounded-lg 
+                  hover:bg-red-100 dark:hover:bg-red-900/40
+                  text-red-600 dark:text-red-400 mt-6 transition">
+          <i class="fa-solid fa-arrow-right-from-bracket text-xl"></i>
           <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
             Sair
           </span>
@@ -148,8 +195,11 @@
 
       </nav>
 
-      <!-- FOOTER -->
-      <div class="p-4 border-t border-slate-800 text-xs text-slate-500 whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
+      <!-- FOOTER SIDEBAR -->
+      <div class="p-4 border-t 
+                  border-slate-200 dark:border-slate-800
+                  text-xs text-slate-500 dark:text-slate-500
+                  whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
         Sistema de Contratos • WK Consultoria
       </div>
 
@@ -161,20 +211,47 @@
   ==================================================== -->
   <main class="flex-1 ml-16 group-hover:ml-56 transition-all duration-300">
 
-    <!-- HEADER -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+    <!-- HEADER COM BOTÃO DE TEMA -->
+    <header class="border-b 
+                   border-slate-200 dark:border-slate-800
+                   bg-white/80 dark:bg-slate-900/80 
+                   backdrop-blur">
+
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+
         <div>
-          <h2 class="text-lg font-semibold">{{ page_title or 'Painel' }}</h2>
-          <p class="text-xs text-slate-400">Sistema de gestão de contratos.</p>
+          <h2 class="text-lg font-semibold 
+                     text-slate-800 dark:text-white">
+            {{ page_title or 'Painel' }}
+          </h2>
+          <p class="text-xs 
+                    text-slate-600 dark:text-slate-400">
+            Sistema de gestão de contratos.
+          </p>
         </div>
 
-        {% if current_user.is_authenticated %}
-        <div class="flex items-center gap-3 text-xs text-slate-400">
-          <i class="fa-solid fa-user-shield text-blue-400"></i>
-          {{ current_user.name }}
+        <div class="flex items-center gap-4">
+
+          <!-- BOTÃO DE TEMA -->
+          <button id="themeToggle"
+                  class="p-2 rounded-lg border 
+                         border-slate-300 dark:border-slate-700
+                         bg-white/80 dark:bg-slate-800/60
+                         hover:bg-slate-100 dark:hover:bg-slate-700
+                         transition">
+            <i id="temaIcone" class="fa-solid fa-moon text-blue-500 text-lg"></i>
+          </button>
+
+          {% if current_user.is_authenticated %}
+          <div class="flex items-center gap-3 text-xs 
+                      text-slate-600 dark:text-slate-400">
+            <i class="fa-solid fa-user-shield text-blue-500 dark:text-blue-400"></i>
+            {{ current_user.name }}
+          </div>
+          {% endif %}
+
         </div>
-        {% endif %}
+
       </div>
     </header>
 
@@ -186,11 +263,14 @@
             {% for category, message in messages %}
               <div class="px-4 py-3 rounded-lg text-sm
                           {% if category == 'success' %}
-                            bg-emerald-900/40 border border-emerald-500/40 text-emerald-100
+                            bg-emerald-100 border border-emerald-300 text-emerald-800
+                            dark:bg-emerald-900/40 dark:border-emerald-500/40 dark:text-emerald-100
                           {% elif category == 'error' %}
-                            bg-red-900/40 border border-red-500/40 text-red-100
+                            bg-red-100 border border-red-300 text-red-800
+                            dark:bg-red-900/40 dark:border-red-500/40 dark:text-red-100
                           {% else %}
-                            bg-slate-800/70 border border-slate-600/60 text-slate-100
+                            bg-slate-100 border border-slate-300 text-slate-800
+                            dark:bg-slate-800/70 dark:border-slate-600/60 dark:text-slate-100
                           {% endif %}">
                 {{ message }}
               </div>
@@ -200,7 +280,7 @@
       {% endwith %}
     </div>
 
-    <!-- CONTEÚDO -->
+    <!-- CONTEÚDO DAS PÁGINAS FILHAS -->
     <section class="max-w-7xl mx-auto px-6 py-6">
       {% block content %}{% endblock %}
     </section>
@@ -209,38 +289,57 @@
 </div>
 
 
-
 <!-- =====================================================
      MODAL ALTERAR SENHA
 ===================================================== -->
-<div id="modalSenha" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-[9999] flex items-center justify-center">
-  <div class="bg-white text-gray-800 w-full max-w-md p-8 rounded-2xl shadow-2xl relative">
+<div id="modalSenha" 
+     class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-[9999] 
+            flex items-center justify-center">
+
+  <div class="bg-white text-slate-800
+              dark:bg-slate-900 dark:text-slate-100
+              w-full max-w-md p-8 rounded-2xl shadow-2xl relative 
+              border border-slate-300 dark:border-slate-700">
 
     <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
       <i class="fa-solid fa-key text-blue-600"></i>
       Alterar Senha
     </h2>
 
-    <div id="erroSenha" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4"></div>
+    <div id="erroSenha" 
+         class="hidden bg-red-100 border border-red-400 text-red-700 
+                px-4 py-3 rounded-lg mb-4
+                dark:bg-red-900 dark:border-red-600 dark:text-red-200"></div>
 
     <form id="formSenha">
 
       <label class="text-sm font-semibold">Senha atual</label>
       <input type="password" id="senhaAtual"
-             class="w-full p-3 rounded-lg border mb-4" required>
+             class="w-full p-3 rounded-lg border mb-4
+                    border-slate-300 dark:border-slate-700
+                    bg-white dark:bg-slate-800"
+             required>
 
       <label class="text-sm font-semibold">Nova senha</label>
       <input type="password" id="novaSenha"
-             class="w-full p-3 rounded-lg border mb-4" required>
+             class="w-full p-3 rounded-lg border mb-4
+                    border-slate-300 dark:border-slate-700
+                    bg-white dark:bg-slate-800"
+             required>
 
       <label class="text-sm font-semibold">Confirmar nova senha</label>
       <input type="password" id="confirmarSenha"
-             class="w-full p-3 rounded-lg border mb-6" required>
+             class="w-full p-3 rounded-lg border mb-6
+                    border-slate-300 dark:border-slate-700
+                    bg-white dark:bg-slate-800"
+             required>
 
       <div class="flex justify-end gap-3">
         <button type="button"
                 onclick="fecharModalSenha()"
-                class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+                class="px-4 py-2 rounded-lg 
+                       bg-slate-200 hover:bg-slate-300
+                       dark:bg-slate-700 dark:hover:bg-slate-600">
           Cancelar
         </button>
 
@@ -257,9 +356,48 @@
 
 
 <!-- =====================================================
-     JS
+     JS — TEMA + MODAL SENHA
 ===================================================== -->
 <script>
+  /* ============================
+       TROCA DE TEMA
+  ============================ */
+  const btnTema  = document.getElementById("themeToggle");
+  const iconTema = document.getElementById("temaIcone");
+
+  function aplicarIconeTema() {
+    if (document.documentElement.classList.contains("dark")) {
+      iconTema.classList.remove("fa-sun");
+      iconTema.classList.add("fa-moon");
+      iconTema.style.color = "#3b82f6"; // azul
+    } else {
+      iconTema.classList.remove("fa-moon");
+      iconTema.classList.add("fa-sun");
+      iconTema.style.color = "#f59e0b"; // dourado
+    }
+  }
+
+  aplicarIconeTema();
+
+  btnTema.addEventListener("click", () => {
+    const root = document.documentElement;
+    const isDark = root.classList.contains("dark");
+
+    if (isDark) {
+      root.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    } else {
+      root.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    }
+
+    aplicarIconeTema();
+  });
+
+
+  /* ============================
+       FUNÇÕES DO MODAL SENHA
+  ============================ */
   function abrirModalSenha() {
     document.getElementById("modalSenha").classList.remove("hidden");
   }
@@ -272,10 +410,10 @@
   document.getElementById("formSenha").addEventListener("submit", async function(e) {
     e.preventDefault();
 
-    const senhaAtual = document.getElementById("senhaAtual").value;
-    const novaSenha = document.getElementById("novaSenha").value;
+    const senhaAtual     = document.getElementById("senhaAtual").value;
+    const novaSenha      = document.getElementById("novaSenha").value;
     const confirmarSenha = document.getElementById("confirmarSenha").value;
-    const erroDiv = document.getElementById("erroSenha");
+    const erroDiv        = document.getElementById("erroSenha");
 
     if (novaSenha !== confirmarSenha) {
       erroDiv.textContent = "A nova senha e a confirmação não coincidem.";

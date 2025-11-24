@@ -6,26 +6,41 @@
 <!-- ======================================================= -->
 <section class="mb-6 relative">
 
-  <div class="rounded-xl p-5 bg-slate-900/80 shadow-lg border border-slate-800
+  <div class="rounded-xl p-5 
+              bg-white/60 dark:bg-slate-900/80
+              shadow-lg 
+              border border-slate-300 dark:border-slate-800
               backdrop-blur-xl overflow-hidden relative">
 
     <!-- Glows -->
-    <div class="absolute -top-8 -left-8 w-32 h-32 bg-blue-600/20 blur-2xl rounded-full"></div>
-    <div class="absolute bottom-0 right-0 w-32 h-32 bg-cyan-500/10 blur-2xl rounded-full"></div>
+    <div class="absolute -top-8 -left-8 w-32 h-32 
+                bg-blue-400/10 dark:bg-blue-600/20
+                blur-2xl rounded-full"></div>
+
+    <div class="absolute bottom-0 right-0 w-32 h-32 
+                bg-cyan-400/10 dark:bg-cyan-500/10
+                blur-2xl rounded-full"></div>
 
     <div class="relative flex items-center justify-between">
 
       <!-- ESQUERDA -->
       <div class="flex items-center gap-4">
-        <div class="p-3 bg-blue-600/10 rounded-xl border border-blue-500/20">
-          <i class="fa-solid fa-folder-open text-blue-400 text-2xl"></i>
+        <div class="p-3 
+                    bg-blue-500/10 dark:bg-blue-600/10
+                    rounded-xl border 
+                    border-blue-300/40 dark:border-blue-500/20">
+          <i class="fa-solid fa-folder-open 
+                    text-blue-600 dark:text-blue-400
+                    text-2xl"></i>
         </div>
 
         <div>
-          <h1 class="text-2xl font-bold text-white tracking-tight">
+          <h1 class="text-2xl font-bold 
+                     text-slate-800 dark:text-white tracking-tight">
             Todos os Contratos
           </h1>
-          <p class="text-slate-400 text-xs mt-1">
+          <p class="text-xs mt-1 
+                     text-slate-600 dark:text-slate-400">
             Lista completa de contratos cadastrados
           </p>
         </div>
@@ -33,8 +48,9 @@
 
       <!-- BOTÃO NOVO -->
       <button onclick="abrirModalContrato()"
-        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow
-               flex items-center gap-2 text-sm transition">
+        class="px-5 py-2.5 
+               bg-blue-600 hover:bg-blue-700 text-white 
+               rounded-lg shadow flex items-center gap-2 text-sm transition">
         <i class="fa-solid fa-file-circle-plus"></i> Novo Contrato
       </button>
 
@@ -49,10 +65,16 @@
 <!-- ======================================================= -->
 <!-- ================== TABELA DE CONTRATOS ================= -->
 <!-- ======================================================= -->
-<div class="bg-slate-900/60 backdrop-blur-md p-4 rounded-xl shadow-xl border border-slate-800">
+<div class="rounded-xl shadow-xl border 
+            border-slate-300 dark:border-slate-800
+            bg-white/70 dark:bg-slate-900/60
+            backdrop-blur-md p-4">
 
   <table class="w-full text-sm">
-    <thead class="bg-slate-800/70 text-slate-300 text-[11px] uppercase tracking-wide border-b border-slate-700">
+    <thead class="bg-slate-200 dark:bg-slate-800/70
+                  text-slate-700 dark:text-slate-300
+                  text-[11px] uppercase tracking-wide 
+                  border-b border-slate-400 dark:border-slate-700">
       <tr>
         <th class="p-3 text-left">Empresa</th>
         <th class="p-3 text-left">CNPJ</th>
@@ -61,46 +83,90 @@
       </tr>
     </thead>
 
-    <tbody class="text-slate-200">
+    <tbody class="text-slate-700 dark:text-slate-200">
       {% for c in contracts %}
-      <tr class="border-b border-slate-800 hover:bg-slate-800/40 transition">
+      <tr class="border-b 
+                 border-slate-300 dark:border-slate-800
+                 hover:bg-slate-100 dark:hover:bg-slate-800/40 
+                 transition
+                 {% if c.status == 'encerrado' %} bg-red-50 dark:bg-red-900/20 {% endif %}">
 
         <!-- EMPRESA -->
         <td class="p-3 flex items-center gap-3 font-medium">
 
           <!-- Avatar letra -->
-          <div class="w-9 h-9 bg-blue-600/20 text-blue-400 rounded-lg flex items-center justify-center 
-                      font-bold border border-blue-500/20 text-sm">
+          <div class="w-9 h-9 
+                      bg-blue-500/10 dark:bg-blue-600/20
+                      text-blue-700 dark:text-blue-400 
+                      rounded-lg flex items-center justify-center 
+                      font-bold border 
+                      border-blue-300/40 dark:border-blue-500/20
+                      text-sm">
             {{ c.company.name[0] }}
           </div>
 
-          {{ c.company.name }}
+          <div class="flex flex-col">
+            {{ c.company.name }}
+
+            {% if c.status == 'encerrado' %}
+            <span class="text-[10px] font-semibold text-red-600 dark:text-red-400">
+              Encerrado
+            </span>
+            {% endif %}
+          </div>
+
         </td>
 
         <!-- CNPJ -->
-        <td class="p-3 text-slate-400 text-sm">{{ c.company.cnpj }}</td>
+        <td class="p-3 text-slate-600 dark:text-slate-400 text-sm">
+          {{ c.company.cnpj }}
+        </td>
 
         <!-- VIGÊNCIA -->
-        <td class="p-3 text-slate-300 text-sm">
-          <span class="font-medium">{{ c.start_date }}</span>
+        <td class="p-3">
+          <span class="font-medium text-slate-800 dark:text-slate-200">
+            {{ c.start_date }}
+          </span>
           <span class="text-slate-500 px-1">→</span>
-          <span class="font-medium">{{ c.end_date }}</span>
+          <span class="font-medium text-slate-800 dark:text-slate-200">
+            {{ c.end_date }}
+          </span>
         </td>
 
         <!-- AÇÕES -->
-        <td class="p-3 text-center">
+        <td class="p-3 space-x-2 text-center">
+
+          <!-- ABRIR -->
           <a href="/contract/{{ c.id }}"
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg shadow 
-                   flex items-center justify-center gap-2 mx-auto w-fit transition">
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 
+                   text-white text-xs rounded-lg shadow inline-flex gap-2 transition">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir
           </a>
+
+          {% if c.status == 'ativo' %}
+          <!-- ENCERRAR -->
+          <button onclick="abrirModalEncerrar({{ c.id }})"
+            class="px-4 py-2 bg-amber-600 hover:bg-amber-700 
+                   text-white text-xs rounded-lg shadow inline-flex gap-2 transition">
+            <i class="fa-solid fa-lock"></i> Encerrar
+          </button>
+
+          {% else %}
+          <!-- EXCLUIR -->
+          <button onclick="abrirModalExcluir({{ c.id }})"
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 
+                   text-white text-xs rounded-lg shadow inline-flex gap-2 transition">
+            <i class="fa-solid fa-trash"></i> Excluir
+          </button>
+          {% endif %}
+
         </td>
 
       </tr>
       {% endfor %}
     </tbody>
-
   </table>
+
 </div>
 
 
@@ -108,58 +174,79 @@
 <!-- ======================================================= -->
 <!-- ==================== MODAL NOVO CONTRATO =============== -->
 <!-- ======================================================= -->
-<div id="modalContrato" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+<div id="modalContrato" 
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm 
+            flex items-center justify-center z-50">
 
-  <div class="bg-slate-900/95 border border-slate-700 rounded-xl shadow-2xl p-7 
-              w-full max-w-xl relative animate-fadeIn">
+  <div class="bg-white dark:bg-slate-900/95
+              border border-slate-300 dark:border-slate-700
+              rounded-xl shadow-2xl p-7 w-full max-w-xl relative animate-fadeIn">
 
-    <!-- Fechar -->
     <button onclick="fecharModalContrato()"
-      class="absolute top-3 right-4 text-slate-400 hover:text-red-400 text-xl">
+      class="absolute top-3 right-4 text-slate-600 dark:text-slate-400 text-xl">
       &times;
     </button>
 
-    <h2 class="text-xl font-bold text-white mb-5 flex items-center gap-2">
-      <i class="fa-solid fa-file-circle-plus text-blue-400"></i>
+    <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
+      <i class="fa-solid fa-file-circle-plus text-blue-600 dark:text-blue-400"></i>
       Novo Contrato
     </h2>
 
-    <form action="/contracts/new" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-200">
+    <form action="/contracts/new" method="POST"
+          class="grid grid-cols-1 md:grid-cols-2 gap-4 
+                 text-slate-700 dark:text-slate-200">
 
       <div class="md:col-span-2">
         <label class="text-xs font-medium">Empresa</label>
-        <input name="company" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-sm" required>
+        <input name="company"
+               class="w-full bg-slate-100 dark:bg-slate-800
+                      border border-slate-300 dark:border-slate-700
+                      p-3 rounded-lg text-sm" required>
       </div>
 
       <div class="md:col-span-2">
         <label class="text-xs font-medium">CNPJ</label>
-        <input name="cnpj" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-sm" required>
+        <input name="cnpj"
+               class="w-full bg-slate-100 dark:bg-slate-800
+                      border border-slate-300 dark:border-slate-700
+                      p-3 rounded-lg text-sm" required>
       </div>
 
       <div class="md:col-span-2">
         <label class="text-xs font-medium">Descrição</label>
-        <textarea name="desc" rows="3" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-sm"></textarea>
+        <textarea name="desc" rows="3"
+                  class="w-full bg-slate-100 dark:bg-slate-800
+                         border border-slate-300 dark:border-slate-700
+                         p-3 rounded-lg text-sm"></textarea>
       </div>
 
       <div>
         <label class="text-xs font-medium">Início</label>
-        <input type="date" name="start" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-sm" required>
+        <input type="date" name="start"
+               class="w-full bg-slate-100 dark:bg-slate-800
+                      border border-slate-300 dark:border-slate-700
+                      p-3 rounded-lg text-sm" required>
       </div>
 
       <div>
         <label class="text-xs font-medium">Fim</label>
-        <input type="date" name="end" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-sm" required>
+        <input type="date" name="end"
+               class="w-full bg-slate-100 dark:bg-slate-800
+                      border border-slate-300 dark:border-slate-700
+                      p-3 rounded-lg text-sm" required>
       </div>
 
       <div class="md:col-span-2 flex justify-end gap-3 mt-3">
         <button type="button" onclick="fecharModalContrato()"
-          class="px-5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 
+          class="px-5 py-2 bg-slate-200 dark:bg-slate-800 
+                 hover:bg-slate-300 dark:hover:bg-slate-700
+                 border border-slate-400 dark:border-slate-600
                  rounded-lg text-xs transition">
           Cancelar
         </button>
 
-        <button class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg 
-                       shadow text-xs font-semibold transition">
+        <button class="px-6 py-2 bg-blue-600 hover:bg-blue-700 
+                       text-white rounded-lg text-xs font-semibold transition">
           Salvar
         </button>
       </div>
@@ -169,14 +256,170 @@
   </div>
 </div>
 
+
+
+<!-- ======================================================= -->
+<!-- ============= MODAL ENCERRAR CONTRATO ================= -->
+<!-- ======================================================= -->
+<div id="modalEncerrar" 
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm 
+            flex items-center justify-center z-[9999]">
+
+  <div class="bg-white dark:bg-slate-900
+              border border-slate-300 dark:border-slate-700
+              rounded-xl shadow-2xl p-7 w-full max-w-md relative">
+
+    <button onclick="fecharModalEncerrar()"
+      class="absolute top-3 right-4 text-slate-600 dark:text-slate-400 text-xl">
+      &times;
+    </button>
+
+    <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-lock text-amber-600"></i>
+      Encerrar Contrato
+    </h2>
+
+    <p class="text-sm text-slate-700 dark:text-slate-300 mb-3">
+      Digite sua senha de administrador para confirmar.
+    </p>
+
+    <form id="formEncerrar">
+      <input type="hidden" id="encerrarId">
+
+      <label class="text-xs font-medium">Senha do Administrador</label>
+      <input type="password" id="senhaEncerrar"
+             class="w-full bg-slate-100 dark:bg-slate-800 
+                    border border-slate-300 dark:border-slate-700 
+                    p-3 rounded-lg text-sm mb-4" required>
+
+      <div class="flex justify-end gap-3">
+        <button type="button" onclick="fecharModalEncerrar()"
+          class="px-4 py-2 bg-slate-200 dark:bg-slate-700 
+                 hover:bg-slate-300 dark:hover:bg-slate-600 
+                 rounded-lg text-xs">
+          Cancelar
+        </button>
+
+        <button class="px-6 py-2 bg-amber-600 hover:bg-amber-700 
+                       text-white rounded-lg text-xs font-semibold">
+          Confirmar
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+
+
+<!-- ======================================================= -->
+<!-- ============= MODAL EXCLUIR CONTRATO ================== -->
+<!-- ======================================================= -->
+<div id="modalExcluir" 
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm 
+            flex items-center justify-center z-[9999]">
+
+  <div class="bg-white dark:bg-slate-900
+              border border-slate-300 dark:border-slate-700
+              rounded-xl shadow-2xl p-7 w-full max-w-md relative">
+
+    <button onclick="fecharModalExcluir()"
+      class="absolute top-3 right-4 text-slate-600 dark:text-slate-400 text-xl">
+      &times;
+    </button>
+
+    <h2 class="text-xl font-bold text-red-600 dark:text-red-400 mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-trash"></i>
+      Excluir Contrato
+    </h2>
+
+    <p class="text-sm text-slate-700 dark:text-slate-300 mb-3">
+      Tem certeza que deseja excluir este contrato permanentemente?
+    </p>
+
+    <form id="formExcluir">
+      <input type="hidden" id="excluirId">
+
+      <div class="flex justify-end gap-3 mt-4">
+        <button type="button" onclick="fecharModalExcluir()"
+          class="px-4 py-2 bg-slate-200 dark:bg-slate-700 
+                 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg text-xs">
+          Cancelar
+        </button>
+
+        <button class="px-6 py-2 bg-red-600 hover:bg-red-700 
+                       text-white rounded-lg text-xs font-semibold">
+          Excluir
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+<!-- ======================================================= -->
+<!-- ========================== JS ========================== -->
+<!-- ======================================================= -->
 <script>
-  function abrirModalContrato() {
-    modalContrato.classList.remove("hidden");
+  /* ======== MODAL NOVO CONTRATO ========= */
+  function abrirModalContrato() { 
+    document.getElementById("modalContrato").classList.remove("hidden"); 
+  }
+  function fecharModalContrato() { 
+    document.getElementById("modalContrato").classList.add("hidden"); 
   }
 
-  function fecharModalContrato() {
-    modalContrato.classList.add("hidden");
+
+  /* ======== MODAL ENCERRAR ========= */
+  function abrirModalEncerrar(id) {
+    document.getElementById("encerrarId").value = id;
+    document.getElementById("modalEncerrar").classList.remove("hidden");
   }
+  function fecharModalEncerrar() {
+    document.getElementById("modalEncerrar").classList.add("hidden");
+  }
+
+  document.getElementById("formEncerrar").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const id = document.getElementById("encerrarId").value;
+    const senha = document.getElementById("senhaEncerrar").value;
+
+    const res = await fetch(`/contracts/end/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ senha })
+    });
+
+    const r = await res.json();
+    if (!r.sucesso) return alert(r.mensagem);
+
+    location.reload();
+  });
+
+
+  /* ======== MODAL EXCLUIR ========= */
+  function abrirModalExcluir(id) {
+    document.getElementById("excluirId").value = id;
+    document.getElementById("modalExcluir").classList.remove("hidden");
+  }
+  function fecharModalExcluir() {
+    document.getElementById("modalExcluir").classList.add("hidden");
+  }
+
+  document.getElementById("formExcluir").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const id = document.getElementById("excluirId").value;
+
+    const res = await fetch(`/contracts/delete/${id}`, {
+      method: "POST"
+    });
+
+    const r = await res.json();
+    if (!r.sucesso) return alert(r.mensagem);
+
+    location.reload();
+  });
 </script>
 
 <style>

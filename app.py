@@ -64,8 +64,12 @@ class Contract(db.Model):
     description = db.Column(db.Text)
     start_date = db.Column(db.String(20))
     end_date = db.Column(db.String(20))
-    active = db.Column(db.Boolean, default=True)
+    
+    # Campo correto para controle do contrato
+    status = db.Column(db.String(20), default="ativo")  # <── AQUI
+
     company = db.relationship("Company")
+
 
 
 class ContractFile(db.Model):
@@ -216,16 +220,55 @@ def new_contract():
     db.session.commit()
 
     contract = Contract(
-        company_id=company.id,
-        description=request.form["desc"],
-        start_date=request.form["start"],
-        end_date=request.form["end"]
-    )
+    company_id=company.id,
+    description=request.form["desc"],
+    start_date=request.form["start"],
+    end_date=request.form["end"],
+    status="ativo"  # <── AQUI
+)
+
     db.session.add(contract)
     db.session.commit()
 
     flash("Contrato criado!", "success")
     return redirect("/contracts")
+
+# =====================================================
+# ENCERRAR CONTRATO (VALIDA SENHA DO ADMIN)
+# =====================================================
+@app.route("/contracts/end/<int:id>", methods=["POST"])
+@login_required
+def end_contract(id):
+    data = request.get_json()
+    senha = data.get("senha")
+
+    # Confirma senha do admin logado
+    if not check_password_hash(current_user.password, senha):
+        return jsonify({"sucesso": False, "mensagem": "Senha incorreta"})
+
+    contrato = Contract.query.get_or_404(id)
+    contrato.status = "encerrado"
+    db.session.commit()
+
+    return jsonify({"sucesso": True})
+
+# =====================================================
+# EXCLUIR CONTRATO (APENAS SE ENCERRADO)
+# =====================================================
+@app.route("/contracts/delete/<int:id>", methods=["POST"])
+@login_required
+def delete_contract(id):
+    contrato = Contract.query.get_or_404(id)
+
+    if contrato.status != "encerrado":
+        return jsonify({
+            "sucesso": False,
+            "mensagem": "Só é possível excluir contratos encerrados"
+        })
+
+    db.session.delete(contrato)
+    db.session.commit()
+    return jsonify({"sucesso": True})
 
 
 @app.route("/contract/<int:id>")

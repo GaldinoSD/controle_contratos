@@ -7,21 +7,37 @@
 
 <section class="mb-6 relative">
 
-  <div class="rounded-xl p-5 bg-slate-900/80 backdrop-blur-xl 
-              border border-slate-800 shadow-lg flex items-center gap-4 relative">
+  <div class="rounded-xl p-5 
+              bg-white/70 dark:bg-slate-900/80
+              backdrop-blur-xl border 
+              border-slate-300 dark:border-slate-800
+              shadow-lg flex items-center gap-4 relative">
 
-    <!-- Glow -->
-    <div class="absolute -top-7 -left-7 w-24 h-24 bg-blue-600/20 blur-2xl rounded-full"></div>
+    <div class="absolute -top-7 -left-7 w-24 h-24
+                bg-blue-400/10 dark:bg-blue-600/20
+                blur-2xl rounded-full"></div>
 
     <div class="relative flex items-center gap-4">
 
-      <div class="p-2.5 bg-blue-600/10 rounded-lg border border-blue-500/20">
-        <i class="fa-solid fa-list-check text-blue-400 text-xl"></i>
+      <div class="p-2.5 
+                  bg-blue-500/10 dark:bg-blue-600/10
+                  rounded-lg border 
+                  border-blue-300/40 dark:border-blue-500/20">
+        <i class="fa-solid fa-list-check
+                  text-blue-600 dark:text-blue-400
+                  text-xl"></i>
       </div>
 
       <div>
-        <h1 class="text-2xl font-bold text-white tracking-tight">Atividades Pendentes</h1>
-        <p class="text-xs text-slate-400 mt-1">Visualize e conclua suas tarefas</p>
+        <h1 class="text-2xl font-bold 
+                   text-slate-800 dark:text-white tracking-tight">
+          Atividades Pendentes
+        </h1>
+
+        <p class="text-xs mt-1
+                   text-slate-600 dark:text-slate-400">
+          Visualize e conclua suas tarefas
+        </p>
       </div>
 
     </div>
@@ -33,7 +49,7 @@
 
 
 <!-- ======================================================= -->
-<!-- ====================== GRID DE TAREFAS ================= -->
+<!-- ======================== GRID ========================== -->
 <!-- ======================================================= -->
 
 {% if tarefas %}
@@ -42,42 +58,65 @@
 
   {% for t in tarefas %}
   <div
-    class="relative bg-slate-900/60 backdrop-blur-xl rounded-xl border border-slate-800 
-           shadow-lg hover:shadow-2xl hover:-translate-y-[2px] transition-all duration-200 p-5">
+    class="relative rounded-xl p-5 
+           bg-white/90 dark:bg-slate-900/60
+           backdrop-blur-xl border 
+           border-slate-300 dark:border-slate-800
+           shadow-lg hover:shadow-2xl hover:-translate-y-[2px]
+           transition-all duration-200">
 
-    <!-- Luz interna -->
-    <div class="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent 
-                to-slate-900/20 pointer-events-none rounded-xl"></div>
+    <!-- Glow interno -->
+    <div class="absolute inset-0 
+                bg-gradient-to-br 
+                from-blue-500/10 dark:from-blue-600/10
+                via-transparent 
+                to-slate-300/30 dark:to-slate-900/20
+                pointer-events-none rounded-xl"></div>
 
     <div class="relative z-10">
 
       <!-- EMPRESA -->
-      <h2 class="text-base font-semibold text-white flex items-center gap-2">
-        <i class="fa-solid fa-building text-blue-300"></i>
+      <h2 class="text-base font-semibold flex items-center gap-2
+                 text-slate-800 dark:text-white">
+        <i class="fa-solid fa-building
+                  text-blue-600 dark:text-blue-300"></i>
         {{ t.contract.company.name }}
       </h2>
 
-      <p class="text-xs text-slate-400">CNPJ: {{ t.contract.company.cnpj }}</p>
-      <p class="text-[11px] text-slate-500 mt-1">
+      <p class="text-xs text-slate-600 dark:text-slate-400">
+        CNPJ: {{ t.contract.company.cnpj }}
+      </p>
+
+      <p class="text-[11px] mt-1
+                text-slate-500 dark:text-slate-500">
         Vigência: {{ t.contract.start_date }} → {{ t.contract.end_date }}
       </p>
 
-      <hr class="my-3 border-slate-800">
+      <hr class="my-3 border-slate-300 dark:border-slate-800">
 
       <!-- TAREFA -->
-      <h3 class="text-lg font-bold text-white">{{ t.title }}</h3>
+      <h3 class="text-lg font-bold
+                 text-slate-800 dark:text-white">
+        {{ t.title }}
+      </h3>
 
-      <p class="text-slate-300 mt-1 text-sm leading-relaxed">
+      <p class="mt-1 text-sm leading-relaxed
+                text-slate-700 dark:text-slate-300">
         {{ t.description or "Sem descrição adicional." }}
       </p>
 
-      <p class="mt-2 text-xs text-slate-400 flex items-center gap-2">
-        <i class="fa-regular fa-calendar text-slate-300"></i>
+      <p class="mt-2 text-xs flex items-center gap-2
+                text-slate-600 dark:text-slate-400">
+        <i class="fa-regular fa-calendar
+                  text-slate-700 dark:text-slate-300"></i>
         Prazo: {{ t.due_date }}
       </p>
 
 
-      <!-- FORMULÁRIO DE CONCLUSÃO -->
+      <!-- ======================================================= -->
+      <!-- =================== FORM DE CONCLUSÃO ================== -->
+      <!-- ======================================================= -->
+
       <form 
         action="/task/complete/{{ t.id }}" 
         method="POST" 
@@ -86,24 +125,42 @@
 
         <!-- DESCRIÇÃO -->
         <div>
-          <label class="text-slate-300 text-xs font-medium">Descreva o que foi feito</label>
+          <label class="text-xs font-medium
+                        text-slate-700 dark:text-slate-300">
+            Descreva o que foi feito
+          </label>
+
           <textarea name="note" required
-            class="w-full border border-slate-700 rounded-lg p-2 text-xs bg-slate-800/50 text-slate-200 
-                   focus:ring-2 focus:ring-blue-400 focus:outline-none backdrop-blur-sm"></textarea>
+            class="w-full p-2 text-xs rounded-lg 
+                   bg-white dark:bg-slate-800/50
+                   text-slate-900 dark:text-slate-200
+                   border border-slate-400 dark:border-slate-700
+                   focus:ring-2 focus:ring-blue-400 focus:outline-none"></textarea>
         </div>
 
         <!-- ANEXO -->
         <div>
-          <label class="text-slate-300 text-xs font-medium">Anexo (opcional)</label>
+          <label class="text-xs font-medium
+                        text-slate-700 dark:text-slate-300">
+            Anexo (opcional)
+          </label>
+
           <input type="file" name="file"
-            class="w-full border border-slate-700 rounded-lg p-2 text-xs bg-slate-800/50 text-slate-200 
-                   cursor-pointer focus:outline-none backdrop-blur-sm">
+            class="w-full p-2 text-xs rounded-lg cursor-pointer
+                   bg-white dark:bg-slate-800/50
+                   text-slate-900 dark:text-slate-200
+                   border border-slate-400 dark:border-slate-700
+                   focus:outline-none">
         </div>
 
         <!-- BOTÃO -->
         <button
-          class="w-full bg-emerald-600/80 hover:bg-emerald-700 text-white rounded-lg py-2 
-                 font-semibold text-sm shadow-lg transition flex items-center justify-center gap-2">
+          class="w-full py-2 rounded-lg text-sm font-semibold shadow-lg
+                 flex items-center justify-center gap-2
+                 text-white
+                 bg-emerald-600 hover:bg-emerald-700
+                 dark:bg-emerald-600/80 dark:hover:bg-emerald-700
+                 transition">
           <i class="fa-solid fa-check"></i>
           Concluir
         </button>
@@ -113,14 +170,15 @@
     </div>
 
   </div>
-
   {% endfor %}
 
 </div>
 
 
+
 {% else %}
-  <p class="text-center text-slate-400 mt-10 text-sm">
+  <p class="text-center mt-10 text-sm
+            text-slate-600 dark:text-slate-400">
     Nenhuma atividade pendente no momento.
   </p>
 {% endif %}
