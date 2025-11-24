@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <title>Login - Sistema de Contratos</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="h-full flex items-center justify-center 
+             bg-gradient-to-br from-gray-100 via-gray-50 to-white
+             relative overflow-hidden">
+
+  <!-- EFEITO DE LUZ SUAVE -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-20 -left-20 w-96 h-96 bg-blue-300/20 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 right-0 w-80 h-80 bg-purple-300/20 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- CARD -->
+  <form action="/login" method="POST"
+        class="relative z-10 w-full max-w-md bg-white
+               shadow-xl rounded-2xl p-10 border border-gray-200">
+
+    <!-- LOGO -->
+    <div class="w-full flex justify-center mb-6">
+      <img src="{{ url_for('static', filename='logo.png') }}" 
+           alt="Logo" class="w-24 h-24 object-contain opacity-90">
+    </div>
+
+    <!-- TÍTULO DISCRETO -->
+    <h1 class="text-xl font-semibold text-gray-700 text-center mb-6">
+      <i class="fa-solid fa-user-shield mr-2 text-blue-600"></i>
+      Acesso ao Sistema
+    </h1>
+
+    <!-- CAMPO EMAIL -->
+    <div class="mb-5">
+      <label class="text-gray-700 text-sm font-semibold">E-mail</label>
+      <div class="flex items-center mt-1 bg-white border border-gray-300 rounded-lg px-4 py-3 shadow-sm">
+        <i class="fa-solid fa-envelope text-gray-500 mr-3"></i>
+        <input name="email"
+               class="bg-transparent w-full text-gray-700 placeholder-gray-400 focus:outline-none"
+               placeholder="Digite seu e-mail" required>
+      </div>
+    </div>
+
+    <!-- CAMPO SENHA -->
+    <div class="mb-8">
+      <label class="text-gray-700 text-sm font-semibold">Senha</label>
+      <div class="flex items-center mt-1 bg-white border border-gray-300 rounded-lg px-4 py-3 shadow-sm">
+        <i class="fa-solid fa-lock text-gray-500 mr-3"></i>
+        <input name="password" type="password"
+               class="bg-transparent w-full text-gray-700 placeholder-gray-400 focus:outline-none"
+               placeholder="Digite sua senha" required>
+      </div>
+    </div>
+
+    <!-- BOTÃO -->
+    <button class="w-full py-3 rounded-xl font-semibold text-white text-lg
+                   bg-blue-600 hover:bg-blue-700 shadow-md
+                   transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95">
+      Entrar
+    </button>
+
+    <!-- ALERTA SOMENTE DE LOGIN -->
+    {% with mensagens = get_flashed_messages(with_categories=True) %}
+      {% if mensagens %}
+        {% for categoria, msg in mensagens %}
+          {% if categoria == 'login' %}
+            <p class="text-red-600 text-center mt-4 font-medium">
+              {{ msg }}
+            </p>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+  </form>
+
+</body>
+</html>

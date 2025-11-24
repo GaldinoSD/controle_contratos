@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ======================================================= -->
+<!-- ================= BARRA SUPERIOR PROFISSIONAL ========= -->
+<!-- ======================================================= -->
+
+<div class="w-full mb-10">
+  <div class="w-full bg-white shadow-lg border-b border-gray-200 
+              rounded-xl px-8 py-5 flex items-center justify-between">
+
+    <!-- ESQUERDA -->
+    <div class="flex items-center gap-4">
+
+      <span class="p-3 bg-blue-600/15 text-blue-700 rounded-xl border border-blue-300/40">
+        <i class="fa-solid fa-user-group text-2xl"></i>
+      </span>
+
+      <div>
+        <h1 class="text-3xl font-extrabold text-gray-800 tracking-tight">
+          Colaboradores
+        </h1>
+        <p class="text-sm text-gray-500">
+          Gerencie todos os colaboradores cadastrados no sistema.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- DIREITA -->
+    <button onclick="abrirModalColab()"
+      class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow flex items-center gap-2 transition">
+      <i class="fa-solid fa-user-plus"></i>
+      Novo Colaborador
+    </button>
+
+  </div>
+</div>
+
+
+<!-- ======================================================= -->
+<!-- ===================== GRID DE CARDS ==================== -->
+<!-- ======================================================= -->
+
+{% if colaboradores %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
+
+  {% for c in colaboradores %}
+  <div class="bg-white shadow-lg rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl transition">
+
+    <!-- TOPO COM GRADIENTE -->
+    <div class="p-6 text-white"
+         style="background: linear-gradient(135deg, #2563eb, #1e3a8a);">
+
+      <div class="flex flex-col items-center">
+
+        <!-- AVATAR -->
+        <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-3xl font-bold shadow-md">
+          {{ c.nome.split()[0][0] }}{{ c.nome.split()[-1][0] }}
+        </div>
+
+        <h3 class="text-lg font-semibold mt-3">{{ c.nome }}</h3>
+        <p class="text-sm text-blue-100">{{ c.funcao }}</p>
+
+        <span class="mt-3 px-3 py-1 text-xs bg-white/20 border border-white/30 rounded-md">
+          MATRÍCULA: {{ c.matricula }}
+        </span>
+
+      </div>
+    </div>
+
+    <!-- CORPO DO CARD -->
+    <div class="p-5 text-gray-700 text-sm space-y-3">
+
+      <p><strong>Setor:</strong> {{ c.setor }}</p>
+
+      <p><strong>E-mail:</strong> {{ c.email or "-" }}</p>
+
+      <p><strong>Telefone:</strong> {{ c.telefone or "-" }}</p>
+
+      <p>
+        <strong>Status:</strong>
+        {% if c.ativo %}
+          <span class="text-green-600 font-bold">Ativo</span>
+        {% else %}
+          <span class="text-red-600 font-bold">Inativo</span>
+        {% endif %}
+      </p>
+
+      <!-- BOTÕES -->
+      <div class="flex justify-end pt-3">
+        <button onclick="abrirModalEditar('{{ c.id }}')"
+                class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 shadow flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square"></i> Editar
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<p class="text-gray-500 italic text-center mt-10">Nenhum colaborador cadastrado.</p>
+{% endif %}
+
+
+<!-- ======================================================= -->
+<!-- ===================== MODAL NOVO ======================= -->
+<!-- ======================================================= -->
+
+<div id="modalColaborador"
+     class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+
+  <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 w-full max-w-2xl relative animate-fadeIn">
+
+    <!-- BOTÃO FECHAR -->
+    <button onclick="fecharModalColab()"
+      class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+      <i class="fa-solid fa-user-plus text-blue-600"></i>
+      Novo Colaborador
+    </h2>
+
+    <form action="/colaboradores/salvar" method="POST" enctype="multipart/form-data"
+          class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <div>
+        <label class="font-semibold text-gray-700">Matrícula</label>
+        <input name="matricula" class="w-full p-2 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Nome Completo</label>
+        <input name="nome" class="w-full p-2 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">E-mail</label>
+        <input name="email" type="email" class="w-full p-2 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Telefone</label>
+        <input name="telefone" class="w-full p-2 border border-gray-300 rounded-lg">
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Setor</label>
+        <input name="setor" class="w-full p-2 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Função</label>
+        <input name="funcao" class="w-full p-2 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Senha de Acesso</label>
+        <input type="password" name="password"
+               class="w-full p-2 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div class="col-span-2">
+        <label class="font-semibold text-gray-700">Foto (opcional)</label>
+        <input type="file" name="foto" class="w-full p-2 border border-gray-300 rounded-lg">
+      </div>
+
+      <div class="col-span-2 flex justify-end gap-4 mt-4">
+        <button type="button" onclick="fecharModalColab()"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2 rounded-lg font-medium">
+          Cancelar
+        </button>
+
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-7 py-2 rounded-lg font-semibold shadow">
+          Salvar
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+
+<!-- ======================================================= -->
+<!-- ===================== MODAL EDITAR ===================== -->
+<!-- ======================================================= -->
+
+{% for c in colaboradores %}
+<div id="modalEditar{{ c.id }}"
+     class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+
+  <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 w-full max-w-2xl relative animate-fadeIn">
+
+    <!-- FECHAR -->
+    <button onclick="fecharModalEditar('{{ c.id }}')"
+      class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+      <i class="fa-solid fa-pen-to-square text-blue-600"></i>
+      Editar Colaborador
+    </h2>
+
+    <!-- FORMULÁRIO EDITAR -->
+    <form action="/colaboradores/editar/{{ c.id }}" method="POST" enctype="multipart/form-data"
+          class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <div>
+        <label class="font-semibold text-gray-700">Matrícula</label>
+        <input name="matricula" value="{{ c.matricula }}" class="w-full p-2 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Nome Completo</label>
+        <input name="nome" value="{{ c.nome }}" class="w-full p-2 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">E-mail</label>
+        <input name="email" type="email" value="{{ c.email }}" class="w-full p-2 border border-gray-300 rounded-lg">
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Telefone</label>
+        <input name="telefone" value="{{ c.telefone }}" class="w-full p-2 border border-gray-300 rounded-lg">
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Setor</label>
+        <input name="setor" value="{{ c.setor }}" class="w-full p-2 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Função</label>
+        <input name="funcao" value="{{ c.funcao }}" class="w-full p-2 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div class="col-span-2">
+        <label class="font-semibold text-gray-700">Nova foto (opcional)</label>
+        <input type="file" name="foto" class="w-full p-2 border border-gray-300 rounded-lg">
+      </div>
+
+      <div class="col-span-2 flex justify-end mt-6">
+        <button class="px-7 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow font-semibold">
+          Salvar Alterações
+        </button>
+      </div>
+
+    </form>
+
+    <!-- FORMULÁRIO EXCLUSÃO -->
+    <form action="/colaboradores/excluir/{{ c.id }}" 
+          method="POST"
+          onsubmit="return confirm('Tem certeza que deseja remover este colaborador?');"
+          class="mt-4 flex justify-start">
+
+      <button class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow">
+        <i class="fa-solid fa-trash"></i> Excluir Colaborador
+      </button>
+
+    </form>
+
+  </div>
+</div>
+{% endfor %}
+
+
+<!-- ===================== JS ===================== -->
+<script>
+  function abrirModalColab() {
+    document.getElementById("modalColaborador").classList.remove("hidden");
+  }
+  function fecharModalColab() {
+    document.getElementById("modalColaborador").classList.add("hidden");
+  }
+
+  function abrirModalEditar(id) {
+    document.getElementById("modalEditar" + id).classList.remove("hidden");
+  }
+  function fecharModalEditar(id) {
+    document.getElementById("modalEditar" + id).classList.add("hidden");
+  }
+</script>
+
+<!-- ===================== ANIMAÇÃO ===================== -->
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-fadeIn {
+  animation: fadeIn .25s ease-out;
+}
+</style>
+
+{% endblock %}

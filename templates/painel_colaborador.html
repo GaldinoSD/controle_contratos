@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- =============================================== -->
+<!-- TÍTULO PADRÃO PROFISSIONAL (SEM GRADIENTE) -->
+<!-- =============================================== -->
+<section class="mb-8">
+
+  <div class="relative overflow-hidden rounded-2xl p-6 shadow-lg border border-gray-200 bg-white">
+
+    <div class="relative z-10">
+      <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3 mb-1">
+
+        <span class="p-2.5 bg-blue-600/15 rounded-xl border border-blue-500/20">
+          <i class="fa-solid fa-list-check text-blue-600 text-2xl"></i>
+        </span>
+
+        Atividades Pendentes
+      </h1>
+
+      <p class="text-gray-500 text-sm">
+        Visualize e conclua suas tarefas atribuídas.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =============================================== -->
+<!-- LISTA DE TAREFAS -->
+<!-- =============================================== -->
+
+{% if tarefas %}
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+  {% for t in tarefas %}
+  <div class="bg-white shadow-md rounded-xl p-6 border border-gray-200 hover:shadow-lg transition">
+
+    <!-- Empresa -->
+    <h2 class="text-lg font-bold text-gray-800">
+      {{ t.contract.company.name }}
+    </h2>
+
+    <p class="text-sm text-gray-600">CNPJ: {{ t.contract.company.cnpj }}</p>
+
+    <p class="text-xs text-gray-500 mt-1">
+      Vigência: {{ t.contract.start_date }} até {{ t.contract.end_date }}
+    </p>
+
+    <hr class="my-4 border-gray-300">
+
+    <!-- Tarefa -->
+    <h3 class="text-xl font-semibold text-gray-800">{{ t.title }}</h3>
+
+    <p class="text-gray-600 mt-2 text-sm">
+      {{ t.description or "Sem descrição" }}
+    </p>
+
+    <p class="mt-3 text-sm text-gray-500">
+      <i class="fa-regular fa-calendar"></i>
+      Prazo: {{ t.due_date }}
+    </p>
+
+    <!-- Form -->
+    <form action="/task/complete/{{ t.id }}" 
+          method="POST" 
+          enctype="multipart/form-data"
+          class="mt-5 space-y-3">
+
+      <div>
+        <label class="text-gray-700 text-sm font-medium">Descreva o que foi feito</label>
+        <textarea name="note" required
+          class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring focus:ring-blue-200"></textarea>
+      </div>
+
+      <div>
+        <label class="text-gray-700 text-sm font-medium">Anexo (opcional)</label>
+        <input type="file" name="file"
+          class="w-full border border-gray-300 rounded-lg p-2 text-sm cursor-pointer">
+      </div>
+
+      <button class="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg py-2 font-semibold shadow">
+        ✔️ Concluir Tarefa
+      </button>
+
+    </form>
+
+  </div>
+  {% endfor %}
+
+</div>
+
+{% else %}
+<p class="text-center text-gray-500 mt-10 text-lg">
+  Nenhuma atividade pendente no momento.
+</p>
+{% endif %}
+
+{% endblock %}

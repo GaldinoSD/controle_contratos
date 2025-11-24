@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pt-BR" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <title>{{ title or 'Sistema de Contratos' }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Ícones -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<style>
+
+  /* ======================================================
+     TOOLTIP FIXO - NÃO CORTA E NÃO QUEBRA
+  ====================================================== */
+  .tooltip {
+    position: fixed !important;
+    left: 90px !important;
+    background: #1f2937;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(-50%);
+    transition: 0.2s ease-in-out;
+    pointer-events: none;
+    z-index: 99999 !important;
+  }
+
+  .group:hover .tooltip {
+    opacity: 1;
+  }
+
+
+  /* ======================================================
+     SIDEBAR FIXO E ESTÁVEL
+  ====================================================== */
+  #sidebar {
+    width: 260px !important;
+    flex: 0 0 260px !important;
+    background: #111827;
+    color: #e5e7eb;
+    transition: width .25s ease-in-out;
+    overflow: visible !important;
+    position: relative;
+    z-index: 50;
+  }
+
+  #sidebar.collapsed {
+    width: 80px !important;
+    flex: 0 0 80px !important;
+  }
+
+  /* Nada expande o sidebar */
+  #sidebar * {
+    max-width: 100% !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .menu-item,
+  .group {
+    overflow: visible !important;
+  }
+
+
+  /* ======================================================
+     CONTEÚDO — SCROLLA MAS O SIDEBAR NÃO
+  ====================================================== */
+  main {
+    overflow-y: auto;
+    height: 100vh;
+  }
+
+</style>
+
+</head>
+
+<body class="bg-gray-100">
+
+<div class="flex h-full">
+
+  <!-- ======================================================
+       SIDEBAR
+  ====================================================== -->
+  <aside id="sidebar"
+         class="min-h-screen p-6 flex flex-col relative">
+
+    <!-- LOGO + BOTÃO -->
+    <div class="flex flex-col items-center mb-8 mt-2">
+
+      <!-- Botão toggle -->
+      <button onclick="toggleSidebar()"
+        class="absolute top-6 right-0 translate-x-1/2
+               bg-gray-900 border border-gray-700
+               text-white rounded-full p-3 shadow-lg
+               hover:bg-gray-800 transition">
+        <i class="fa-solid fa-bars text-lg"></i>
+      </button>
+
+      <img id="logoFull"
+           src="{{ url_for('static', filename='logo.png') }}"
+           class="w-16 h-16 object-contain mb-2">
+
+      <img id="logoMini"
+           src="{{ url_for('static', filename='logo.png') }}"
+           class="w-10 h-10 object-contain mb-2 hidden">
+    </div>
+
+    <!-- ======================================================
+         MENU
+    ====================================================== -->
+    <nav class="flex flex-col space-y-4 text-lg">
+
+      {% if current_user.is_authenticated %}
+
+      {% if current_user.role == 'admin' %}
+
+      <!-- DASHBOARD -->
+      <div class="relative group menu-item">
+        <a href="/" class="hover:text-white flex items-center gap-4">
+          <i class="fa-solid fa-chart-line text-xl"></i>
+          <span class="sidebar-text">Dashboard</span>
+        </a>
+        <span class="tooltip">Dashboard</span>
+      </div>
+
+      <!-- CONTRATOS -->
+      <div class="relative group menu-item">
+        <a href="/contracts" class="hover:text-white flex items-center gap-4">
+          <i class="fa-regular fa-folder-open text-xl"></i>
+          <span class="sidebar-text">Contratos</span>
+        </a>
+        <span class="tooltip">Contratos</span>
+      </div>
+
+      <!-- ATIVIDADES -->
+      <div class="relative group menu-item">
+        <a href="/atividades" class="hover:text-white flex items-center gap-4">
+          <i class="fa-solid fa-list-check text-xl"></i>
+          <span class="sidebar-text">Atividades</span>
+        </a>
+        <span class="tooltip">Atividades</span>
+      </div>
+
+      <!-- CONFIGURAÇÕES ADM -->
+      <div class="menu-item">
+        <button onclick="toggleConfig()"
+          class="w-full text-left hover:text-white flex items-center justify-between pr-2">
+          <span class="flex items-center gap-4">
+            <i class="fa-solid fa-gear text-xl"></i>
+            <span class="sidebar-text">Configurações</span>
+          </span>
+          <i id="iconConfig" class="fa-solid fa-chevron-down text-sm transition-all"></i>
+        </button>
+
+        <div id="submenuConfig"
+             class="ml-10 mt-2 space-y-2 hidden">
+
+          <a href="/colaboradores" class="hover:text-white flex items-center gap-2 menu-item">
+            <i class="fa-solid fa-users text-sm"></i>
+            <span class="sidebar-text">Colaboradores</span>
+          </a>
+
+          <a href="/administradores" class="hover:text-white flex items-center gap-2 menu-item">
+            <i class="fa-solid fa-user-shield text-sm"></i>
+            <span class="sidebar-text">Administradores</span>
+          </a>
+
+        </div>
+      </div>
+
+      {% else %}
+      <!-- ======================================================
+           MENU COLABORADOR
+      ====================================================== -->
+
+      <div class="relative group menu-item">
+        <a href="/painel-colaborador"
+          class="hover:text-white flex items-center gap-4">
+          <i class="fa-solid fa-list-check text-xl"></i>
+          <span class="sidebar-text">Minhas Atividades</span>
+        </a>
+        <span class="tooltip">Minhas Atividades</span>
+      </div>
+
+      <!-- ALTERAR SENHA SOMENTE PARA COLABORADOR -->
+      <div class="relative group menu-item">
+        <button onclick="abrirModalSenha()"
+          class="hover:text-white flex items-center gap-4">
+          <i class="fa-solid fa-key text-xl"></i>
+          <span class="sidebar-text">Alterar Senha</span>
+        </button>
+        <span class="tooltip">Alterar Senha</span>
+      </div>
+
+      {% endif %}
+      {% endif %}
+
+    </nav>
+
+    <!-- ===================== SAIR ===================== -->
+    <div class="mt-auto text-center">
+
+      <div class="relative group menu-item mb-6">
+        <a href="/logout" class="hover:text-red-400 flex items-center gap-4 justify-center">
+          <i class="fa-solid fa-arrow-right-from-bracket text-xl"></i>
+          <span class="sidebar-text">Sair</span>
+        </a>
+        <span class="tooltip">Sair</span>
+      </div>
+
+      <span class="sidebar-text text-xs tracking-wide opacity-70 block">
+        Controle de Contratos
+      </span>
+
+    </div>
+
+  </aside>
+
+  <!-- ===================== CONTEÚDO ===================== -->
+  <main class="flex-1 p-10">
+    {% block content %}{% endblock %}
+  </main>
+
+</div>
+
+<!-- ========================= JS ========================= -->
+<script>
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const logoFull = document.getElementById("logoFull");
+    const logoMini = document.getElementById("logoMini");
+
+    sidebar.classList.toggle("collapsed");
+
+    if (sidebar.classList.contains("collapsed")) {
+      logoFull.classList.add("hidden");
+      logoMini.classList.remove("hidden");
+
+      document.querySelectorAll(".sidebar-text").forEach(el =>
+        el.classList.add("hidden")
+      );
+
+    } else {
+      logoFull.classList.remove("hidden");
+      logoMini.classList.add("hidden");
+
+      document.querySelectorAll(".sidebar-text").forEach(el =>
+        el.classList.remove("hidden")
+      );
+    }
+  }
+
+  function toggleConfig() {
+    const submenu = document.getElementById("submenuConfig");
+    const icon = document.getElementById("iconConfig");
+
+    submenu.classList.toggle("hidden");
+    icon.classList.toggle("rotate-180");
+  }
+
+</script>
+
+</body>
+</html>

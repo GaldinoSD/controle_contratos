@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="text-3xl font-semibold mb-6">Alterar Senha</h1>
+
+<form method="POST" class="max-w-md bg-white p-8 rounded-xl shadow border mx-auto">
+
+  <label class="block mb-2 text-gray-700 font-semibold">Nova senha</label>
+  <input type="password" name="nova" class="w-full p-3 border rounded-lg mb-6" required>
+
+  <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg">
+    Atualizar senha
+  </button>
+
+</form>
+
+{% endblock %}

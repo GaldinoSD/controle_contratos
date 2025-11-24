@@ -1,0 +1,50 @@
+<div class="p-6">
+  <h2 class="text-xl font-bold mb-4">Alterar Senha</h2>
+
+  <form id="formAlterarSenha" class="space-y-4">
+
+    <div>
+      <label class="font-semibold text-sm">Senha atual</label>
+      <input type="password" name="senha_atual" class="w-full border p-2 rounded" required>
+    </div>
+
+    <div>
+      <label class="font-semibold text-sm">Nova senha</label>
+      <input type="password" name="nova_senha" class="w-full border p-2 rounded" required>
+    </div>
+
+    <div>
+      <label class="font-semibold text-sm">Confirmar nova senha</label>
+      <input type="password" name="confirmar_senha" class="w-full border p-2 rounded" required>
+    </div>
+
+    <p id="msgErro" class="text-red-600 text-sm"></p>
+
+    <button class="bg-blue-600 text-white px-4 py-2 rounded w-full">
+      Atualizar Senha
+    </button>
+
+  </form>
+</div>
+
+<script>
+document.getElementById("formAlterarSenha").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const form = new FormData(e.target);
+
+    const resp = await fetch("/alterar-senha", {
+        method: "POST",
+        body: form
+    });
+
+    const data = await resp.json();
+
+    if (data.erro) {
+        document.getElementById("msgErro").textContent = data.erro;
+    } else {
+        alert(data.sucesso);
+        fecharModalSenha();
+    }
+});
+</script>

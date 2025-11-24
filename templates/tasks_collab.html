@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="text-3xl font-semibold mb-6">Atividades Pendentes</h1>
+
+<ul class="space-y-5">
+  {% for t in tasks %}
+  <li class="bg-white p-6 rounded-xl shadow border">
+
+    <h2 class="text-xl font-bold">{{ t.title }}</h2>
+    <p class="text-gray-600">Contrato: {{ t.contract.company.name }}</p>
+    <p class="mt-2">{{ t.description }}</p>
+    <p class="text-sm text-gray-500 mt-1">
+      <i class="fa-regular fa-calendar"></i> Entrega: {{ t.due_date }}
+    </p>
+
+    <form action="/task/complete/{{ t.id }}" method="POST" enctype="multipart/form-data"
+          class="mt-5 grid grid-cols-1 gap-3">
+
+      <textarea name="note" required class="border rounded-lg p-3"
+                placeholder="Descreva o que foi realizado"></textarea>
+
+      <input type="file" name="file" class="border p-2 rounded-lg bg-gray-50">
+
+      <button class="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg">
+        Marcar como concluída
+      </button>
+    </form>
+
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

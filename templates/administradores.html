@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="space-y-8">
+
+  <!-- FAIXA TOPO DIRETORIA -->
+  <section class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 
+                  text-white rounded-3xl p-8 shadow-2xl border border-slate-700 mb-4">
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      
+      <!-- ESQUERDA -->
+      <div>
+        <div class="flex items-center gap-4 mb-2">
+          <span class="p-4 bg-blue-600/30 border border-blue-400/50 rounded-2xl shadow-lg">
+            <i class="fa-solid fa-user-shield text-3xl text-blue-100"></i>
+          </span>
+          <div>
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">
+              Área da Diretoria
+            </h1>
+            <p class="text-sm text-slate-200/80 mt-1">
+              Gerenciamento de contas administrativas com acesso total ao sistema.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 text-xs text-slate-200/80 mt-2">
+          <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full 
+                       bg-blue-500/20 border border-blue-300/40">
+            <i class="fa-solid fa-crown text-yellow-300"></i>
+            Diretoria &amp; Administração
+          </span>
+
+          <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full 
+                       bg-emerald-500/15 border border-emerald-400/40">
+            <i class="fa-solid fa-user-tie"></i>
+            {{ admins|length }} administrador{{ 'es' if admins|length != 1 else '' }} ativo{{ 's' if admins|length != 1 else '' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- DIREITA -->
+      <div class="flex flex-col items-start md:items-end gap-3">
+
+        <button onclick="abrirModalNovoAdmin()"
+                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 
+                       text-white font-semibold px-6 py-3 rounded-xl shadow-xl flex items-center gap-2">
+          <i class="fa-solid fa-user-plus"></i>
+          Novo Administrador
+        </button>
+
+        <p class="text-[11px] text-slate-300/80 mt-1">
+          Recomenda-se manter apenas contas essenciais com perfil de diretoria.
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- LISTA EM CARDS ======================== -->
+  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+
+    {% for admin in admins %}
+    <div class="relative p-6 rounded-2xl shadow-xl border border-slate-200 
+                bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-200">
+
+      <!-- FITA SUPER ADMIN -->
+      {% if admin.email == 'admin@admin.com' %}
+      <div class="absolute -top-2 -right-2">
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px]
+                     bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-900 shadow-md border border-yellow-300">
+          <i class="fa-solid fa-crown"></i>
+          Super Admin
+        </span>
+      </div>
+      {% else %}
+      <div class="absolute -top-2 -right-2">
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px]
+                     bg-slate-900 text-slate-100 shadow-md border border-slate-700">
+          <i class="fa-solid fa-user-tie"></i>
+          Diretoria
+        </span>
+      </div>
+      {% endif %}
+
+      <!-- Topo do Card -->
+      <div class="flex items-center gap-5 mb-5">
+
+        <!-- Avatar / Iniciais -->
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-400
+                    flex items-center justify-center shadow-lg border border-blue-200">
+          <span class="text-white text-2xl font-bold">
+            {{ admin.name[0:2] | upper }}
+          </span>
+        </div>
+
+        <div class="flex-1">
+          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+            {{ admin.name }}
+          </h2>
+          <p class="text-gray-500 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-envelope text-gray-400"></i>
+            {{ admin.email }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Linha Gold -->
+      <div class="h-[2px] bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full mb-4"></div>
+
+      <!-- Informações extras -->
+      <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-blue-500"></i>
+          <span>Acesso total ao painel administrativo</span>
+        </div>
+      </div>
+
+      <!-- Ações -->
+      <div class="flex justify-between mt-4 gap-3">
+
+        <button 
+          onclick="abrirModalEditarAdmin(this)"
+          data-id="{{ admin.id }}"
+          data-nome="{{ admin.name }}"
+          data-email="{{ admin.email }}"
+          class="flex-1 px-4 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 shadow flex items-center justify-center gap-2 text-sm font-medium">
+          <i class="fa-solid fa-pen"></i> Editar
+        </button>
+
+        <button 
+          onclick="abrirModalExcluirAdmin({{ admin.id }})"
+          class="flex-1 px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 shadow flex items-center justify-center gap-2 text-sm font-medium">
+          <i class="fa-solid fa-trash"></i> Excluir
+        </button>
+
+      </div>
+
+    </div>
+    {% endfor %}
+
+    {% if admins|length == 0 %}
+      <div class="col-span-full text-center text-gray-500 py-16 border-2 border-dashed border-gray-200 rounded-2xl bg-white">
+        <i class="fa-solid fa-user-shield text-4xl text-gray-300 mb-4"></i>
+        <p class="text-lg font-medium mb-2">Nenhum administrador cadastrado.</p>
+        <p class="text-sm text-gray-400 mb-4">Comece cadastrando o primeiro membro da diretoria.</p>
+        <button onclick="abrirModalNovoAdmin()"
+                class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 shadow">
+          <i class="fa-solid fa-user-plus"></i> Cadastrar Administrador
+        </button>
+      </div>
+    {% endif %}
+
+  </section>
+
+</div>
+
+
+
+<!-- ================= MODAL NOVO ADMIN ================= -->
+<div id="modalNovoAdmin"
+     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full border border-gray-200 relative">
+
+    <button class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl"
+            onclick="fecharModalNovoAdmin()">&times;</button>
+
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-3">
+      <span class="p-2 rounded-xl bg-blue-50 border border-blue-100">
+        <i class="fa-solid fa-user-plus text-blue-600"></i>
+      </span>
+      Novo Administrador
+    </h2>
+
+    <form method="POST" action="/administradores/salvar" class="space-y-4">
+
+      <div>
+        <label class="text-gray-700 font-medium text-sm">Nome completo</label>
+        <input type="text" name="nome" required
+               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300">
+      </div>
+
+      <div>
+        <label class="text-gray-700 font-medium text-sm">E-mail corporativo</label>
+        <input type="email" name="email" required
+               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300">
+      </div>
+
+      <div>
+        <label class="text-gray-700 font-medium text-sm">Senha inicial</label>
+        <input type="password" name="senha" required
+               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300">
+        <p class="text-[11px] text-gray-400 mt-1">
+          O administrador poderá alterar essa senha posteriormente.
+        </p>
+      </div>
+
+      <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 
+                     text-white py-2.5 rounded-lg shadow font-semibold">
+        Salvar
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+
+
+<!-- ================= MODAL EDITAR ================= -->
+<div id="modalEditarAdmin"
+     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full border border-gray-200 relative">
+
+    <button class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl"
+            onclick="fecharModalEditarAdmin()">&times;</button>
+
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-3">
+      <span class="p-2 rounded-xl bg-blue-50 border border-blue-100">
+        <i class="fa-solid fa-user-pen text-blue-600"></i>
+      </span>
+      Editar Administrador
+    </h2>
+
+    <form method="POST" id="formEditarAdmin" class="space-y-4">
+
+      <div>
+        <label class="text-gray-700 font-medium text-sm">Nome</label>
+        <input id="editar_nome" type="text" name="nome" required
+               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300">
+      </div>
+
+      <div>
+        <label class="text-gray-700 font-medium text-sm">E-mail</label>
+        <input id="editar_email" type="email" name="email" required
+               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300">
+      </div>
+
+      <div>
+        <label class="text-gray-700 font-medium text-sm">Nova Senha (opcional)</label>
+        <input type="password" name="senha"
+               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-200">
+        <p class="text-[11px] text-gray-400 mt-1">
+          Deixe em branco caso não deseje alterar a senha.
+        </p>
+      </div>
+
+      <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 
+                     text-white py-2.5 rounded-lg shadow font-semibold">
+        Atualizar
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+
+
+<!-- ================= MODAL EXCLUIR ================= -->
+<div id="modalExcluirAdmin"
+     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full border border-gray-200 relative">
+
+    <button class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl"
+            onclick="fecharModalExcluirAdmin()">&times;</button>
+
+    <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-3">
+      <span class="p-2 rounded-xl bg-red-50 border border-red-100">
+        <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+      </span>
+      Confirmar Exclusão
+    </h2>
+
+    <p class="text-sm text-gray-500 mb-4">
+      Esta ação removerá o acesso deste administrador ao sistema. 
+      Tenha certeza de que não se trata de uma conta essencial.
+    </p>
+
+    <form method="POST" id="formExcluirAdmin">
+      <button class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg shadow font-semibold">
+        Excluir Administrador
+      </button>
+    </form>
+
+  </div>
+</div>
+
+
+
+<!-- SCRIPTS -->
+<script>
+  function abrirModalNovoAdmin() { 
+    document.getElementById("modalNovoAdmin").classList.remove("hidden"); 
+  }
+  function fecharModalNovoAdmin() { 
+    document.getElementById("modalNovoAdmin").classList.add("hidden"); 
+  }
+
+  function abrirModalEditarAdmin(btn) {
+    const id = btn.dataset.id;
+    const nome = btn.dataset.nome;
+    const email = btn.dataset.email;
+
+    document.getElementById("editar_nome").value = nome;
+    document.getElementById("editar_email").value = email;
+    document.getElementById("formEditarAdmin").action = "/administradores/editar/" + id;
+    document.getElementById("modalEditarAdmin").classList.remove("hidden");
+  }
+  function fecharModalEditarAdmin() { 
+    document.getElementById("modalEditarAdmin").classList.add("hidden"); 
+  }
+
+  function abrirModalExcluirAdmin(id) {
+    document.getElementById("formExcluirAdmin").action = "/administradores/excluir/" + id;
+    document.getElementById("modalExcluirAdmin").classList.remove("hidden");
+  }
+  function fecharModalExcluirAdmin() { 
+    document.getElementById("modalExcluirAdmin").classList.add("hidden"); 
+  }
+</script>
+
+{% endblock %}

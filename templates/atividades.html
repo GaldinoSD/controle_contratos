@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ======================================================= -->
+<!-- ================= BARRA SUPERIOR PROFISSIONAL ========= -->
+<!-- ======================================================= -->
+
+<div class="w-full mb-10">
+  <div class="w-full bg-white shadow-lg border-b border-gray-200 
+              rounded-xl px-8 py-5 flex items-center justify-between">
+
+    <!-- TÍTULO -->
+    <div class="flex items-center gap-4">
+
+      <span class="p-3 bg-blue-600/15 text-blue-700 rounded-xl border border-blue-300/40">
+        <i class="fa-solid fa-clock-rotate-left text-2xl"></i>
+      </span>
+
+      <div>
+        <h1 class="text-3xl font-extrabold text-gray-800 tracking-tight">
+          Atividades Realizadas
+        </h1>
+        <p class="text-sm text-gray-500">
+          Histórico completo das tarefas concluídas no sistema.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ======================================================= -->
+<!-- ================= TABELA DE ATIVIDADES ================ -->
+<!-- ======================================================= -->
+
+{% if logs %}
+<div class="bg-white/60 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-gray-200">
+
+  <table class="w-full rounded-xl overflow-hidden">
+    <thead class="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 text-xs uppercase tracking-wide">
+      <tr>
+        <th class="p-3 text-left">Empresa</th>
+        <th class="p-3 text-left">Tarefa</th>
+        <th class="p-3 text-left">Responsável</th>
+        <th class="p-3 text-left">Data</th>
+        <th class="p-3 text-center">Ações</th>
+      </tr>
+    </thead>
+
+    <tbody class="text-sm">
+      {% for log in logs %}
+      {% set tarefa = log.task %}
+      {% set contrato = tarefa.contract if tarefa else None %}
+      {% set empresa = contrato.company if contrato else None %}
+
+      <tr class="border-b hover:bg-gray-50 transition">
+
+        <!-- EMPRESA -->
+        <td class="p-3 align-top">
+          <div class="font-semibold">{{ empresa.name }}</div>
+          <div class="text-[11px] text-gray-500">{{ empresa.cnpj }}</div>
+        </td>
+
+        <!-- TAREFA -->
+        <td class="p-3 align-top">
+          <div class="font-semibold text-gray-800 text-sm">{{ tarefa.title }}</div>
+        </td>
+
+        <!-- RESPONSÁVEL -->
+        <td class="p-3 align-top">
+          <div class="font-semibold">{{ log.user.name }}</div>
+          <div class="text-[11px] text-gray-500">{{ log.user.email }}</div>
+        </td>
+
+        <!-- DATA -->
+        <td class="p-3 align-top text-gray-700 text-xs">
+          {{ log.created_at.strftime('%d/%m/%Y %H:%M') }}
+        </td>
+
+        <!-- BOTÃO DETALHES -->
+        <td class="p-3 align-top text-center">
+          <button 
+            onclick="abrirModal({{ log.id }})"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs shadow">
+            Ver detalhes
+          </button>
+        </td>
+
+      </tr>
+
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+{% else %}
+  <p class="text-center text-gray-500 mt-10">Nenhuma atividade concluída até o momento.</p>
+{% endif %}
+
+
+<!-- ======================================================= -->
+<!-- ======================= MODAIS ========================= -->
+<!-- ======================================================= -->
+
+{% for log in logs %}
+{% set tarefa = log.task %}
+{% set contrato = tarefa.contract if tarefa else None %}
+{% set empresa = contrato.company if contrato else None %}
+
+<div 
+  id="modal{{ log.id }}"
+  class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden items-center justify-center z-50">
+
+  <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl p-8 relative 
+              max-h-[90vh] overflow-y-auto">
+
+    <!-- FECHAR -->
+    <button 
+      onclick="fecharModal({{ log.id }})"
+      class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl">
+      &times;
+    </button>
+
+    <!-- TÍTULO -->
+    <h2 class="text-2xl font-bold mb-6">
+      Detalhes da Atividade
+    </h2>
+
+    <div class="space-y-4 text-sm">
+
+      <p><strong>Empresa:</strong> {{ empresa.name }}</p>
+      <p><strong>CNPJ:</strong> {{ empresa.cnpj }}</p>
+      <p><strong>Contrato:</strong> {{ contrato.id }}</p>
+
+      <hr>
+
+      <p><strong>Tarefa:</strong> {{ tarefa.title }}</p>
+
+      {% if tarefa.description %}
+      <p><strong>Descrição da tarefa:</strong> {{ tarefa.description }}</p>
+      {% endif %}
+
+      <p><strong>Prazo:</strong> {{ tarefa.due_date }}</p>
+
+      <hr>
+
+      <p><strong>Executado por:</strong> {{ log.user.name }} ({{ log.user.email }})</p>
+      <p><strong>Data/Hora:</strong> {{ log.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+
+      <hr>
+
+      <p><strong>O que foi feito:</strong></p>
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-gray-700 whitespace-pre-line">
+        {{ log.note }}
+      </div>
+
+      <hr>
+
+      {% if log.file_path %}
+      <p><strong>Anexo:</strong></p>
+      <a href="/{{ log.file_path }}" target="_blank"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700">
+        <i class="fa-solid fa-paperclip"></i>
+        Abrir Anexo
+      </a>
+      {% else %}
+      <p class="text-gray-500">Sem anexo enviado.</p>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+{% endfor %}
+
+
+<!-- ================== JS ================== -->
+<script>
+function abrirModal(id) {
+  const modal = document.getElementById("modal" + id);
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function fecharModal(id) {
+  const modal = document.getElementById("modal" + id);
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+</script>
+
+{% endblock %}

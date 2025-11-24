@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- ======================================================= -->
+<!-- ================= BARRA SUPERIOR PROFISSIONAL ========= -->
+<!-- ======================================================= -->
+
+<div class="w-full mb-10">
+  <div class="w-full bg-white shadow-lg border-b border-gray-200 
+              rounded-xl px-8 py-5 flex items-center justify-between">
+
+    <!-- TÍTULO -->
+    <div class="flex items-center gap-4">
+      <span class="p-3 bg-blue-600/15 text-blue-700 rounded-xl border border-blue-300/40">
+        <i class="fa-solid fa-folder-open text-2xl"></i>
+      </span>
+
+      <div>
+        <h1 class="text-3xl font-extrabold text-gray-800 tracking-tight">
+          Todos os Contratos
+        </h1>
+        <p class="text-sm text-gray-500">Lista completa dos contratos cadastrados</p>
+      </div>
+    </div>
+
+    <!-- BOTÃO NOVO CONTRATO -->
+    <button onclick="abrirModalContrato()"
+      class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow flex items-center gap-2 transition">
+      <i class="fa-solid fa-file-circle-plus"></i>
+      Novo Contrato
+    </button>
+
+  </div>
+</div>
+
+<!-- ======================================================= -->
+<!-- ================= LISTA DE CONTRATOS ================== -->
+<!-- ======================================================= -->
+
+<div class="bg-white/60 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-gray-200">
+
+  <table class="w-full rounded-xl overflow-hidden">
+    <thead class="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 text-sm uppercase tracking-wide">
+      <tr>
+        <th class="p-4 text-left">Empresa</th>
+        <th class="p-4 text-left">CNPJ</th>
+        <th class="p-4 text-left">Vigência</th>
+        <th class="p-4 text-center">Ações</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for c in contracts %}
+      <tr class="border-b hover:bg-gray-50 transition">
+
+        <!-- EMPRESA -->
+        <td class="p-4 font-semibold text-gray-800 flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center font-bold">
+            {{ c.company.name[0] }}
+          </div>
+          {{ c.company.name }}
+        </td>
+
+        <td class="p-4 text-gray-600">{{ c.company.cnpj }}</td>
+
+        <td class="p-4 text-gray-700">
+          <span class="font-medium">{{ c.start_date }}</span>
+          <span class="text-gray-400">→</span>
+          <span class="font-medium">{{ c.end_date }}</span>
+        </td>
+
+        <td class="p-4 text-center">
+          <a href="/contract/{{ c.id }}"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg shadow transition flex items-center justify-center gap-2 mx-auto w-fit">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            Abrir
+          </a>
+        </td>
+
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+<!-- ========================================================= -->
+<!-- ===================== MODAL NOVO CONTRATO ================= -->
+<!-- ========================================================= -->
+
+<div id="modalContrato" class="hidden fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
+
+  <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl relative animate-fadeIn">
+
+    <!-- Botão Fechar -->
+    <button onclick="fecharModalContrato()"
+      class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+      <i class="fa-solid fa-file-circle-plus text-blue-600"></i>
+      Novo Contrato
+    </h2>
+
+    <form action="/contracts/new" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <div class="md:col-span-2">
+        <label class="font-semibold text-gray-700">Empresa</label>
+        <input name="company" class="w-full p-3 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="font-semibold text-gray-700">CNPJ</label>
+        <input name="cnpj" class="w-full p-3 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="font-semibold text-gray-700">Descrição</label>
+        <textarea name="desc" rows="3" class="w-full p-3 border border-gray-300 rounded-lg"></textarea>
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Início</label>
+        <input type="date" name="start" class="w-full p-3 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div>
+        <label class="font-semibold text-gray-700">Fim</label>
+        <input type="date" name="end" class="w-full p-3 border border-gray-300 rounded-lg" required>
+      </div>
+
+      <div class="md:col-span-2 flex justify-end gap-4 mt-4">
+        <button type="button" onclick="fecharModalContrato()"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg">
+          Cancelar
+        </button>
+
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-lg shadow">
+          Salvar
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script>
+  function abrirModalContrato() {
+    const modal = document.getElementById("modalContrato");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  }
+
+  function fecharModalContrato() {
+    const modal = document.getElementById("modalContrato");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+</script>
+
+<!-- ===================== ANIMAÇÃO ===================== -->
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-fadeIn {
+  animation: fadeIn .25s ease-out;
+}
+</style>
+
+{% endblock %}
