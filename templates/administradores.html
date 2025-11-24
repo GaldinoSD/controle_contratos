@@ -1,138 +1,127 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="space-y-8">
+<div class="space-y-10">
 
-  <!-- FAIXA TOPO DIRETORIA -->
-  <section class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 
-                  text-white rounded-3xl p-8 shadow-2xl border border-slate-700 mb-4">
+  <!-- ======================================================
+       HEADER COMPACTO — ÁREA DA DIRETORIA
+  ====================================================== -->
+  <section class="relative overflow-hidden rounded-2xl p-6 shadow-xl 
+                  bg-slate-900/80 border border-slate-800 backdrop-blur">
 
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-      
+    <div class="absolute -top-10 -left-10 w-32 h-32 bg-blue-600/20 blur-2xl rounded-full opacity-40"></div>
+
+    <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
       <!-- ESQUERDA -->
-      <div>
-        <div class="flex items-center gap-4 mb-2">
-          <span class="p-4 bg-blue-600/30 border border-blue-400/50 rounded-2xl shadow-lg">
-            <i class="fa-solid fa-user-shield text-3xl text-blue-100"></i>
-          </span>
-          <div>
-            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">
-              Área da Diretoria
-            </h1>
-            <p class="text-sm text-slate-200/80 mt-1">
-              Gerenciamento de contas administrativas com acesso total ao sistema.
-            </p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-3 text-xs text-slate-200/80 mt-2">
-          <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full 
-                       bg-blue-500/20 border border-blue-300/40">
-            <i class="fa-solid fa-crown text-yellow-300"></i>
-            Diretoria &amp; Administração
-          </span>
-
-          <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full 
-                       bg-emerald-500/15 border border-emerald-400/40">
-            <i class="fa-solid fa-user-tie"></i>
-            {{ admins|length }} administrador{{ 'es' if admins|length != 1 else '' }} ativo{{ 's' if admins|length != 1 else '' }}
-          </span>
-        </div>
-      </div>
-
-      <!-- DIREITA -->
-      <div class="flex flex-col items-start md:items-end gap-3">
-
-        <button onclick="abrirModalNovoAdmin()"
-                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 
-                       text-white font-semibold px-6 py-3 rounded-xl shadow-xl flex items-center gap-2">
-          <i class="fa-solid fa-user-plus"></i>
-          Novo Administrador
-        </button>
-
-        <p class="text-[11px] text-slate-300/80 mt-1">
-          Recomenda-se manter apenas contas essenciais com perfil de diretoria.
-        </p>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- LISTA EM CARDS ======================== -->
-  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-
-    {% for admin in admins %}
-    <div class="relative p-6 rounded-2xl shadow-xl border border-slate-200 
-                bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-200">
-
-      <!-- FITA SUPER ADMIN -->
-      {% if admin.email == 'admin@admin.com' %}
-      <div class="absolute -top-2 -right-2">
-        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px]
-                     bg-gradient-to-r from-yellow-400 to-yellow-500 text-slate-900 shadow-md border border-yellow-300">
-          <i class="fa-solid fa-crown"></i>
-          Super Admin
+      <div class="flex items-center gap-4">
+        <span class="p-3 bg-blue-600/20 border border-blue-500/40 rounded-xl shadow">
+          <i class="fa-solid fa-user-shield text-2xl text-blue-300"></i>
         </span>
-      </div>
-      {% else %}
-      <div class="absolute -top-2 -right-2">
-        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px]
-                     bg-slate-900 text-slate-100 shadow-md border border-slate-700">
-          <i class="fa-solid fa-user-tie"></i>
-          Diretoria
-        </span>
-      </div>
-      {% endif %}
 
-      <!-- Topo do Card -->
-      <div class="flex items-center gap-5 mb-5">
+        <div>
+          <h1 class="text-2xl font-bold text-white tracking-tight">
+            Área da Diretoria
+          </h1>
 
-        <!-- Avatar / Iniciais -->
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-400
-                    flex items-center justify-center shadow-lg border border-blue-200">
-          <span class="text-white text-2xl font-bold">
-            {{ admin.name[0:2] | upper }}
-          </span>
-        </div>
-
-        <div class="flex-1">
-          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-            {{ admin.name }}
-          </h2>
-          <p class="text-gray-500 text-sm flex items-center gap-2">
-            <i class="fa-solid fa-envelope text-gray-400"></i>
-            {{ admin.email }}
+          <p class="text-xs text-slate-400 mt-1">
+            Gerenciamento de contas administrativas.
           </p>
         </div>
       </div>
 
-      <!-- Linha Gold -->
-      <div class="h-[2px] bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full mb-4"></div>
+      <!-- DIREITA -->
+      <div class="flex flex-col items-start md:items-end gap-1">
 
-      <!-- Informações extras -->
-      <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-shield-halved text-blue-500"></i>
-          <span>Acesso total ao painel administrativo</span>
-        </div>
+        <button onclick="abrirModalNovoAdmin()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold 
+                       px-5 py-2 rounded-lg shadow flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-sm"></i>
+          Novo Admin
+        </button>
+
+        <p class="text-[10px] text-slate-500">Perfis essenciais apenas.</p>
       </div>
 
-      <!-- Ações -->
-      <div class="flex justify-between mt-4 gap-3">
+    </div>
+  </section>
+
+
+
+  <!-- ======================================================
+       GRID DE ADMINISTRADORES — CARDS COMPACTOS
+  ====================================================== -->
+  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+    {% for admin in admins %}
+    <div class="relative p-4 rounded-2xl shadow-xl border border-slate-800 
+                bg-slate-900/70 backdrop-blur hover:-translate-y-[2px]
+                hover:shadow-blue-900/40 transition-all duration-300">
+
+      <!-- FITA -->
+      {% if admin.email == 'admin@admin.com' %}
+      <div class="absolute -top-2 -right-2">
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px]
+                     rounded-full bg-yellow-400 text-slate-900 font-bold shadow border border-yellow-300">
+          <i class="fa-solid fa-crown text-xs"></i> Super
+        </span>
+      </div>
+      {% else %}
+      <div class="absolute -top-2 -right-2">
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px]
+                     rounded-full bg-slate-800 text-slate-200 border border-slate-700 shadow">
+          <i class="fa-solid fa-user-tie text-xs"></i> Admin
+        </span>
+      </div>
+      {% endif %}
+
+
+      <!-- TOPO -->
+      <div class="flex items-center gap-4 mb-4">
+
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400
+                    flex items-center justify-center shadow border border-blue-300/40">
+          <span class="text-white text-lg font-bold">
+            {{ admin.name[0:2] | upper }}
+          </span>
+        </div>
+
+        <div>
+          <h2 class="text-base font-bold text-white">{{ admin.name }}</h2>
+          <p class="text-xs text-slate-400 flex items-center gap-1">
+            <i class="fa-solid fa-envelope text-slate-500 text-xs"></i>
+            {{ admin.email }}
+          </p>
+        </div>
+
+      </div>
+
+      <div class="h-[1px] bg-gradient-to-r from-blue-500/40 via-cyan-400/40 to-blue-500/40 opacity-60 mb-4"></div>
+
+      <!-- Acesso -->
+      <div class="flex items-center gap-2 text-[11px] text-slate-400 mb-4">
+        <i class="fa-solid fa-shield-halved text-blue-400 text-sm"></i>
+        Acesso total ao painel administrativo
+      </div>
+
+      <!-- BOTÕES -->
+      <div class="flex justify-between gap-2">
 
         <button 
           onclick="abrirModalEditarAdmin(this)"
           data-id="{{ admin.id }}"
           data-nome="{{ admin.name }}"
           data-email="{{ admin.email }}"
-          class="flex-1 px-4 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 shadow flex items-center justify-center gap-2 text-sm font-medium">
-          <i class="fa-solid fa-pen"></i> Editar
+          class="flex-1 px-3 py-1.5 rounded-lg bg-blue-600/20 text-blue-300 border border-blue-500/30 
+                 hover:bg-blue-600/30 hover:text-white transition shadow text-xs font-medium flex items-center justify-center gap-1">
+          <i class="fa-solid fa-pen text-xs"></i> Editar
         </button>
 
         <button 
           onclick="abrirModalExcluirAdmin({{ admin.id }})"
-          class="flex-1 px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 shadow flex items-center justify-center gap-2 text-sm font-medium">
-          <i class="fa-solid fa-trash"></i> Excluir
+          class="flex-1 px-3 py-1.5 rounded-lg bg-red-600/20 text-red-300 border border-red-500/30 
+                 hover:bg-red-600/30 hover:text-white transition shadow text-xs font-medium flex items-center justify-center gap-1">
+          <i class="fa-solid fa-trash text-xs"></i> Excluir
         </button>
 
       </div>
@@ -140,16 +129,23 @@
     </div>
     {% endfor %}
 
+
+
     {% if admins|length == 0 %}
-      <div class="col-span-full text-center text-gray-500 py-16 border-2 border-dashed border-gray-200 rounded-2xl bg-white">
-        <i class="fa-solid fa-user-shield text-4xl text-gray-300 mb-4"></i>
-        <p class="text-lg font-medium mb-2">Nenhum administrador cadastrado.</p>
-        <p class="text-sm text-gray-400 mb-4">Comece cadastrando o primeiro membro da diretoria.</p>
-        <button onclick="abrirModalNovoAdmin()"
-                class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 shadow">
-          <i class="fa-solid fa-user-plus"></i> Cadastrar Administrador
-        </button>
-      </div>
+    <div class="col-span-full text-center border-2 border-dashed border-slate-700 
+                rounded-2xl p-14 bg-slate-900/50 backdrop-blur shadow-xl">
+
+      <i class="fa-solid fa-user-shield text-4xl text-slate-600 mb-3"></i>
+
+      <h3 class="text-lg text-white font-semibold">Nenhum administrador</h3>
+      <p class="text-xs text-slate-400 mb-4">Cadastre o primeiro membro da diretoria.</p>
+
+      <button onclick="abrirModalNovoAdmin()"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow text-sm">
+        <i class="fa-solid fa-user-plus"></i> Cadastrar
+      </button>
+
+    </div>
     {% endif %}
 
   </section>
@@ -158,46 +154,48 @@
 
 
 
-<!-- ================= MODAL NOVO ADMIN ================= -->
-<div id="modalNovoAdmin"
-     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full border border-gray-200 relative">
 
-    <button class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl"
+
+<!-- ======================================================
+     MODAIS — (NOVO / EDITAR / EXCLUIR) — COMPACTOS
+====================================================== -->
+
+<!-- NOVO ADMIN -->
+<div id="modalNovoAdmin"
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+  <div class="bg-slate-900 p-5 rounded-2xl shadow-2xl max-w-sm w-full border border-slate-700 relative text-slate-100">
+
+    <button class="absolute top-2 right-3 text-slate-400 hover:text-red-400 text-xl"
             onclick="fecharModalNovoAdmin()">&times;</button>
 
-    <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-3">
-      <span class="p-2 rounded-xl bg-blue-50 border border-blue-100">
-        <i class="fa-solid fa-user-plus text-blue-600"></i>
+    <h2 class="text-xl font-bold mb-5 flex items-center gap-2">
+      <span class="p-2 rounded-xl bg-blue-600/20 border border-blue-400/40">
+        <i class="fa-solid fa-user-plus text-blue-400 text-sm"></i>
       </span>
       Novo Administrador
     </h2>
 
-    <form method="POST" action="/administradores/salvar" class="space-y-4">
+    <form method="POST" action="/administradores/salvar" class="space-y-3">
 
       <div>
-        <label class="text-gray-700 font-medium text-sm">Nome completo</label>
+        <label class="text-slate-300 text-xs">Nome completo</label>
         <input type="text" name="nome" required
-               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300">
+               class="w-full px-3 py-2 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
       </div>
 
       <div>
-        <label class="text-gray-700 font-medium text-sm">E-mail corporativo</label>
+        <label class="text-slate-300 text-xs">E-mail</label>
         <input type="email" name="email" required
-               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300">
+               class="w-full px-3 py-2 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
       </div>
 
       <div>
-        <label class="text-gray-700 font-medium text-sm">Senha inicial</label>
+        <label class="text-slate-300 text-xs">Senha inicial</label>
         <input type="password" name="senha" required
-               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300">
-        <p class="text-[11px] text-gray-400 mt-1">
-          O administrador poderá alterar essa senha posteriormente.
-        </p>
+               class="w-full px-3 py-2 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
       </div>
 
-      <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 
-                     text-white py-2.5 rounded-lg shadow font-semibold">
+      <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg shadow text-sm font-semibold">
         Salvar
       </button>
 
@@ -208,46 +206,42 @@
 
 
 
-<!-- ================= MODAL EDITAR ================= -->
+<!-- EDITAR ADMIN -->
 <div id="modalEditarAdmin"
-     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full border border-gray-200 relative">
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+  <div class="bg-slate-900 p-5 rounded-2xl shadow-2xl max-w-sm w-full border border-slate-700 relative text-slate-100">
 
-    <button class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl"
+    <button class="absolute top-2 right-3 text-slate-400 hover:text-red-400 text-xl"
             onclick="fecharModalEditarAdmin()">&times;</button>
 
-    <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-3">
-      <span class="p-2 rounded-xl bg-blue-50 border border-blue-100">
-        <i class="fa-solid fa-user-pen text-blue-600"></i>
+    <h2 class="text-xl font-bold mb-5 flex items-center gap-2">
+      <span class="p-2 rounded-xl bg-blue-600/20 border border-blue-400/40">
+        <i class="fa-solid fa-user-pen text-blue-400 text-sm"></i>
       </span>
       Editar Administrador
     </h2>
 
-    <form method="POST" id="formEditarAdmin" class="space-y-4">
+    <form method="POST" id="formEditarAdmin" class="space-y-3">
 
       <div>
-        <label class="text-gray-700 font-medium text-sm">Nome</label>
+        <label class="text-slate-300 text-xs">Nome</label>
         <input id="editar_nome" type="text" name="nome" required
-               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300">
+               class="w-full px-3 py-2 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
       </div>
 
       <div>
-        <label class="text-gray-700 font-medium text-sm">E-mail</label>
+        <label class="text-slate-300 text-xs">E-mail</label>
         <input id="editar_email" type="email" name="email" required
-               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300">
+               class="w-full px-3 py-2 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
       </div>
 
       <div>
-        <label class="text-gray-700 font-medium text-sm">Nova Senha (opcional)</label>
+        <label class="text-slate-300 text-xs">Nova Senha (opcional)</label>
         <input type="password" name="senha"
-               class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-200">
-        <p class="text-[11px] text-gray-400 mt-1">
-          Deixe em branco caso não deseje alterar a senha.
-        </p>
+               class="w-full px-3 py-2 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
       </div>
 
-      <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 
-                     text-white py-2.5 rounded-lg shadow font-semibold">
+      <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg shadow text-sm font-semibold">
         Atualizar
       </button>
 
@@ -258,29 +252,29 @@
 
 
 
-<!-- ================= MODAL EXCLUIR ================= -->
+<!-- EXCLUIR ADMIN -->
 <div id="modalExcluirAdmin"
-     class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full border border-gray-200 relative">
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+  <div class="bg-slate-900 p-5 rounded-2xl shadow-2xl max-w-sm w-full border border-slate-700 relative text-slate-100">
 
-    <button class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl"
+    <button class="absolute top-2 right-3 text-slate-400 hover:text-red-400 text-xl"
             onclick="fecharModalExcluirAdmin()">&times;</button>
 
-    <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center gap-3">
-      <span class="p-2 rounded-xl bg-red-50 border border-red-100">
-        <i class="fa-solid fa-triangle-exclamation text-red-600"></i>
+    <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
+      <span class="p-2 rounded-xl bg-red-600/20 border border-red-500/40">
+        <i class="fa-solid fa-triangle-exclamation text-red-400"></i>
       </span>
       Confirmar Exclusão
     </h2>
 
-    <p class="text-sm text-gray-500 mb-4">
-      Esta ação removerá o acesso deste administrador ao sistema. 
-      Tenha certeza de que não se trata de uma conta essencial.
+    <p class="text-xs text-slate-400 mb-4">
+      Esta ação removerá o acesso deste administrador ao sistema.
     </p>
 
     <form method="POST" id="formExcluirAdmin">
-      <button class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg shadow font-semibold">
-        Excluir Administrador
+      <button class="w-full bg-red-600 hover:bg-red-700 text-white py-2 
+                     rounded-lg shadow text-sm font-semibold">
+        Excluir
       </button>
     </form>
 
@@ -289,36 +283,28 @@
 
 
 
-<!-- SCRIPTS -->
+
+<!-- ======================================================
+     SCRIPTS
+====================================================== -->
 <script>
-  function abrirModalNovoAdmin() { 
-    document.getElementById("modalNovoAdmin").classList.remove("hidden"); 
-  }
-  function fecharModalNovoAdmin() { 
-    document.getElementById("modalNovoAdmin").classList.add("hidden"); 
-  }
+  function abrirModalNovoAdmin() { document.getElementById("modalNovoAdmin").classList.remove("hidden"); }
+  function fecharModalNovoAdmin() { document.getElementById("modalNovoAdmin").classList.add("hidden"); }
 
   function abrirModalEditarAdmin(btn) {
     const id = btn.dataset.id;
-    const nome = btn.dataset.nome;
-    const email = btn.dataset.email;
-
-    document.getElementById("editar_nome").value = nome;
-    document.getElementById("editar_email").value = email;
+    document.getElementById("editar_nome").value = btn.dataset.nome;
+    document.getElementById("editar_email").value = btn.dataset.email;
     document.getElementById("formEditarAdmin").action = "/administradores/editar/" + id;
     document.getElementById("modalEditarAdmin").classList.remove("hidden");
   }
-  function fecharModalEditarAdmin() { 
-    document.getElementById("modalEditarAdmin").classList.add("hidden"); 
-  }
+  function fecharModalEditarAdmin() { document.getElementById("modalEditarAdmin").classList.add("hidden"); }
 
   function abrirModalExcluirAdmin(id) {
     document.getElementById("formExcluirAdmin").action = "/administradores/excluir/" + id;
     document.getElementById("modalExcluirAdmin").classList.remove("hidden");
   }
-  function fecharModalExcluirAdmin() { 
-    document.getElementById("modalExcluirAdmin").classList.add("hidden"); 
-  }
+  function fecharModalExcluirAdmin() { document.getElementById("modalExcluirAdmin").classList.add("hidden"); }
 </script>
 
 {% endblock %}

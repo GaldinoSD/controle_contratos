@@ -2,7 +2,7 @@
 <html lang="pt-BR" class="h-full">
 <head>
   <meta charset="utf-8">
-  <title>{{ title or 'Sistema de Contratos' }}</title>
+  <title>{{ title or 'Gestão de Contratos' }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Tailwind -->
@@ -12,233 +12,211 @@
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-<style>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  /* ======================================================
-     TOOLTIP FIXO - NÃO CORTA E NÃO QUEBRA
-  ====================================================== */
-  .tooltip {
-    position: fixed !important;
-    left: 90px !important;
-    background: #1f2937;
-    padding: 6px 12px;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 12px;
-    white-space: nowrap;
-    opacity: 0;
-    transform: translateY(-50%);
-    transition: 0.2s ease-in-out;
-    pointer-events: none;
-    z-index: 99999 !important;
-  }
-
-  .group:hover .tooltip {
-    opacity: 1;
-  }
-
-
-  /* ======================================================
-     SIDEBAR FIXO E ESTÁVEL
-  ====================================================== */
-  #sidebar {
-    width: 260px !important;
-    flex: 0 0 260px !important;
-    background: #111827;
-    color: #e5e7eb;
-    transition: width .25s ease-in-out;
-    overflow: visible !important;
-    position: relative;
-    z-index: 50;
-  }
-
-  #sidebar.collapsed {
-    width: 80px !important;
-    flex: 0 0 80px !important;
-  }
-
-  #sidebar * {
-    max-width: 100% !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .menu-item,
-  .group {
-    overflow: visible !important;
-  }
-
-
-  /* ======================================================
-     CONTEÚDO — SCROLLA MAS O SIDEBAR NÃO
-  ====================================================== */
-  main {
-    overflow-y: auto;
-    height: 100vh;
-  }
-
-</style>
-
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+    }
+  </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="h-full bg-slate-950 text-slate-100">
 
-<div class="flex h-full">
+<div class="min-h-screen flex">
 
-  <!-- ======================================================
-       SIDEBAR
-  ====================================================== -->
-  <aside id="sidebar"
-         class="min-h-screen p-6 flex flex-col relative">
+  <!-- ===================================================
+       SIDEBAR RETRÁTIL PREMIUM
+  ==================================================== -->
+  <aside 
+    class="group fixed top-0 left-0 h-full 
+           bg-slate-900/90 border-r border-slate-800 
+           flex flex-col transition-all duration-300 
+           w-16 hover:w-56 overflow-hidden z-50">
 
-    <!-- LOGO + BOTÃO -->
-    <div class="flex flex-col items-center mb-8 mt-2">
+      <!-- LOGO -->
+      <div class="p-4 border-b border-slate-800 flex items-center gap-3">
 
-      <!-- Botão toggle -->
-      <button onclick="toggleSidebar()"
-        class="absolute top-6 right-0 translate-x-1/2
-               bg-gray-900 border border-gray-700
-               text-white rounded-full p-3 shadow-lg
-               hover:bg-gray-800 transition">
-        <i class="fa-solid fa-bars text-lg"></i>
-      </button>
+          <!-- IMAGEM DA LOGO -->
+          <img src="{{ url_for('static', filename='logo.png') }}"
+               class="w-10 h-10 rounded-xl object-cover shadow-lg">
 
-      <img id="logoFull"
-           src="{{ url_for('static', filename='logo.png') }}"
-           class="w-16 h-16 object-contain mb-2">
+          <!-- Texto aparece apenas quando sidebar abre -->
+          <div class="opacity-0 group-hover:opacity-100 transition-all duration-300">
+            <h1 class="text-lg font-bold whitespace-nowrap">SupervisorPro</h1>
+            <p class="text-xs text-slate-400">Gestão Técnica</p>
+          </div>
 
-      <img id="logoMini"
-           src="{{ url_for('static', filename='logo.png') }}"
-           class="w-10 h-10 object-contain mb-2 hidden">
-    </div>
-
-    <!-- ======================================================
-         MENU
-    ====================================================== -->
-    <nav class="flex flex-col space-y-4 text-lg">
-
-      {% if current_user.is_authenticated %}
-
-      {% if current_user.role == 'admin' %}
-
-      <!-- DASHBOARD -->
-      <div class="relative group menu-item">
-        <a href="/" class="hover:text-white flex items-center gap-4">
-          <i class="fa-solid fa-chart-line text-xl"></i>
-          <span class="sidebar-text">Dashboard</span>
-        </a>
-        <span class="tooltip">Dashboard</span>
       </div>
 
-      <!-- CONTRATOS -->
-      <div class="relative group menu-item">
-        <a href="/contracts" class="hover:text-white flex items-center gap-4">
-          <i class="fa-regular fa-folder-open text-xl"></i>
-          <span class="sidebar-text">Contratos</span>
-        </a>
-        <span class="tooltip">Contratos</span>
-      </div>
+      <!-- MENU -->
+      <nav class="flex-1 p-3 space-y-1 text-sm">
 
-      <!-- ATIVIDADES -->
-      <div class="relative group menu-item">
-        <a href="/atividades" class="hover:text-white flex items-center gap-4">
-          <i class="fa-solid fa-list-check text-xl"></i>
-          <span class="sidebar-text">Atividades</span>
-        </a>
-        <span class="tooltip">Atividades</span>
-      </div>
+        {% if current_user.is_authenticated %}
+        {% if current_user.role == 'admin' %}
 
-      <!-- CONFIGURAÇÕES ADM -->
-      <div class="menu-item">
-        <button onclick="toggleConfig()"
-          class="w-full text-left hover:text-white flex items-center justify-between pr-2">
-          <span class="flex items-center gap-4">
-            <i class="fa-solid fa-gear text-xl"></i>
-            <span class="sidebar-text">Configurações</span>
+        <!-- ======================= -->
+        <!--       DASHBOARD         -->
+        <!-- ======================= -->
+        <a href="{{ url_for('dashboard') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
+          <i class="fa-solid fa-gauge-high text-blue-400 text-xl"></i>
+          <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
+            Dashboard
           </span>
-          <i id="iconConfig" class="fa-solid fa-chevron-down text-sm transition-all"></i>
-        </button>
+        </a>
 
-        <div id="submenuConfig"
-             class="ml-10 mt-2 space-y-2 hidden">
+        <!-- SEÇÃO ADMINISTRAÇÃO -->
+        <p class="text-[11px] text-slate-500 font-semibold tracking-wide mt-5 ml-3
+                  opacity-0 group-hover:opacity-100 transition duration-300">
+          Administração
+        </p>
 
-          <a href="/colaboradores" class="hover:text-white flex items-center gap-2 menu-item">
-            <i class="fa-solid fa-users text-sm"></i>
-            <span class="sidebar-text">Colaboradores</span>
-          </a>
+        <a href="/contracts"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
+          <i class="fa-regular fa-folder-open text-blue-300 text-xl"></i>
+          <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
+            Contratos
+          </span>
+        </a>
 
-          <a href="/administradores" class="hover:text-white flex items-center gap-2 menu-item">
-            <i class="fa-solid fa-user-shield text-sm"></i>
-            <span class="sidebar-text">Administradores</span>
-          </a>
+        <a href="/atividades"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
+          <i class="fa-solid fa-list-check text-blue-300 text-xl"></i>
+          <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
+            Atividades
+          </span>
+        </a>
 
-        </div>
-      </div>
+        <a href="/colaboradores"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
+          <i class="fa-solid fa-users text-blue-300 text-xl"></i>
+          <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
+            Colaboradores
+          </span>
+        </a>
 
-      {% else %}
+        <!-- CONFIGURAÇÕES -->
+        <p class="text-[11px] text-slate-500 font-semibold tracking-wide mt-4 ml-3
+                  opacity-0 group-hover:opacity-100 transition duration-300">
+          Configurações
+        </p>
 
-      <!-- ======================================================
-           MENU COLABORADOR
-      ====================================================== -->
+        <a href="/administradores"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
+          <i class="fa-solid fa-user-shield text-blue-300 text-xl"></i>
+          <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
+            Administradores
+          </span>
+        </a>
 
-      <div class="relative group menu-item">
+        {% else %}
+
+        <!-- ======================= -->
+        <!--       COLABORADOR       -->
+        <!-- ======================= -->
+
         <a href="/painel-colaborador"
-          class="hover:text-white flex items-center gap-4">
-          <i class="fa-solid fa-list-check text-xl"></i>
-          <span class="sidebar-text">Minhas Atividades</span>
+           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
+          <i class="fa-solid fa-list-check text-blue-300 text-xl"></i>
+          <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
+            Minhas Atividades
+          </span>
         </a>
-        <span class="tooltip">Minhas Atividades</span>
-      </div>
 
-      <!-- ALTERAR SENHA -->
-      <div class="relative group menu-item">
-        <button onclick="abrirModalSenha()"
-          class="hover:text-white flex items-center gap-4">
-          <i class="fa-solid fa-key text-xl"></i>
-          <span class="sidebar-text">Alterar Senha</span>
+        <button 
+           onclick="abrirModalSenha()"
+           class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
+          <i class="fa-solid fa-key text-blue-300 text-xl"></i>
+          <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
+            Alterar Senha
+          </span>
         </button>
-        <span class="tooltip">Alterar Senha</span>
-      </div>
 
-      {% endif %}
-      {% endif %}
+        {% endif %}
+        {% endif %}
 
-    </nav>
-
-    <!-- ===================== SAIR ===================== -->
-    <div class="mt-auto text-center">
-
-      <div class="relative group menu-item mb-6">
-        <a href="/logout" class="hover:text-red-400 flex items-center gap-4 justify-center">
-          <i class="fa-solid fa-arrow-right-from-bracket text-xl"></i>
-          <span class="sidebar-text">Sair</span>
+        <!-- SAIR -->
+        <a href="/logout"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-900/40 text-red-400 mt-6 transition">
+          <i class="fa-solid fa-arrow-right-from-bracket text-red-400 text-xl"></i>
+          <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
+            Sair
+          </span>
         </a>
-        <span class="tooltip">Sair</span>
+
+      </nav>
+
+      <!-- FOOTER -->
+      <div class="p-4 border-t border-slate-800 text-xs text-slate-500 whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
+        Sistema de Contratos • WK Consultoria
       </div>
-
-      <span class="sidebar-text text-xs tracking-wide opacity-70 block">
-        Controle de Contratos
-      </span>
-
-    </div>
 
   </aside>
 
-  <!-- ===================== CONTEÚDO ===================== -->
-  <main class="flex-1 p-10">
-    {% block content %}{% endblock %}
-  </main>
 
+  <!-- ===================================================
+       CONTEÚDO PRINCIPAL
+  ==================================================== -->
+  <main class="flex-1 ml-16 group-hover:ml-56 transition-all duration-300">
+
+    <!-- HEADER -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold">{{ page_title or 'Painel' }}</h2>
+          <p class="text-xs text-slate-400">Sistema de gestão de contratos.</p>
+        </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="flex items-center gap-3 text-xs text-slate-400">
+          <i class="fa-solid fa-user-shield text-blue-400"></i>
+          {{ current_user.name }}
+        </div>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- FLASH MESSAGES -->
+    <div class="max-w-7xl mx-auto px-6 pt-4">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="space-y-2 mb-4">
+            {% for category, message in messages %}
+              <div class="px-4 py-3 rounded-lg text-sm
+                          {% if category == 'success' %}
+                            bg-emerald-900/40 border border-emerald-500/40 text-emerald-100
+                          {% elif category == 'error' %}
+                            bg-red-900/40 border border-red-500/40 text-red-100
+                          {% else %}
+                            bg-slate-800/70 border border-slate-600/60 text-slate-100
+                          {% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- CONTEÚDO -->
+    <section class="max-w-7xl mx-auto px-6 py-6">
+      {% block content %}{% endblock %}
+    </section>
+
+  </main>
 </div>
 
-<!-- ===================================================== -->
-<!--                MODAL ALTERAR SENHA                   -->
-<!-- ===================================================== -->
-<div id="modalSenha" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-[9999] flex items-center justify-center">
-  <div class="bg-white w-full max-w-md p-8 rounded-2xl shadow-2xl relative">
 
-    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+
+<!-- =====================================================
+     MODAL ALTERAR SENHA
+===================================================== -->
+<div id="modalSenha" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-[9999] flex items-center justify-center">
+  <div class="bg-white text-gray-800 w-full max-w-md p-8 rounded-2xl shadow-2xl relative">
+
+    <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
       <i class="fa-solid fa-key text-blue-600"></i>
       Alterar Senha
     </h2>
@@ -247,19 +225,19 @@
 
     <form id="formSenha">
 
-      <label class="text-sm font-semibold text-gray-700">Senha atual</label>
+      <label class="text-sm font-semibold">Senha atual</label>
       <input type="password" id="senhaAtual"
              class="w-full p-3 rounded-lg border mb-4" required>
 
-      <label class="text-sm font-semibold text-gray-700">Nova senha</label>
+      <label class="text-sm font-semibold">Nova senha</label>
       <input type="password" id="novaSenha"
              class="w-full p-3 rounded-lg border mb-4" required>
 
-      <label class="text-sm font-semibold text-gray-700">Confirmar nova senha</label>
+      <label class="text-sm font-semibold">Confirmar nova senha</label>
       <input type="password" id="confirmarSenha"
              class="w-full p-3 rounded-lg border mb-6" required>
 
-      <div class="flex items-center justify-end gap-3">
+      <div class="flex justify-end gap-3">
         <button type="button"
                 onclick="fecharModalSenha()"
                 class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
@@ -276,48 +254,12 @@
   </div>
 </div>
 
-<!-- ===================================================== -->
-<!--                    JS GERAL                           -->
-<!-- ===================================================== -->
+
+
+<!-- =====================================================
+     JS
+===================================================== -->
 <script>
-
-  function toggleSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const logoFull = document.getElementById("logoFull");
-    const logoMini = document.getElementById("logoMini");
-
-    sidebar.classList.toggle("collapsed");
-
-    if (sidebar.classList.contains("collapsed")) {
-      logoFull.classList.add("hidden");
-      logoMini.classList.remove("hidden");
-
-      document.querySelectorAll(".sidebar-text").forEach(el =>
-        el.classList.add("hidden")
-      );
-
-    } else {
-      logoFull.classList.remove("hidden");
-      logoMini.classList.add("hidden");
-
-      document.querySelectorAll(".sidebar-text").forEach(el =>
-        el.classList.remove("hidden")
-      );
-    }
-  }
-
-  function toggleConfig() {
-    const submenu = document.getElementById("submenuConfig");
-    const icon = document.getElementById("iconConfig");
-
-    submenu.classList.toggle("hidden");
-    icon.classList.toggle("rotate-180");
-  }
-
-  /* ============================================
-     MODAL SENHA
-  ============================================ */
-
   function abrirModalSenha() {
     document.getElementById("modalSenha").classList.remove("hidden");
   }
@@ -361,7 +303,6 @@
     fecharModalSenha();
     alert("Senha alterada com sucesso!");
   });
-
 </script>
 
 </body>

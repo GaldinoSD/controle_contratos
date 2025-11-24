@@ -1,39 +1,101 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 class="text-3xl font-semibold mb-6">Novo Contrato</h1>
+<!-- ======================================================= -->
+<!-- ===================== HEADER COMPACTO ================== -->
+<!-- ======================================================= -->
+<section class="mb-6 relative">
 
-<form method="POST" class="bg-white shadow rounded-xl p-8 grid grid-cols-1 gap-5">
+  <div class="rounded-xl p-5 bg-slate-900/80 backdrop-blur-xl 
+              border border-slate-800 shadow-lg flex items-center gap-4 relative">
 
+    <!-- GLOW -->
+    <div class="absolute -top-7 -left-7 w-24 h-24 bg-blue-600/20 blur-2xl rounded-full"></div>
+
+    <div class="relative flex items-center gap-4">
+
+      <div class="p-3 bg-blue-600/10 rounded-lg border border-blue-500/20">
+        <i class="fa-solid fa-file-circle-plus text-blue-400 text-xl"></i>
+      </div>
+
+      <div>
+        <h1 class="text-2xl font-bold text-white tracking-tight">
+          Novo Contrato
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">
+          Cadastre um novo contrato no sistema
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- ======================================================= -->
+<!-- ===================== FORMULÁRIO ======================= -->
+<!-- ======================================================= -->
+<form method="POST"
+      class="bg-slate-900/60 backdrop-blur-xl p-6 rounded-xl shadow-xl 
+             border border-slate-800 grid grid-cols-1 gap-5 text-white">
+
+  <!-- EMPRESA -->
   <div>
-    <label class="font-semibold">Empresa</label>
+    <label class="font-medium text-slate-300 text-sm">Empresa</label>
     <input name="company" required
-           class="w-full mt-1 px-4 py-2 border rounded-lg" placeholder="Nome da empresa">
+           class="w-full mt-1 px-4 py-2.5 bg-slate-800/50 border border-slate-700 
+                  rounded-lg text-white placeholder-slate-500 
+                  focus:outline-none focus:border-blue-500 transition"
+           placeholder="Nome da empresa">
   </div>
 
+  <!-- CNPJ -->
   <div>
-    <label class="font-semibold">CNPJ</label>
+    <label class="font-medium text-slate-300 text-sm">CNPJ</label>
     <input name="cnpj" required maxlength="20"
-           class="w-full mt-1 px-4 py-2 border rounded-lg" placeholder="00.000.000/0000-00">
+           class="w-full mt-1 px-4 py-2.5 bg-slate-800/50 border border-slate-700 
+                  rounded-lg text-white placeholder-slate-500 
+                  focus:outline-none focus:border-blue-500 transition"
+           placeholder="00.000.000/0000-00">
   </div>
 
+  <!-- DESCRIÇÃO -->
   <div>
-    <label class="font-semibold">Descrição</label>
-    <textarea name="desc" class="w-full mt-1 px-4 py-2 border rounded-lg"></textarea>
+    <label class="font-medium text-slate-300 text-sm">Descrição</label>
+    <textarea name="desc" rows="3"
+              class="w-full mt-1 px-4 py-2.5 bg-slate-800/50 border border-slate-700 
+                     rounded-lg text-white placeholder-slate-500 
+                     focus:outline-none focus:border-blue-500 transition"
+              placeholder="Informações adicionais sobre o contrato"></textarea>
   </div>
 
-  <div class="grid grid-cols-2 gap-5">
+  <!-- DATAS -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
     <div>
-      <label class="font-semibold">Início</label>
-      <input name="start" type="date" class="w-full mt-1 px-4 py-2 border rounded-lg">
+      <label class="font-medium text-slate-300 text-sm">Início</label>
+      <input name="start" type="date"
+             class="w-full mt-1 px-4 py-2.5 bg-slate-800/50 border border-slate-700 
+                    rounded-lg text-white focus:outline-none focus:border-blue-500 transition">
     </div>
+
     <div>
-      <label class="font-semibold">Fim</label>
-      <input name="end" type="date" class="w-full mt-1 px-4 py-2 border rounded-lg">
+      <label class="font-medium text-slate-300 text-sm">Fim</label>
+      <input name="end" type="date"
+             class="w-full mt-1 px-4 py-2.5 bg-slate-800/50 border border-slate-700 
+                    rounded-lg text-white focus:outline-none focus:border-blue-500 transition">
     </div>
+
   </div>
 
-  <button class="mt-4 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg shadow">
+  <!-- BOTÃO SALVAR -->
+  <button
+    class="mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg shadow-lg 
+           font-semibold tracking-wide text-sm transition duration-200 
+           hover:-translate-y-[2px] active:scale-95">
     Salvar Contrato
   </button>
 
