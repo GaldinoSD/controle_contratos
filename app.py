@@ -152,7 +152,8 @@ def tarefas_por_empresa():
     empresas = Company.query.all()
 
     for emp in empresas:
-        contratos = Contract.query.filter_by(company_id=emp.id, active=True).all()
+        contratos = Contract.query.filter_by(company_id=emp.id, status="ativo").all()
+
         if not contratos:
             continue
 
@@ -183,6 +184,7 @@ def tarefas_por_empresa():
         })
 
     return dados
+
 
 
 # =====================================================
