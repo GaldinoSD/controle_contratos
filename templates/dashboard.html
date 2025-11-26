@@ -52,6 +52,13 @@
 
   {% for item in dados %}
 
+  <!-- ====== CÁLCULO DAS PORCENTAGENS ====== -->
+  {% set total = item.total if item.total > 0 else 1 %}
+  {% set perc_concluidas = (item.concluidas / total * 100) %}
+  {% set perc_pendentes = (item.pendentes / total * 100) %}
+  {% set perc_atrasadas = (item.atrasadas / total * 100) %}
+
+
   <!-- CARD -->
   <div class="relative 
               bg-white/60 dark:bg-slate-900/60 
@@ -104,7 +111,42 @@
       <!-- Separador -->
       <hr class="border-slate-300 dark:border-slate-800 my-3">
 
-      <!-- Indicadores -->
+
+      <!-- ========================================================================= -->
+      <!-- ======================== MINI CARDS DE PORCENTAGEM ====================== -->
+      <!-- ========================================================================= -->
+      <div class="grid grid-cols-3 gap-2 mt-2 mb-4">
+
+        <!-- Concluídas -->
+        <div class="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
+          <p class="text-[10px] text-emerald-700 dark:text-emerald-300">Concluídas</p>
+          <h3 class="font-bold text-emerald-700 dark:text-emerald-300 text-sm">
+            {{ perc_concluidas | round(0) }}%
+          </h3>
+        </div>
+
+        <!-- Pendentes -->
+        <div class="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-center">
+          <p class="text-[10px] text-yellow-700 dark:text-yellow-300">Pendentes</p>
+          <h3 class="font-bold text-yellow-700 dark:text-yellow-300 text-sm">
+            {{ perc_pendentes | round(0) }}%
+          </h3>
+        </div>
+
+        <!-- Atrasadas -->
+        <div class="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
+          <p class="text-[10px] text-red-700 dark:text-red-300">Atrasadas</p>
+          <h3 class="font-bold text-red-700 dark:text-red-300 text-sm">
+            {{ perc_atrasadas | round(0) }}%
+          </h3>
+        </div>
+
+      </div>
+
+
+      <!-- ========================================================================= -->
+      <!-- ======================= INDICADORES ORIGINAIS =========================== -->
+      <!-- ========================================================================= -->
       <div class="space-y-2.5">
 
         <!-- TOTAL -->

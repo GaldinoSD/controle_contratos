@@ -341,6 +341,7 @@
 
     <form action="/task/new/{{ contract.id }}" method="POST" class="space-y-4">
 
+      <!-- TÍTULO DA TAREFA -->
       <div>
         <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Título</label>
         <input name="title"
@@ -348,7 +349,9 @@
                       px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100" required>
       </div>
 
+      <!-- ENTREGA + PRIORIDADE -->
       <div class="grid grid-cols-2 gap-4">
+
         <div>
           <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Entrega</label>
           <input type="date" name="due_date"
@@ -366,8 +369,30 @@
             <option>Baixa</option>
           </select>
         </div>
+
       </div>
 
+      <!-- DESTINAR PARA COLABORADOR -->
+      <div>
+        <label class="text-xs font-medium text-slate-700 dark:text-slate-300">
+          Destinar tarefa para
+        </label>
+
+        <select name="assigned_to"
+                class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                       px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
+
+          <!-- OPÇÃO PARA TODOS -->
+          <option value="all">Todos os colaboradores</option>
+
+          <!-- LISTAGEM DINÂMICA -->
+          {% for c in colaboradores %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- DESCRIÇÃO -->
       <div>
         <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Descrição</label>
         <textarea name="description" rows="3"
@@ -375,6 +400,7 @@
                          px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100"></textarea>
       </div>
 
+      <!-- BOTÕES -->
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" onclick="fecharModalNovaTarefa()"
                 class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 
@@ -392,6 +418,7 @@
 
   </div>
 </div>
+
 
 
 
