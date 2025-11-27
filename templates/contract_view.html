@@ -4,82 +4,83 @@
 <!-- ======================================================= -->
 <!-- ================= HEADER COMPACTO ====================== -->
 <!-- ======================================================= -->
-<section class="mb-6 relative">
+<section class="mb-4 relative">
 
-  <div class="rounded-xl p-6 
+  <div class="rounded-xl p-3 
               bg-white/80 dark:bg-slate-900/80 
-              shadow-lg border 
-              border-slate-300 dark:border-slate-800
+              shadow-lg border border-slate-300 dark:border-slate-800
               backdrop-blur-xl overflow-hidden relative transition">
 
-    <!-- Glows -->
-    <div class="absolute -top-8 -left-8 w-28 h-28 
-                bg-blue-400/20 dark:bg-blue-600/20 
-                blur-2xl rounded-full"></div>
-    <div class="absolute bottom-0 right-0 w-28 h-28 
-                bg-cyan-300/10 dark:bg-cyan-500/10 
-                blur-2xl rounded-full"></div>
-
-    <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+    <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
 
       <!-- ESQUERDA -->
-      <div class="flex items-start gap-4">
+<div class="flex items-start gap-3">
 
-        <div class="p-3 bg-blue-100/50 dark:bg-blue-600/10 
-                    rounded-xl border 
-                    border-blue-300/40 dark:border-blue-500/20">
-          <i class="fa-solid fa-building 
-                    text-blue-600 dark:text-blue-400 text-2xl"></i>
-        </div>
+  {% if contract.company.logo %}
+    <img src="/{{ contract.company.logo }}"
+      class="w-12 h-12 rounded-lg object-cover 
+             border border-slate-300 dark:border-slate-700 shadow">
+  {% else %}
+    <div class="w-12 h-12 flex items-center justify-center 
+                bg-blue-500/10 dark:bg-blue-600/20
+                text-blue-700 dark:text-blue-300
+                rounded-lg text-xl font-bold
+                border border-blue-300/40 dark:border-blue-500/20 shadow">
+      {{ contract.company.name[0] }}
+    </div>
+  {% endif %}
 
-        <div>
-          <h1 class="text-2xl font-bold 
-                     text-slate-800 dark:text-white tracking-tight">
-            {{ contract.company.name }}
-          </h1>
+  <div>
+    <!-- TÍTULO MAIOR -->
+    <h1 class="text-xl font-bold 
+               text-slate-800 dark:text-white leading-tight">
+      {{ contract.company.name }}
+    </h1>
 
-          <p class="text-slate-600 dark:text-slate-400 text-xs mt-1">
-            Arquivos, tarefas e histórico do contrato.
-          </p>
+    <!-- SUBTÍTULO MAIOR -->
+    <p class="text-slate-600 dark:text-slate-400 text-[11px] mt-0.5 leading-tight">
+      Arquivos, tarefas e histórico do contrato.
+    </p>
 
-          <div class="mt-3 text-slate-700 dark:text-slate-300 text-xs leading-5">
-            <p><strong>Contrato:</strong> {{ contract.id }}</p>
-            <p><strong>CNPJ:</strong> {{ contract.company.cnpj }}</p>
-            <p><strong>Vigência:</strong> {{ contract.start_date }} → {{ contract.end_date }}</p>
-          </div>
-        </div>
+    <!-- INFORMAÇÕES IMPORTANTES MAIORES -->
+    <div class="mt-1 text-slate-700 dark:text-slate-300 text-[12px] leading-tight font-medium">
+      <p><strong>ID:</strong> {{ contract.id }}</p>
+      <p><strong>CNPJ:</strong> {{ contract.company.cnpj }}</p>
+      <p><strong>Vigência:</strong> {{ contract.start_date }} → {{ contract.end_date }}</p>
+    </div>
+  </div>
 
-      </div>
+</div>
 
 
-      <!-- DIREITA (ARQUIVOS) -->
-      <div class="bg-white/60 dark:bg-slate-800/40 
+      <!-- DIREITA — ARQUIVOS -->
+      <div class="bg-white/40 dark:bg-slate-800/40 
                   border border-slate-300 dark:border-slate-700 
-                  rounded-xl p-4 shadow-sm transition">
+                  rounded-lg p-2 shadow-sm transition">
 
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between mb-1">
 
-          <h2 class="text-sm font-semibold 
-                     text-slate-800 dark:text-white flex items-center gap-2">
+          <h2 class="text-[11px] font-semibold 
+                     text-slate-800 dark:text-white flex items-center gap-1.5">
             <i class="fa-solid fa-file-contract 
-                       text-blue-600 dark:text-blue-400"></i>
-            Arquivos do Contrato
+                       text-blue-600 dark:text-blue-400 text-xs"></i>
+            Arquivos
           </h2>
 
           {% if files|length > 0 %}
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1">
 
             <button onclick="abrirModalAtualizar()"
-                    class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 
-                           text-white text-[11px] rounded-lg shadow flex items-center gap-1">
-              <i class="fa-solid fa-file-arrow-up"></i> Atualizar
+                    class="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 
+                           text-white text-[10px] rounded-md shadow flex items-center gap-1">
+              <i class="fa-solid fa-file-arrow-up text-[10px]"></i> Atualizar
             </button>
 
             <form method="POST" action="/contract/file/delete/{{ files[0].id }}"
-                  onsubmit="return confirm('Deseja realmente excluir o arquivo?');">
-              <button class="px-3 py-1.5 bg-red-600 hover:bg-red-700 
-                             text-white text-[11px] rounded-lg shadow flex items-center gap-1">
-                <i class="fa-solid fa-trash"></i> Excluir
+                  onsubmit="return confirm('Excluir arquivo?');">
+              <button class="px-2 py-0.5 bg-red-600 hover:bg-red-700 
+                             text-white text-[10px] rounded-md shadow flex items-center gap-1">
+                <i class="fa-solid fa-trash text-[10px]"></i> Excluir
               </button>
             </form>
 
@@ -87,38 +88,38 @@
           {% endif %}
         </div>
 
-
-        <!-- Se não houver arquivos -->
         {% if files|length == 0 %}
+
+        <!-- ============== ULTRA COMPACTO QUANDO NÃO TEM ARQUIVO ============== -->
         <div class="text-center border border-dashed 
                     border-slate-400 dark:border-slate-600 
-                    rounded-lg p-4 
-                    bg-white/40 dark:bg-slate-900/40">
+                    rounded-lg p-2 
+                    bg-white/30 dark:bg-slate-900/30">
 
-          <p class="text-slate-600 dark:text-slate-300 text-xs mb-3">
-            Nenhum arquivo enviado ainda.
+          <p class="text-slate-600 dark:text-slate-300 text-[10px] mb-1">
+            Nenhum arquivo.
           </p>
 
           <form method="POST" action="/contract/{{ contract.id }}/upload"
                 enctype="multipart/form-data">
 
-            <label class="w-full py-4 flex flex-col items-center justify-center 
+            <label class="w-full py-2 flex flex-col items-center justify-center 
                           border border-dashed 
                           border-slate-400 dark:border-slate-500 
                           bg-white/40 dark:bg-slate-900/40 
-                          rounded-lg cursor-pointer hover:bg-white/60 
+                          rounded-md cursor-pointer hover:bg-white/60 
                           dark:hover:bg-slate-900/70 transition">
 
-              <i class="fa-solid fa-upload text-xl text-slate-500 dark:text-slate-400 mb-1"></i>
-              <span class="text-[11px] text-slate-600 dark:text-slate-300">
+              <i class="fa-solid fa-upload text-[14px] text-slate-500 dark:text-slate-400 mb-0.5"></i>
+              <span class="text-[10px] text-slate-600 dark:text-slate-300">
                 Selecionar arquivo
               </span>
 
               <input type="file" name="file" class="hidden" required>
             </label>
 
-            <button class="mt-3 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700
-                           text-white text-xs rounded-lg shadow">
+            <button class="mt-1 w-full px-3 py-1 bg-blue-600 hover:bg-blue-700
+                           text-white text-[10px] rounded-md shadow">
               Enviar
             </button>
 
@@ -128,24 +129,24 @@
 
         {% else %}
 
-        <!-- Lista de arquivos -->
-        <div class="space-y-2 max-h-40 overflow-y-auto pr-1">
+        <!-- ============== LISTA DE ARQUIVOS – ALTURA REDUZIDA ============== -->
+        <div class="space-y-1 max-h-24 overflow-y-auto pr-0.5">
 
           {% for f in files %}
-          <div class="flex items-center justify-between p-3 rounded-lg 
+          <div class="flex items-center justify-between p-1.5 rounded-lg 
                       border border-slate-300 dark:border-slate-700 
                       bg-white/60 dark:bg-slate-800/50 transition">
 
-            <div class="flex items-center gap-3">
-              <i class="fa-solid fa-file-pdf text-red-600 dark:text-red-500 text-xl"></i>
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-file-pdf text-red-600 dark:text-red-500 text-base"></i>
 
               <div>
                 <a href="/{{ f.file_path }}" target="_blank"
-                   class="text-blue-600 dark:text-blue-400 text-xs hover:underline">
+                   class="text-blue-600 dark:text-blue-400 text-[10px] hover:underline">
                   {{ f.file_path.split('/')[-1] }}
                 </a>
 
-                <p class="text-[10px] text-slate-500 dark:text-slate-400">
+                <p class="text-[9px] text-slate-500 dark:text-slate-400">
                   {{ f.uploaded_at.strftime('%d/%m/%Y %H:%M') }}
                 </p>
               </div>
@@ -163,6 +164,7 @@
   </div>
 
 </section>
+
 
 
 <!-- ====================================================== -->

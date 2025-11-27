@@ -23,9 +23,13 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 app.config["FOTOS_COLAB"] = "static/fotos"
 
+# NOVA PASTA PARA LOGO DAS EMPRESAS
+app.config["LOGO_FOLDER"] = "static/logos"
+
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
+
 
 # =====================================================
 # MODELOS DO BANCO
@@ -46,11 +50,17 @@ class User(UserMixin, db.Model):
 
 
 class Company(db.Model):
+    __tablename__ = "company"
+
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120))
-    cnpj = db.Column(db.String(20))
+    name = db.Column(db.String(120), nullable=False)
+    cnpj = db.Column(db.String(20), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     active = db.Column(db.Boolean, default=True)
+
+    # NOVO — campo opcional para armazenar a logo
+    logo = db.Column(db.String(255), nullable=True)
+
 
 
 class Contract(db.Model):
@@ -202,13 +212,34 @@ def lista_contratos():
 @app.route("/contracts/new", methods=["POST"])
 @login_required
 def new_contract():
+    # ===============================
+    # 1) CADASTRAR EMPRESA
+    # ===============================
+    logo_file = request.files.get("logo")  # campo opcional
+
+    logo_path = None
+    if logo_file and logo_file.filename != "":
+        filename = secure_filename(logo_file.filename)
+
+        # Criar pasta se não existir
+        folder = app.config["LOGO_FOLDER"]
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        logo_path = os.path.join(folder, filename)
+        logo_file.save(logo_path)
+
     company = Company(
         name=request.form["company"],
-        cnpj=request.form["cnpj"]
+        cnpj=request.form["cnpj"],
+        logo=logo_path  # salva o caminho da logo
     )
     db.session.add(company)
     db.session.commit()
 
+    # ===============================
+    # 2) CADASTRAR CONTRATO
+    # ===============================
     contract = Contract(
         company_id=company.id,
         description=request.form["desc"],
@@ -219,8 +250,9 @@ def new_contract():
     db.session.add(contract)
     db.session.commit()
 
-    flash("Contrato criado!", "success")
+    flash("Contrato criado com sucesso!", "success")
     return redirect("/contracts")
+
 # =====================================================
 # ENCERRAR CONTRATO (VALIDA SENHA DO ADMIN)
 # =====================================================

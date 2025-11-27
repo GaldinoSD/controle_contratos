@@ -6,38 +6,56 @@
 <!-- ======================================================= -->
 <section class="mb-6 relative">
 
-  <div class="rounded-xl p-5 
-              bg-white/70 dark:bg-slate-900/80 
-              shadow-lg border border-slate-300 dark:border-slate-800
-              backdrop-blur-xl overflow-hidden relative">
+  <div class="rounded-xl p-5 bg-white/70 dark:bg-slate-900/80 shadow-lg 
+              border border-slate-300 dark:border-slate-800 backdrop-blur-xl 
+              overflow-hidden relative">
 
-    <!-- Glow -->
+    <!-- Glows decorativos -->
     <div class="absolute -top-8 -left-8 w-28 h-28 
-                bg-blue-400/10 dark:bg-blue-600/20 
-                blur-2xl rounded-full"></div>
+                bg-blue-400/10 dark:bg-blue-600/20 blur-2xl rounded-full"></div>
 
     <div class="absolute bottom-0 right-0 w-28 h-28 
-                bg-cyan-400/10 dark:bg-cyan-500/10
-                blur-2xl rounded-full"></div>
+                bg-cyan-400/10 dark:bg-cyan-500/10 blur-2xl rounded-full"></div>
 
-    <div class="relative flex items-center gap-4">
-      <div class="p-2.5 
-                  bg-blue-500/10 dark:bg-blue-600/10 
-                  rounded-lg border border-blue-300/40 dark:border-blue-500/20">
-        <i class="fa-solid fa-chart-line 
-                  text-blue-600 dark:text-blue-400 text-xl"></i>
+    <div class="relative flex items-center justify-between gap-4">
+
+      <!-- Título -->
+      <div class="flex items-center gap-4">
+        <div class="p-2.5 bg-blue-500/10 dark:bg-blue-600/10 
+                    rounded-lg border border-blue-300/40 dark:border-blue-500/20">
+          <i class="fa-solid fa-chart-line 
+                    text-blue-600 dark:text-blue-400 text-xl"></i>
+        </div>
+
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">
+            Painel Geral
+          </h1>
+
+          <p class="text-xs mt-1 text-slate-600 dark:text-slate-400">
+            Visão consolidada das empresas, contratos e tarefas.
+          </p>
+        </div>
       </div>
 
-      <div>
-        <h1 class="text-2xl font-bold 
-                   text-slate-800 dark:text-white tracking-tight">
-          Painel Geral
-        </h1>
-        <p class="text-xs mt-1 
-                   text-slate-600 dark:text-slate-400">
-          Resumo geral das empresas e tarefas.
-        </p>
+      <!-- Legenda de status -->
+      <div class="hidden md:flex items-center gap-3 
+                  text-[11px] text-slate-600 dark:text-slate-400">
+
+        <span class="inline-flex items-center gap-1">
+          <span class="w-3 h-3 rounded-full bg-emerald-500/70"></span> Em dia
+        </span>
+
+        <span class="inline-flex items-center gap-1">
+          <span class="w-3 h-3 rounded-full bg-yellow-400/80"></span> Em andamento
+        </span>
+
+        <span class="inline-flex items-center gap-1">
+          <span class="w-3 h-3 rounded-full bg-red-500/80"></span> Com atrasos
+        </span>
+
       </div>
+
     </div>
 
   </div>
@@ -45,193 +63,335 @@
 </section>
 
 
+
+<!-- ======================================================= -->
+<!-- ================== RESUMO SUPERIOR ===================== -->
+<!-- ======================================================= -->
+
+{% set ns = namespace(
+  total_tarefas=0,
+  total_concluidas=0,
+  total_pendentes=0,
+  total_atrasadas=0,
+  total_contratos=0
+) %}
+
+{% for item in dados %}
+  {% set ns.total_tarefas     = ns.total_tarefas     + item.total %}
+  {% set ns.total_concluidas  = ns.total_concluidas  + item.concluidas %}
+  {% set ns.total_pendentes   = ns.total_pendentes   + item.pendentes %}
+  {% set ns.total_atrasadas   = ns.total_atrasadas   + item.atrasadas %}
+  {% set ns.total_contratos   = ns.total_contratos   + item.contratos %}
+{% endfor %}
+
+
+<section class="mb-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+  <!-- TOTAL TAREFAS -->
+  <div class="rounded-xl bg-white/80 dark:bg-slate-900/80 border 
+              border-slate-300 dark:border-slate-800 shadow-lg p-4 
+              flex items-center gap-3">
+
+    <div class="p-2.5 rounded-lg bg-slate-900/5 dark:bg-slate-100/5">
+      <i class="fa-solid fa-list-check text-slate-700 dark:text-slate-300"></i>
+    </div>
+
+    <div>
+      <p class="text-[11px] uppercase tracking-wide 
+                text-slate-500 dark:text-slate-400">
+        Tarefas totais
+      </p>
+      <h2 class="text-xl font-bold text-slate-900 dark:text-white">
+        {{ ns.total_tarefas }}
+      </h2>
+    </div>
+
+  </div>
+
+
+  <!-- CONCLUÍDAS -->
+  <div class="rounded-xl bg-emerald-50/80 dark:bg-emerald-900/40 
+              border border-emerald-300/70 dark:border-emerald-700 
+              shadow-lg p-4 flex items-center gap-3">
+
+    <div class="p-2.5 rounded-lg bg-emerald-500/10">
+      <i class="fa-solid fa-circle-check text-emerald-700 dark:text-emerald-300"></i>
+    </div>
+
+    <div>
+      <p class="text-[11px] uppercase tracking-wide 
+                text-emerald-700/80 dark:text-emerald-200">
+        Concluídas
+      </p>
+      <h2 class="text-xl font-bold text-emerald-800 dark:text-emerald-100">
+        {{ ns.total_concluidas }}
+      </h2>
+    </div>
+
+  </div>
+
+
+  <!-- PENDENTES -->
+  <div class="rounded-xl bg-yellow-50/80 dark:bg-yellow-900/30 
+              border border-yellow-300/70 dark:border-yellow-700 shadow-lg 
+              p-4 flex items-center gap-3">
+
+    <div class="p-2.5 rounded-lg bg-yellow-500/10">
+      <i class="fa-solid fa-hourglass-half 
+                text-yellow-700 dark:text-yellow-300"></i>
+    </div>
+
+    <div>
+      <p class="text-[11px] uppercase tracking-wide 
+                text-yellow-700/90 dark:text-yellow-200">
+        Pendentes
+      </p>
+      <h2 class="text-xl font-bold text-yellow-800 dark:text-yellow-100">
+        {{ ns.total_pendentes }}
+      </h2>
+    </div>
+
+  </div>
+
+
+  <!-- ATRASADAS -->
+  <div class="rounded-xl bg-red-50/80 dark:bg-red-900/30 border 
+              border-red-300/70 dark:border-red-700 shadow-lg p-4 
+              flex items-center gap-3">
+
+    <div class="p-2.5 rounded-lg bg-red-500/10">
+      <i class="fa-solid fa-circle-exclamation 
+                text-red-700 dark:text-red-300"></i>
+    </div>
+
+    <div>
+      <p class="text-[11px] uppercase tracking-wide 
+                text-red-700/90 dark:text-red-200">
+        Atrasadas
+      </p>
+      <h2 class="text-xl font-bold text-red-800 dark:text-red-100">
+        {{ ns.total_atrasadas }}
+      </h2>
+    </div>
+
+  </div>
+
+</section>
+
+
+
 <!-- ======================================================= -->
 <!-- ======================== GRID ========================= -->
 <!-- ======================================================= -->
+
+{% if dados %}
+
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
 
   {% for item in dados %}
 
-  <!-- ====== CÁLCULO DAS PORCENTAGENS ====== -->
-  {% set total = item.total if item.total > 0 else 1 %}
-  {% set perc_concluidas = (item.concluidas / total * 100) %}
-  {% set perc_pendentes = (item.pendentes / total * 100) %}
-  {% set perc_atrasadas = (item.atrasadas / total * 100) %}
+    {% set total = item.total if item.total > 0 else 1 %}
+    {% set perc_concluidas = (item.concluidas / total * 100) %}
+    {% set perc_pendentes  = (item.pendentes  / total * 100) %}
+    {% set perc_atrasadas  = (item.atrasadas  / total * 100) %}
+
+    {% if item.atrasadas > 0 %}
+      {% set status_label = "Com atrasos" %}
+      {% set status_color = "bg-red-500/15 text-red-700 dark:text-red-300 border-red-400/60 dark:border-red-500/40" %}
+      {% set dot_color = "bg-red-500" %}
+
+    {% elif item.pendentes > 0 %}
+      {% set status_label = "Em andamento" %}
+      {% set status_color = "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-400/60 dark:border-yellow-500/40" %}
+      {% set dot_color = "bg-yellow-400" %}
+
+    {% else %}
+      {% set status_label = "Em dia" %}
+      {% set status_color = "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/60 dark:border-emerald-500/40" %}
+      {% set dot_color = "bg-emerald-500" %}
+    {% endif %}
 
 
-  <!-- CARD -->
-  <div class="relative 
-              bg-white/60 dark:bg-slate-900/60 
-              backdrop-blur-xl rounded-xl 
-              border border-slate-300 dark:border-slate-800 
-              shadow-lg hover:shadow-2xl
-              hover:-translate-y-[2px] transition-all duration-200 p-4 overflow-hidden">
+    <!-- CARD DA EMPRESA -->
+<div class="relative 
+            bg-white/60 dark:bg-slate-900/60 
+            backdrop-blur-xl rounded-xl 
+            border border-slate-300 dark:border-slate-800 
+            shadow-lg hover:shadow-2xl
+            hover:-translate-y-[2px] transition-all duration-200 p-4 overflow-hidden">
 
-    <!-- Glow interno -->
-    <div class="absolute inset-0 
-                bg-gradient-to-br 
-                from-blue-300/10 dark:from-blue-600/10 
-                via-transparent 
-                to-slate-200/10 dark:to-slate-900/10">
-    </div>
+  <!-- Glow interno -->
+  <div class="absolute inset-0 
+              bg-gradient-to-br 
+              from-blue-300/10 dark:from-blue-600/10 
+              via-transparent 
+              to-slate-200/10 dark:to-slate-900/10 pointer-events-none">
+  </div>
 
-    <div class="relative z-10">
-      
-      <!-- Cabeçalho -->
-      <div class="flex items-start justify-between mb-3">
+  <div class="relative z-10 flex flex-col gap-3">
+
+    <!-- Cabeçalho -->
+    <div class="flex items-start justify-between gap-3">
+
+      <div class="flex items-center gap-3">
+
+        {% if item.empresa.logo %}
+          <!-- LOGO DA EMPRESA -->
+          <img src="/{{ item.empresa.logo }}"
+               class="w-12 h-12 rounded-lg object-cover
+                      border border-slate-300 dark:border-slate-700 shadow-sm">
+        {% else %}
+          <!-- AVATAR COM A INICIAL -->
+          <div class="w-12 h-12 flex items-center justify-center 
+                      bg-blue-500/10 dark:bg-blue-600/20
+                      text-blue-700 dark:text-blue-300
+                      rounded-lg text-lg font-bold
+                      border border-blue-300/40 dark:border-blue-500/20">
+            {{ item.empresa.name[0] }}
+          </div>
+        {% endif %}
+
         <div>
-          <h2 class="text-lg font-semibold 
-                     text-slate-800 dark:text-white 
-                     flex items-center gap-2">
-            <span class="p-1.5 
-                         bg-blue-300/10 dark:bg-blue-600/10 
-                         rounded-md border 
-                         border-blue-300/30 dark:border-blue-500/10">
-              <i class="fa-solid fa-building 
-                        text-blue-600 dark:text-blue-300 text-sm"></i>
-            </span>
+          <h2 class="text-lg font-semibold text-slate-800 dark:text-white">
             {{ item.empresa.name }}
           </h2>
 
-          <p class="text-[11px] 
-                    text-slate-600 dark:text-slate-400 mt-1">
+          <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
             <span class="font-medium">CNPJ:</span> {{ item.empresa.cnpj }}
+          </p>
+
+          <p class="text-[10px] text-slate-500 dark:text-slate-500">
+            Contratos ativos: <span class="font-semibold">{{ item.contratos }}</span>
           </p>
         </div>
 
-        <span class="px-1.5 py-0.5 text-[9px] rounded-full 
-                     bg-emerald-400/20 dark:bg-emerald-600/20 
-                     text-emerald-700 dark:text-emerald-300 
-                     border border-emerald-400/40 dark:border-emerald-500/30 
-                     font-semibold">
-          Ativa
+      </div>
+
+      <!-- Badge Status -->
+      <span class="inline-flex items-center gap-1 px-2 py-1 text-[10px] rounded-full border {{ status_color }}">
+        <span class="w-2 h-2 rounded-full {{ dot_color }}"></span>
+        {{ status_label }}
+      </span>
+
+    </div>
+
+    <!-- Mini cards de porcentagem -->
+    <div class="grid grid-cols-3 gap-2 mt-1">
+
+      <div class="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
+        <p class="text-[10px] text-emerald-700 dark:text-emerald-300">Concluídas</p>
+        <h3 class="font-bold text-emerald-700 dark:text-emerald-300 text-sm">
+          {{ perc_concluidas | round(0) }}%
+        </h3>
+      </div>
+
+      <div class="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-center">
+        <p class="text-[10px] text-yellow-700 dark:text-yellow-300">Pendentes</p>
+        <h3 class="font-bold text-yellow-700 dark:text-yellow-300 text-sm">
+          {{ perc_pendentes | round(0) }}%
+        </h3>
+      </div>
+
+      <div class="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
+        <p class="text-[10px] text-red-700 dark:text-red-300">Atrasadas</p>
+        <h3 class="font-bold text-red-700 dark:text-red-300 text-sm">
+          {{ perc_atrasadas | round(0) }}%
+        </h3>
+      </div>
+
+    </div>
+
+    <!-- Barra de progresso -->
+    <div class="mt-2">
+      <div class="flex justify-between text-[10px] mb-1 text-slate-600 dark:text-slate-400">
+        <span>Distribuição das tarefas</span>
+        <span>Total: <strong>{{ item.total }}</strong></span>
+      </div>
+
+      <div class="w-full h-3 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden flex">
+        <div style="width: {{ perc_concluidas }}%;" class="h-full bg-emerald-500/90"></div>
+        <div style="width: {{ perc_pendentes }}%;" class="h-full bg-yellow-400/90"></div>
+        <div style="width: {{ perc_atrasadas }}%;" class="h-full bg-red-500/90"></div>
+      </div>
+
+      <div class="flex justify-between mt-1 text-[10px] text-slate-500 dark:text-slate-500">
+        <span><span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>Concluídas</span>
+        <span><span class="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-1"></span>Pendentes</span>
+        <span><span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>Atrasadas</span>
+      </div>
+    </div>
+
+    <!-- Indicadores numericos -->
+    <div class="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+
+      <div class="flex items-center justify-between 
+                  bg-slate-100 dark:bg-slate-900/40 
+                  border border-slate-300 dark:border-slate-800 
+                  rounded-lg py-1.5 px-2.5">
+        <div class="flex items-center gap-1.5">
+          <i class="fa-solid fa-list-check text-slate-700 dark:text-slate-300 text-[11px]"></i>
+          <span>Total</span>
+        </div>
+        <span class="font-semibold text-slate-900 dark:text-white">
+          {{ item.total }}
         </span>
       </div>
 
-      <!-- Separador -->
-      <hr class="border-slate-300 dark:border-slate-800 my-3">
-
-
-      <!-- ========================================================================= -->
-      <!-- ======================== MINI CARDS DE PORCENTAGEM ====================== -->
-      <!-- ========================================================================= -->
-      <div class="grid grid-cols-3 gap-2 mt-2 mb-4">
-
-        <!-- Concluídas -->
-        <div class="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
-          <p class="text-[10px] text-emerald-700 dark:text-emerald-300">Concluídas</p>
-          <h3 class="font-bold text-emerald-700 dark:text-emerald-300 text-sm">
-            {{ perc_concluidas | round(0) }}%
-          </h3>
+      <div class="flex items-center justify-between 
+                  bg-emerald-100/60 dark:bg-emerald-900/30 
+                  border border-emerald-300 dark:border-emerald-800/60 
+                  rounded-lg py-1.5 px-2.5">
+        <div class="flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-check text-emerald-700 dark:text-emerald-300 text-[11px]"></i>
+          <span>Concluídas</span>
         </div>
-
-        <!-- Pendentes -->
-        <div class="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-center">
-          <p class="text-[10px] text-yellow-700 dark:text-yellow-300">Pendentes</p>
-          <h3 class="font-bold text-yellow-700 dark:text-yellow-300 text-sm">
-            {{ perc_pendentes | round(0) }}%
-          </h3>
-        </div>
-
-        <!-- Atrasadas -->
-        <div class="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
-          <p class="text-[10px] text-red-700 dark:text-red-300">Atrasadas</p>
-          <h3 class="font-bold text-red-700 dark:text-red-300 text-sm">
-            {{ perc_atrasadas | round(0) }}%
-          </h3>
-        </div>
-
+        <span class="font-semibold text-emerald-800 dark:text-emerald-100">
+          {{ item.concluidas }}
+        </span>
       </div>
 
-
-      <!-- ========================================================================= -->
-      <!-- ======================= INDICADORES ORIGINAIS =========================== -->
-      <!-- ========================================================================= -->
-      <div class="space-y-2.5">
-
-        <!-- TOTAL -->
-        <div class="flex justify-between items-center 
-                    bg-slate-100 dark:bg-slate-900/40 
-                    border border-slate-300 dark:border-slate-800 
-                    rounded-lg py-2 px-3">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-list-check 
-                      text-slate-700 dark:text-slate-300 text-xs"></i>
-            <span class="text-xs text-slate-700 dark:text-slate-300">Total</span>
-          </div>
-          <span class="font-semibold text-slate-900 dark:text-white text-xs">
-            {{ item.total }}
-          </span>
+      <div class="flex items-center justify-between 
+                  bg-yellow-100/70 dark:bg-yellow-900/30 
+                  border border-yellow-300 dark:border-yellow-800/60 
+                  rounded-lg py-1.5 px-2.5">
+        <div class="flex items-center gap-1.5">
+          <i class="fa-solid fa-hourglass-half text-yellow-700 dark:text-yellow-300 text-[11px]"></i>
+          <span>Pendentes</span>
         </div>
+        <span class="font-semibold text-yellow-800 dark:text-yellow-100">
+          {{ item.pendentes }}
+        </span>
+      </div>
 
-        <!-- CONCLUÍDAS -->
-        <div class="flex justify-between items-center 
-                    bg-emerald-200/30 dark:bg-emerald-900/20 
-                    border border-emerald-300 dark:border-emerald-800/40 
-                    rounded-lg py-2 px-3">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-circle-check 
-                      text-emerald-700 dark:text-emerald-400 text-xs"></i>
-            <span class="text-xs text-emerald-700 dark:text-emerald-300">Concluídas</span>
-          </div>
-          <span class="font-semibold text-emerald-800 dark:text-emerald-200 text-xs">
-            {{ item.concluidas }}
-          </span>
+      <div class="flex items-center justify-between 
+                  bg-red-100/70 dark:bg-red-900/30 
+                  border border-red-300 dark:border-red-800/60 
+                  rounded-lg py-1.5 px-2.5">
+        <div class="flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-exclamation text-red-700 dark:text-red-300 text-[11px]"></i>
+          <span>Atrasadas</span>
         </div>
-
-        <!-- PENDENTES -->
-        <div class="flex justify-between items-center 
-                    bg-yellow-200/30 dark:bg-yellow-900/20 
-                    border border-yellow-300 dark:border-yellow-800/40 
-                    rounded-lg py-2 px-3">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-hourglass-half 
-                      text-yellow-700 dark:text-yellow-300 text-xs"></i>
-            <span class="text-xs text-yellow-700 dark:text-yellow-200">Pendentes</span>
-          </div>
-          <span class="font-semibold text-yellow-800 dark:text-yellow-200 text-xs">
-            {{ item.pendentes }}
-          </span>
-        </div>
-
-        <!-- ATRASADAS -->
-        <div class="flex justify-between items-center 
-                    bg-red-200/30 dark:bg-red-900/20 
-                    border border-red-300 dark:border-red-800/40 
-                    rounded-lg py-2 px-3">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-circle-exclamation 
-                      text-red-700 dark:text-red-400 text-xs"></i>
-            <span class="text-xs text-red-700 dark:text-red-300">Atrasadas</span>
-          </div>
-          <span class="font-semibold text-red-800 dark:text-red-300 text-xs">
-            {{ item.atrasadas }}
-          </span>
-        </div>
-
-        <!-- CONTRATOS -->
-        <div class="flex justify-between items-center 
-                    bg-blue-200/30 dark:bg-blue-900/20 
-                    border border-blue-300 dark:border-blue-800/40 
-                    rounded-lg py-2 px-3">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-file-contract 
-                      text-blue-700 dark:text-blue-300 text-xs"></i>
-            <span class="text-xs text-blue-700 dark:text-blue-200">Contratos</span>
-          </div>
-          <span class="font-semibold text-blue-800 dark:text-blue-200 text-xs">
-            {{ item.contratos }}
-          </span>
-        </div>
-
+        <span class="font-semibold text-red-800 dark:text-red-100">
+          {{ item.atrasadas }}
+        </span>
       </div>
 
     </div>
 
   </div>
 
+</div>
+
+
   {% endfor %}
 
 </div>
+
+
+{% else %}
+  <p class="text-center text-slate-500 dark:text-slate-400 mt-10 text-sm italic">
+    Nenhuma empresa com dados de tarefas cadastrados até o momento.
+  </p>
+{% endif %}
 
 {% endblock %}
