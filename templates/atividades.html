@@ -168,7 +168,7 @@
 
       <div class="border-t border-slate-300 dark:border-slate-700"></div>
 
-      <!-- DESCRIÇÃO / NOTA -->
+      <!-- NOTA -->
       <p><strong class="text-blue-700 dark:text-blue-300">O que foi feito:</strong></p>
       <div class="bg-slate-100 dark:bg-slate-800/60 
                   border border-slate-300 dark:border-slate-700 
@@ -179,18 +179,28 @@
 
       <div class="border-t border-slate-300 dark:border-slate-700"></div>
 
-      <!-- ANEXO -->
-      {% if log.file_path %}
-      <p><strong class="text-blue-700 dark:text-blue-300">Anexo:</strong></p>
-      <a href="/{{ log.file_path }}" target="_blank"
-        class="inline-flex items-center gap-2 px-4 py-2 
-               bg-blue-600 hover:bg-blue-700 
-               text-white rounded-lg shadow">
-        <i class="fa-solid fa-paperclip"></i>
-        Abrir Anexo
-      </a>
+      <!-- ======================================================= -->
+      <!-- ================== ANEXOS EM QUADRADOS ================= -->
+      <!-- ======================================================= -->
+      <p><strong class="text-blue-700 dark:text-blue-300">Anexos:</strong></p>
+
+      {% if log.files and log.files|length > 0 %}
+      <div class="grid grid-cols-2 gap-3">
+        {% for f in log.files %}
+          <a href="/{{ f.file_path }}" target="_blank"
+            class="bg-slate-100 dark:bg-slate-800 
+                   rounded-lg p-4 h-24 flex items-center justify-center text-center
+                   border border-slate-300 dark:border-slate-700 
+                   hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 transition text-xs font-medium shadow">
+            <i class="fa-solid fa-paperclip mr-2"></i>
+            {{ f.file_path.split('/')[-1] }}
+          </a>
+        {% endfor %}
+      </div>
       {% else %}
-        <p class="text-slate-500 dark:text-slate-400 text-[12px] italic">Nenhum anexo enviado.</p>
+        <p class="text-slate-500 dark:text-slate-400 text-[12px] italic">
+          Nenhum anexo enviado.
+        </p>
       {% endif %}
 
     </div>

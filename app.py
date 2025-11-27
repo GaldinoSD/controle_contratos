@@ -20,10 +20,10 @@ import os
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secreto"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+
+# PASTAS EXISTENTES — NÃO ALTEREI
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 app.config["FOTOS_COLAB"] = "static/fotos"
-
-# NOVA PASTA PARA LOGO DAS EMPRESAS
 app.config["LOGO_FOLDER"] = "static/logos"
 
 db = SQLAlchemy(app)
@@ -57,8 +57,6 @@ class Company(db.Model):
     cnpj = db.Column(db.String(20), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     active = db.Column(db.Boolean, default=True)
-
-    # NOVO — campo opcional para armazenar a logo
     logo = db.Column(db.String(255), nullable=True)
 
 
@@ -90,7 +88,6 @@ class Task(db.Model):
     priority = db.Column(db.String(20), default="Normal")
     status = db.Column(db.String(20), default="pendente")
 
-    # NOVO → destino da tarefa
     assigned_to = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
 
     contract = db.relationship("Contract")
@@ -102,11 +99,20 @@ class TaskLog(db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey("task.id"))
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     note = db.Column(db.Text)
-    file_path = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     task = db.relationship("Task", backref="logs")
     user = db.relationship("User")
+
+
+# NOVO — tabela correta para **vários anexos**
+class TaskFile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task_log_id = db.Column(db.Integer, db.ForeignKey("task_log.id"))
+    file_path = db.Column(db.String(255))
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    log = db.relationship("TaskLog", backref="files")
 
 
 class Collaborator(db.Model):
@@ -148,7 +154,6 @@ def criar_admin_automatico():
         )
         db.session.add(novo)
         db.session.commit()
-
 # =====================================================
 # FUNÇÃO: RESUMO DO DASHBOARD
 # =====================================================
@@ -186,6 +191,7 @@ def tarefas_por_empresa():
 
     return dados
 
+
 # =====================================================
 # DASHBOARD
 # =====================================================
@@ -197,6 +203,7 @@ def dashboard():
         return redirect("/painel-colaborador")
 
     return render_template("dashboard.html", dados=tarefas_por_empresa())
+
 
 # =====================================================
 # CONTRATOS
@@ -212,16 +219,12 @@ def lista_contratos():
 @app.route("/contracts/new", methods=["POST"])
 @login_required
 def new_contract():
-    # ===============================
-    # 1) CADASTRAR EMPRESA
-    # ===============================
-    logo_file = request.files.get("logo")  # campo opcional
+    logo_file = request.files.get("logo")
 
     logo_path = None
     if logo_file and logo_file.filename != "":
         filename = secure_filename(logo_file.filename)
 
-        # Criar pasta se não existir
         folder = app.config["LOGO_FOLDER"]
         if not os.path.exists(folder):
             os.makedirs(folder)
@@ -232,14 +235,11 @@ def new_contract():
     company = Company(
         name=request.form["company"],
         cnpj=request.form["cnpj"],
-        logo=logo_path  # salva o caminho da logo
+        logo=logo_path
     )
     db.session.add(company)
     db.session.commit()
 
-    # ===============================
-    # 2) CADASTRAR CONTRATO
-    # ===============================
     contract = Contract(
         company_id=company.id,
         description=request.form["desc"],
@@ -253,16 +253,17 @@ def new_contract():
     flash("Contrato criado com sucesso!", "success")
     return redirect("/contracts")
 
+
 # =====================================================
-# ENCERRAR CONTRATO (VALIDA SENHA DO ADMIN)
+# ENCERRAR CONTRATO
 # =====================================================
+
 @app.route("/contracts/end/<int:id>", methods=["POST"])
 @login_required
 def end_contract(id):
     data = request.get_json()
     senha = data.get("senha")
 
-    # Confirma senha do admin logado
     if not check_password_hash(current_user.password, senha):
         return jsonify({"sucesso": False, "mensagem": "Senha incorreta"})
 
@@ -274,8 +275,9 @@ def end_contract(id):
 
 
 # =====================================================
-# EXCLUIR CONTRATO (APENAS SE ENCERRADO)
+# EXCLUIR CONTRATO
 # =====================================================
+
 @app.route("/contracts/delete/<int:id>", methods=["POST"])
 @login_required
 def delete_contract(id):
@@ -293,22 +295,17 @@ def delete_contract(id):
 
 
 # =====================================================
-# VISUALIZAÇÃO DO CONTRATO + TAREFAS + ARQUIVOS
+# VISUALIZAÇÃO DO CONTRATO
 # =====================================================
+
 @app.route("/contract/<int:id>")
 @login_required
 def contract_view(id):
     contr = Contract.query.get_or_404(id)
     files = ContractFile.query.filter_by(contract_id=id).all()
 
-    # Lista de colaboradores (para o select do modal)
     colaboradores = User.query.filter_by(role="colaborador").order_by(User.name).all()
 
-    # FILTRO DE TAREFAS
-    # Admin vê todas as tarefas do contrato
-    # Colaborador vê:
-    #   - Tarefas destinadas a ele (assigned_to == seu ID)
-    #   - Tarefas destinadas a todos (assigned_to is None)
     if current_user.role == "admin":
         tasks = Task.query.filter_by(contract_id=id).order_by(Task.id.desc()).all()
     else:
@@ -317,7 +314,6 @@ def contract_view(id):
             ((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
         ).order_by(Task.id.desc()).all()
 
-    # Converter datas string → date para checar atrasos no template
     for t in tasks:
         if isinstance(t.due_date, str) and t.due_date:
             try:
@@ -336,8 +332,9 @@ def contract_view(id):
 
 
 # =====================================================
-# UPLOAD / SUBSTITUIR ARQUIVO DO CONTRATO
+# UPLOAD DE ARQUIVO DO CONTRATO
 # =====================================================
+
 @app.route("/contract/<int:id>/upload", methods=["POST"])
 @login_required
 def upload_file(id):
@@ -350,7 +347,6 @@ def upload_file(id):
     path = f"{app.config['UPLOAD_FOLDER']}/{filename}"
     file.save(path)
 
-    # Apaga o último arquivo salvo para este contrato
     ultimo = ContractFile.query.filter_by(contract_id=id).order_by(ContractFile.id.desc()).first()
     if ultimo:
         try:
@@ -372,6 +368,7 @@ def upload_file(id):
 # =====================================================
 # EXCLUIR ARQUIVO DO CONTRATO
 # =====================================================
+
 @app.route("/contract/file/delete/<int:file_id>", methods=["POST"])
 @login_required
 def delete_contract_file(file_id):
@@ -392,8 +389,9 @@ def delete_contract_file(file_id):
 
 
 # =====================================================
-# TAREFAS – CRIAR (COM DESTINO)
+# TAREFAS – CRIAR
 # =====================================================
+
 @app.route("/task/new/<int:contract_id>", methods=["POST"])
 @login_required
 def new_task(contract_id):
@@ -402,10 +400,8 @@ def new_task(contract_id):
     due_date = request.form["due_date"]
     priority = request.form.get("priority", "Normal")
 
-    # Campo vindo do select do modal
     assigned_to_raw = request.form.get("assigned_to")
 
-    # Se "all" => tarefa disponível para todos (assigned_to = None)
     if assigned_to_raw == "all" or not assigned_to_raw:
         assigned_to_value = None
     else:
@@ -433,6 +429,7 @@ def new_task(contract_id):
 # =====================================================
 # LOGS DA TAREFA (DETALHES)
 # =====================================================
+
 @app.route("/task/logs/<int:task_id>")
 @login_required
 def task_logs(task_id):
@@ -440,45 +437,57 @@ def task_logs(task_id):
     if not log:
         return jsonify({"erro": "Sem registros."})
 
+    arquivos = [f.file_path for f in log.files] if log.files else []
+
     return jsonify({
         "user": log.user.name if log.user else "N/A",
         "data": log.created_at.strftime("%d/%m/%Y %H:%M"),
         "note": log.note,
         "priority": log.task.priority,
-        "file": log.file_path
+        "files": arquivos
     })
-
-
 # =====================================================
-# FINALIZAR TAREFA (ADMIN E COLABORADOR)
+# FINALIZAR TAREFA (ADMIN E COLABORADOR) – COM MÚLTIPLOS ARQUIVOS
 # =====================================================
 @app.route("/task/complete/<int:task_id>", methods=["POST"])
 @login_required
 def complete_task(task_id):
     task = Task.query.get_or_404(task_id)
     note = request.form["note"]
-    file = request.files.get("file")
 
-    file_path = None
+    # Pega TODOS os arquivos enviados no campo name="files[]"
+    files = request.files.getlist("files[]")
 
-    if file and file.filename:
-        if not os.path.exists(app.config["UPLOAD_FOLDER"]):
-            os.makedirs(app.config["UPLOAD_FOLDER"])
-
-        filename = secure_filename(file.filename)
-        file_path = f"{app.config['UPLOAD_FOLDER']}/{filename}"
-        file.save(file_path)
-
+    # Cria o log da tarefa primeiro (sem arquivo ainda)
     log = TaskLog(
         task_id=task.id,
         user_id=current_user.id,
-        note=note,
-        file_path=file_path
+        note=note
     )
+    db.session.add(log)
+    db.session.flush()  # garante log.id sem precisar dar commit agora
 
+    # Garante que a pasta de upload existe
+    if files:
+        if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+            os.makedirs(app.config["UPLOAD_FOLDER"])
+
+        for f in files:
+            if f and f.filename:
+                filename = secure_filename(f.filename)
+                caminho = f"{app.config['UPLOAD_FOLDER']}/{filename}"
+                f.save(caminho)
+
+                # Cria registro de arquivo vinculado ao LOG
+                novo_arquivo = TaskFile(
+                    task_log_id=log.id,
+                    file_path=caminho
+                )
+                db.session.add(novo_arquivo)
+
+    # Atualiza status da tarefa
     task.status = "concluida"
 
-    db.session.add(log)
     db.session.commit()
 
     flash("Tarefa concluída!", "success")
@@ -489,6 +498,8 @@ def complete_task(task_id):
 
     # COLABORADOR volta para o painel
     return redirect("/painel-colaborador")
+
+
 # =====================================================
 # FUNÇÃO: SALVAR FOTO DO COLABORADOR
 # =====================================================
@@ -749,14 +760,12 @@ def painel_colaborador():
     if current_user.role != "colaborador":
         return redirect("/")
 
-    # Só exibe tarefas destinadas ao colaborador OU para todos (None)
     tarefas = Task.query.filter(
         Task.status == "pendente",
         ((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
     ).order_by(Task.id.desc()).all()
 
     return render_template("painel_colaborador.html", tarefas=tarefas)
-
 
 
 # =====================================================
