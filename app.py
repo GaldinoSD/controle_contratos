@@ -172,8 +172,14 @@ def tarefas_por_empresa():
         ids = [c.id for c in contratos]
 
         total = Task.query.filter(Task.contract_id.in_(ids)).count()
-        concluidas = Task.query.filter(Task.contract_id.in_(ids), Task.status == "concluida").count()
-        pendentes = Task.query.filter(Task.contract_id.in_(ids), Task.status == "pendente").count()
+        concluidas = Task.query.filter(
+            Task.contract_id.in_(ids),
+            Task.status == "concluida"
+        ).count()
+        pendentes = Task.query.filter(
+            Task.contract_id.in_(ids),
+            Task.status == "pendente"
+        ).count()
         atrasadas = Task.query.filter(
             Task.contract_id.in_(ids),
             Task.status == "pendente",
@@ -203,8 +209,6 @@ def dashboard():
         return redirect("/painel-colaborador")
 
     return render_template("dashboard.html", dados=tarefas_por_empresa())
-
-
 # =====================================================
 # LISTA DE CONTRATOS
 # =====================================================
@@ -255,6 +259,96 @@ def new_contract():
     db.session.commit()
 
     flash("Contrato criado!", "success")
+    return redirect("/contracts")
+
+
+# =====================================================
+# EDITAR CONTRATO (DADOS BÁSICOS / VIGÊNCIA)
+# =====================================================
+
+@app.route("/contracts/edit/<int:id>", methods=["POST"])
+@login_required
+def edit_contract(id):
+    contrato = Contract.query.get_or_404(id)
+    empresa = contrato.company  # pega a empresa vinculada
+
+    # Atualiza dados da empresa
+    nome = request.form.get("company")
+    cnpj = request.form.get("cnpj")
+
+    if nome:
+        empresa.name = nome
+    if cnpj:
+        empresa.cnpj = cnpj
+
+    # Atualiza dados do contrato
+    descricao = request.form.get("desc")
+    inicio = request.form.get("start")
+    fim = request.form.get("end")
+
+    if descricao is not None:
+        contrato.description = descricao
+    if inicio:
+        contrato.start_date = inicio
+    if fim:
+        contrato.end_date = fim
+
+    db.session.commit()
+    flash("Contrato atualizado com sucesso!", "success")
+    return redirect("/contracts")
+
+
+
+# =====================================================
+# ATUALIZAR VIGÊNCIA (EXTENSÃO)
+# =====================================================
+
+@app.route("/contracts/vigencia/<int:id>", methods=["POST"])
+@login_required
+def update_vigencia(id):
+    contrato = Contract.query.get_or_404(id)
+
+    novo_inicio = request.form.get("start") or contrato.start_date
+    novo_fim = request.form.get("end")
+
+    if not novo_fim:
+        flash("Informe a nova data de término da vigência.", "error")
+        return redirect("/contracts")
+
+    contrato.start_date = novo_inicio
+    contrato.end_date = novo_fim
+    db.session.commit()
+
+    flash("Vigência atualizada com sucesso!", "success")
+    return redirect("/contracts")
+
+
+# =====================================================
+# REATIVAR CONTRATO ENCERRADO
+# =====================================================
+
+@app.route("/contracts/reactivate/<int:id>", methods=["POST"])
+@login_required
+def reactivate_contract(id):
+    contrato = Contract.query.get_or_404(id)
+
+    if contrato.status != "encerrado":
+        flash("Somente contratos encerrados podem ser reativados.", "error")
+        return redirect("/contracts")
+
+    novo_inicio = request.form.get("start") or contrato.start_date
+    novo_fim = request.form.get("end")
+
+    if not novo_fim:
+        flash("Informe a nova vigência (pelo menos a data de término).", "error")
+        return redirect("/contracts")
+
+    contrato.start_date = novo_inicio
+    contrato.end_date = novo_fim
+    contrato.status = "ativo"
+
+    db.session.commit()
+    flash("Contrato reativado com sucesso!", "success")
     return redirect("/contracts")
 # =====================================================
 # ENCERRAR CONTRATO
@@ -347,7 +441,7 @@ def contract_view(id):
 
 
 # =====================================================
-# UPLOAD DE ARQUIVOS DO CONTRATO — AGORA MULTIPLO!
+# UPLOAD DE ARQUIVOS DO CONTRATO — MÚLTIPLOS
 # =====================================================
 
 @app.route("/contract/<int:id>/upload", methods=["POST"])
@@ -371,7 +465,6 @@ def upload_file(id):
             save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             file.save(save_path)
 
-            # cria registro individual
             novo = ContractFile(
                 contract_id=id,
                 file_path=save_path
@@ -405,8 +498,6 @@ def delete_contract_file(file_id):
 
     flash("Arquivo removido!", "success")
     return redirect(f"/contract/{contract_id}")
-
-
 # =====================================================
 # TAREFAS – CRIAR
 # =====================================================
@@ -436,6 +527,8 @@ def new_task(contract_id):
 
     flash("Tarefa criada!", "success")
     return redirect(f"/contract/{contract_id}")
+
+
 # =====================================================
 # LOGS DA TAREFA (DETALHES)
 # =====================================================
@@ -459,7 +552,7 @@ def task_logs(task_id):
 
 
 # =====================================================
-# FINALIZAR TAREFA — SUPORTA MULTIPLOS ARQUIVOS
+# FINALIZAR TAREFA — SUPORTA MÚLTIPLOS ARQUIVOS
 # =====================================================
 
 @app.route("/task/complete/<int:task_id>", methods=["POST"])
@@ -468,17 +561,15 @@ def complete_task(task_id):
     task = Task.query.get_or_404(task_id)
     note = request.form["note"]
 
-    # arquivos enviados name="files[]"
     files = request.files.getlist("files[]")
 
-    # cria log sem os arquivos ainda
     log = TaskLog(
         task_id=task.id,
         user_id=current_user.id,
         note=note
     )
     db.session.add(log)
-    db.session.flush()  
+    db.session.flush()
 
     if files:
         if not os.path.exists(app.config["UPLOAD_FOLDER"]):
@@ -537,8 +628,6 @@ def colaboradores():
 
     colaboradores = Collaborator.query.order_by(Collaborator.nome).all()
     return render_template("colaboradores.html", colaboradores=colaboradores)
-
-
 # =====================================================
 # COLABORADORES — CRIAR
 # =====================================================

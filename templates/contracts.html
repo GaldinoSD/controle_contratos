@@ -74,9 +74,9 @@
                  hover:bg-slate-100 dark:hover:bg-slate-800/40 transition
                  {% if c.status == 'encerrado' %} bg-red-50 dark:bg-red-900/20 {% endif %}">
 
+        <!-- EMPRESA -->
         <td class="p-3 flex items-center gap-3 font-medium">
 
-          <!-- LOGO OU AVATAR -->
           {% if c.company.logo %}
             <img src="/{{ c.company.logo }}" 
                  class="w-10 h-10 rounded-lg border border-slate-300 object-cover">
@@ -100,38 +100,95 @@
 
         </td>
 
+        <!-- CNPJ -->
         <td class="p-3 text-slate-600 dark:text-slate-400 text-sm">
           {{ c.company.cnpj }}
         </td>
 
+        <!-- VIGÊNCIA -->
         <td class="p-3">
           <span class="font-medium">{{ c.start_date }}</span>
           <span class="text-slate-500 px-1">→</span>
           <span class="font-medium">{{ c.end_date }}</span>
         </td>
 
-        <td class="p-3 space-x-2 text-center">
+        <!-- AÇÕES -->
+        <td class="p-3 text-center whitespace-nowrap">
 
+          <!-- BOTÃO ABRIR -->
           <a href="/contract/{{ c.id }}"
             class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs 
-                   rounded-lg shadow inline-flex gap-2 transition">
+                   rounded-lg shadow inline-flex gap-2 transition mr-2">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir
           </a>
 
+          <!-- BOTÃO ENCERRAR / EXCLUIR -->
           {% if c.status == 'ativo' %}
-          <button onclick="abrirModalEncerrar({{ c.id }})"
-            class="px-4 py-2 bg-amber-600 hover:bg-amber-700 
-                   text-white text-xs rounded-lg shadow inline-flex gap-2 transition">
-            <i class="fa-solid fa-lock"></i> Encerrar
-          </button>
-
+            <button onclick="abrirModalEncerrar({{ c.id }})"
+              class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs 
+                     rounded-lg shadow inline-flex gap-2 transition mr-2">
+              <i class="fa-solid fa-lock"></i> Encerrar
+            </button>
           {% else %}
-          <button onclick="abrirModalExcluir({{ c.id }})"
-            class="px-4 py-2 bg-red-600 hover:bg-red-700 
-                   text-white text-xs rounded-lg shadow inline-flex gap-2 transition">
-            <i class="fa-solid fa-trash"></i> Excluir
-          </button>
+            <button onclick="abrirModalExcluir({{ c.id }})"
+              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs 
+                     rounded-lg shadow inline-flex gap-2 transition mr-2">
+              <i class="fa-solid fa-trash"></i> Excluir
+            </button>
           {% endif %}
+
+          <!-- ================= MENU GERENCIAR ================= -->
+          <div class="relative inline-block text-left" data-menu-container>
+
+            <button onclick="toggleMenu({{ c.id }})"
+              class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-xs 
+                     rounded-lg shadow inline-flex gap-2 transition"
+              data-menu-button>
+              <i class="fa-solid fa-gear"></i> Gerenciar
+            </button>
+
+            <!-- MENU DROPDOWN -->
+            <div id="menu-{{ c.id }}"
+                 class="hidden absolute right-0 mt-2 w-48 rounded-xl shadow-lg 
+                        bg-white dark:bg-slate-900 
+                        border border-slate-300 dark:border-slate-700 z-20 overflow-hidden">
+
+              <!-- EDITAR -->
+              <button
+                onclick="abrirModalEditar(
+                    {{ c.id }},
+                    '{{ c.company.name|escape }}',
+                    '{{ c.company.cnpj|escape }}',
+                    `{{ c.description|default('')|escape }}`
+                )"
+                class="w-full text-left px-4 py-3 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                <i class="fa-solid fa-pen text-blue-500"></i> Editar dados
+              </button>
+
+              <!-- ESTENDER VIGÊNCIA -->
+              <button
+                onclick="abrirModalVigencia(
+                    {{ c.id }},
+                    '{{ c.start_date }}',
+                    '{{ c.end_date }}'
+                )"
+                class="w-full text-left px-4 py-3 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                <i class="fa-solid fa-calendar-plus text-emerald-500"></i>
+                Estender vigência
+              </button>
+
+              <!-- REATIVAR – apenas encerrados -->
+              {% if c.status == 'encerrado' %}
+              <button
+                onclick="abrirModalReativar({{ c.id }})"
+                class="w-full text-left px-4 py-3 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                <i class="fa-solid fa-unlock text-yellow-600"></i>
+                Reativar contrato
+              </button>
+              {% endif %}
+
+            </div>
+          </div>
 
         </td>
 
@@ -141,8 +198,6 @@
   </table>
 
 </div>
-
-
 <!-- ======================================================= -->
 <!-- ==================== MODAL NOVO CONTRATO =============== -->
 <!-- ======================================================= -->
@@ -199,7 +254,6 @@
                       dark:border-slate-700 p-3 rounded-lg text-sm" required>
       </div>
 
-      <!-- NOVO — UPLOAD DA LOGO -->
       <div class="md:col-span-2">
         <label class="text-xs font-medium">Logo da Empresa (opcional)</label>
         <input type="file" name="logo"
@@ -227,40 +281,520 @@
 </div>
 
 
+
+
 <!-- ======================================================= -->
-<!-- ========================== JS ========================== -->
+<!-- ==================== MODAL ENCERRAR ==================== -->
 <!-- ======================================================= -->
+<div id="modalEncerrar" 
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+
+  <div class="bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 
+              rounded-xl shadow-2xl p-6 w-full max-w-sm relative animate-fadeIn">
+
+    <button onclick="fecharModalEncerrar()"
+      class="absolute top-3 right-4 text-slate-500 dark:text-slate-300 text-xl">&times;</button>
+
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-3">
+      Encerrar Contrato
+    </h2>
+
+    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+      Confirme sua senha para encerrar este contrato.
+    </p>
+
+    <input type="hidden" id="encerrarId">
+
+    <div class="space-y-4">
+      <input id="senhaEncerrar" type="password"
+        class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 
+               dark:border-slate-700 p-3 rounded-lg text-sm"
+        placeholder="Digite sua senha">
+
+      <button onclick="confirmarEncerrar()"
+        class="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg shadow">
+        Encerrar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+<!-- ======================================================= -->
+<!-- ==================== MODAL EXCLUIR ===================== -->
+<!-- ======================================================= -->
+<div id="modalExcluir" 
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+
+  <div class="bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700 
+              rounded-xl shadow-2xl p-6 w-full max-w-sm relative animate-fadeIn">
+
+    <button onclick="fecharModalExcluir()"
+      class="absolute top-3 right-4 text-slate-500 dark:text-slate-300 text-xl">&times;</button>
+
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-3">
+      Excluir Contrato
+    </h2>
+
+    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+      Deseja realmente excluir este contrato? Esta ação é irreversível.
+    </p>
+
+    <input type="hidden" id="excluirId">
+
+    <button onclick="confirmarExcluir()"
+      class="w-full py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg shadow">
+      Excluir
+    </button>
+
+  </div>
+</div>
+
+
+
+
+
+<!-- ======================================================= -->
+<!-- ==================== MODAL EDITAR ====================== -->
+<!-- ======================================================= -->
+<div id="modalEditar" 
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+
+  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700 
+              rounded-xl shadow-2xl p-7 w-full max-w-xl relative animate-fadeIn">
+
+    <button onclick="fecharModalEditar()"
+      class="absolute top-3 right-4 text-slate-500 dark:text-slate-300 text-xl">&times;</button>
+
+    <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-5">
+      Editar Contrato
+    </h2>
+
+    <form id="formEditar" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <input type="hidden" name="id" id="edit_id">
+
+      <div class="md:col-span-2">
+        <label class="text-xs font-medium">Empresa</label>
+        <input name="company" id="edit_company"
+               class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 
+                    dark:border-slate-700 p-3 rounded-lg text-sm">
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="text-xs font-medium">CNPJ</label>
+        <input name="cnpj" id="edit_cnpj"
+               class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 
+                    dark:border-slate-700 p-3 rounded-lg text-sm">
+      </div>
+
+      <div class="md:col-span-2">
+        <label class="text-xs font-medium">Descrição</label>
+        <textarea name="desc" id="edit_desc" rows="3"
+                  class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 
+                         dark:border-slate-700 p-3 rounded-lg text-sm"></textarea>
+      </div>
+
+      <div class="md:col-span-2 mt-4 flex justify-end gap-3">
+        <button type="button" onclick="fecharModalEditar()"
+          class="px-5 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 
+                dark:hover:bg-slate-700 border border-slate-400 dark:border-slate-600
+                rounded-lg text-xs transition">
+          Cancelar
+        </button>
+
+        <button class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white 
+                       rounded-lg text-xs font-semibold transition">
+          Salvar
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+
+
+
+
+<!-- ======================================================= -->
+<!-- =============== MODAL ESTENDER VIGÊNCIA ================ -->
+<!-- ======================================================= -->
+<div id="modalVigencia" 
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+
+  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700
+              rounded-xl shadow-2xl p-6 w-full max-w-md relative animate-fadeIn">
+
+    <button onclick="fecharModalVigencia()"
+      class="absolute top-3 right-4 text-slate-500 dark:text-slate-300 text-xl">&times;</button>
+
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4">
+      Estender Vigência
+    </h2>
+
+    <form id="formVigencia" method="POST" class="space-y-4">
+
+      <input type="hidden" name="id" id="vig_id">
+
+      <div>
+        <label class="text-xs font-medium">Início</label>
+        <input id="vig_start" name="start" type="date"
+               class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 
+                      dark:border-slate-700 p-3 rounded-lg text-sm" required>
+      </div>
+
+      <div>
+        <label class="text-xs font-medium">Novo Fim</label>
+        <input id="vig_end" name="end" type="date"
+               class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 
+                      dark:border-slate-700 p-3 rounded-lg text-sm" required>
+      </div>
+
+      <button class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white 
+                     text-sm rounded-lg shadow">
+        Atualizar Vigência
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+
+
+
+
+<!-- ======================================================= -->
+<!-- ================== MODAL REATIVAR ====================== -->
+<!-- ======================================================= -->
+<div id="modalReativar" 
+     class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+
+  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700
+              rounded-xl shadow-2xl p-6 w-full max-w-md relative animate-fadeIn">
+
+    <button onclick="fecharModalReativar()"
+      class="absolute top-3 right-4 text-slate-500 dark:text-slate-300 text-xl">&times;</button>
+
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4">
+      Reativar Contrato
+    </h2>
+
+    <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
+      Escolha uma nova vigência para reativar este contrato.
+    </p>
+
+    <form id="formReativar" method="POST" class="space-y-4">
+
+      <input type="hidden" name="id" id="reativar_id">
+
+      <div>
+        <label class="text-xs font-medium">Nova data de início</label>
+        <input name="start" id="reat_start" type="date"
+               class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 
+                      dark:border-slate-700 p-3 rounded-lg text-sm" required>
+      </div>
+
+      <div>
+        <label class="text-xs font-medium">Nova data final</label>
+        <input name="end" id="reat_end" type="date"
+               class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 
+                      dark:border-slate-700 p-3 rounded-lg text-sm" required>
+      </div>
+
+      <button class="w-full py-2 bg-yellow-600 hover:bg-yellow-700 text-white 
+                     text-sm rounded-lg shadow">
+        Reativar Contrato
+      </button>
+
+    </form>
+
+  </div>
+</div>
 <script>
-  function abrirModalContrato() {
-    document.getElementById("modalContrato").classList.remove("hidden");
-  }
-  function fecharModalContrato() {
-    document.getElementById("modalContrato").classList.add("hidden");
-  }
+/* =======================================================
+   DROPDOWN DE GERENCIAR
+======================================================= */
+function toggleMenu(id) {
+  document.querySelectorAll("[id^='menu-']").forEach(el => {
+    if (el.id !== `menu-${id}`) el.classList.add("hidden");
+  });
 
-  function abrirModalEncerrar(id) {
-    document.getElementById("encerrarId").value = id;
-    document.getElementById("modalEncerrar").classList.remove("hidden");
-  }
-  function fecharModalEncerrar() {
-    document.getElementById("modalEncerrar").classList.add("hidden");
-  }
-
-  function abrirModalExcluir(id) {
-    document.getElementById("excluirId").value = id;
-    document.getElementById("modalExcluir").classList.remove("hidden");
-  }
-  function fecharModalExcluir() {
-    document.getElementById("modalExcluir").classList.add("hidden");
-  }
-</script>
-
-<style>
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(.95); }
-  to   { opacity: 1; transform: scale(1); }
+  const menu = document.getElementById(`menu-${id}`);
+  menu.classList.toggle("hidden");
 }
-.animate-fadeIn { animation: fadeIn .2s ease-out; }
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("[data-menu-container]")) {
+    document.querySelectorAll("[id^='menu-']").forEach(el => el.classList.add("hidden"));
+  }
+});
+
+
+/* =======================================================
+   MODAL: NOVO CONTRATO
+======================================================= */
+function abrirModalContrato() {
+  document.getElementById("modalContrato").classList.remove("hidden");
+}
+function fecharModalContrato() {
+  document.getElementById("modalContrato").classList.add("hidden");
+}
+
+
+/* =======================================================
+   MODAL: ENCERRAR CONTRATO
+======================================================= */
+function abrirModalEncerrar(id) {
+  document.getElementById("encerrarId").value = id;
+  document.getElementById("modalEncerrar").classList.remove("hidden");
+}
+function fecharModalEncerrar() {
+  document.getElementById("modalEncerrar").classList.add("hidden");
+}
+
+function confirmarEncerrar() {
+  const id = document.getElementById("encerrarId").value;
+  const senha = document.getElementById("senhaEncerrar").value;
+
+  fetch(`/contracts/end/${id}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ senha })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.sucesso) {
+      window.location.reload();
+    } else {
+      alert(data.mensagem);
+    }
+  });
+}
+
+
+/* =======================================================
+   MODAL: EXCLUIR CONTRATO
+======================================================= */
+function abrirModalExcluir(id) {
+  document.getElementById("excluirId").value = id;
+  document.getElementById("modalExcluir").classList.remove("hidden");
+}
+function fecharModalExcluir() {
+  document.getElementById("modalExcluir").classList.add("hidden");
+}
+
+function confirmarExcluir() {
+  const id = document.getElementById("excluirId").value;
+
+  fetch(`/contracts/delete/${id}`, {
+    method: "POST"
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.sucesso) {
+      window.location.reload();
+    } else {
+      alert(data.mensagem);
+    }
+  });
+}
+
+
+/* =======================================================
+   MODAL: EDITAR CONTRATO
+======================================================= */
+function abrirModalEditar(id, company, cnpj, desc) {
+  document.getElementById("edit_id").value = id;
+  document.getElementById("edit_company").value = company;
+  document.getElementById("edit_cnpj").value = cnpj;
+  document.getElementById("edit_desc").value = desc;
+
+  const form = document.getElementById("formEditar");
+  form.action = `/contracts/edit/${id}`;
+
+  document.getElementById("modalEditar").classList.remove("hidden");
+}
+
+function fecharModalEditar() {
+  document.getElementById("modalEditar").classList.add("hidden");
+}
+
+
+/* =======================================================
+   MODAL: ESTENDER VIGÊNCIA
+======================================================= */
+function abrirModalVigencia(id, start, end) {
+  document.getElementById("vig_id").value = id;
+  document.getElementById("vig_start").value = start;
+  document.getElementById("vig_end").value = end;
+
+  const form = document.getElementById("formVigencia");
+  form.action = `/contracts/vigencia/${id}`;
+
+  document.getElementById("modalVigencia").classList.remove("hidden");
+}
+
+function fecharModalVigencia() {
+  document.getElementById("modalVigencia").classList.add("hidden");
+}
+
+
+/* =======================================================
+   MODAL: REATIVAR CONTRATO (SOMENTE ENCERRADOS)
+======================================================= */
+function abrirModalReativar(id) {
+  document.getElementById("reativar_id").value = id;
+
+  const form = document.getElementById("formReativar");
+  form.action = `/contracts/reactivate/${id}`;
+
+  document.getElementById("modalReativar").classList.remove("hidden");
+}
+
+function fecharModalReativar() {
+  document.getElementById("modalReativar").classList.add("hidden");
+}
+</script>
+<style>
+/* ============================================================
+   FadeIn (entrada suave dos modais)
+============================================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn .22s ease-out;
+}
+
+
+/* ============================================================
+   FadeDown (dropdown menu suave)
+============================================================ */
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeDown {
+  animation: fadeDown .18s ease-out;
+}
+
+
+
+/* ============================================================
+   Brilho do hover sobre cada linha da tabela
+============================================================ */
+tr:hover td {
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+
+/* ============================================================
+   Custom Scrollbar (premium)
+============================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, .7);
+}
+
+
+
+/* ============================================================
+   Dropdown Menu de gerenciamento
+============================================================ */
+.dropdown-menu {
+  animation: fadeDown .18s ease-out;
+  transform-origin: top;
+  z-index: 9999;
+}
+
+
+/* ============================================================
+   Fundo escuro do modal (blur suave)
+============================================================ */
+.modal-overlay {
+  backdrop-filter: blur(6px);
+}
+
+
+
+/* ============================================================
+   Suavização geral de sombras
+============================================================ */
+.shadow-soft {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .12);
+}
+
+.shadow-soft-hover:hover {
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .16);
+}
+
+
+/* ============================================================
+   Botões mais suaves ao clicar
+============================================================ */
+button:active {
+  transform: scale(.97);
+  transition: transform .05s;
+}
+
+
+/* ============================================================
+   Classe opcional: cards com brilho lateral
+============================================================ */
+.glow-border {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg,
+      transparent,
+      rgba(56, 189, 248, 0.12),
+      transparent);
+  opacity: 0;
+  transition: .3s;
+}
+
+.glow-border:hover::before {
+  opacity: 1;
+}
 </style>
 
 {% endblock %}
