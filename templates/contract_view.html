@@ -14,44 +14,43 @@
     <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
 
       <!-- ESQUERDA -->
-<div class="flex items-start gap-3">
+      <div class="flex items-start gap-3">
 
-  {% if contract.company.logo %}
-    <img src="/{{ contract.company.logo }}"
-      class="w-12 h-12 rounded-lg object-cover 
-             border border-slate-300 dark:border-slate-700 shadow">
-  {% else %}
-    <div class="w-12 h-12 flex items-center justify-center 
-                bg-blue-500/10 dark:bg-blue-600/20
-                text-blue-700 dark:text-blue-300
-                rounded-lg text-xl font-bold
-                border border-blue-300/40 dark:border-blue-500/20 shadow">
-      {{ contract.company.name[0] }}
-    </div>
-  {% endif %}
+        {% if contract.company.logo %}
+          <img src="/{{ contract.company.logo }}"
+            class="w-12 h-12 rounded-lg object-cover 
+                   border border-slate-300 dark:border-slate-700 shadow">
+        {% else %}
+          <div class="w-12 h-12 flex items-center justify-center 
+                      bg-blue-500/10 dark:bg-blue-600/20
+                      text-blue-700 dark:text-blue-300
+                      rounded-lg text-xl font-bold
+                      border border-blue-300/40 dark:border-blue-500/20 shadow">
+            {{ contract.company.name[0] }}
+          </div>
+        {% endif %}
 
-  <div>
-    <!-- TÍTULO MAIOR -->
-    <h1 class="text-xl font-bold 
-               text-slate-800 dark:text-white leading-tight">
-      {{ contract.company.name }}
-    </h1>
+        <div>
+          <!-- TÍTULO MAIOR -->
+          <h1 class="text-xl font-bold 
+                     text-slate-800 dark:text-white leading-tight">
+            {{ contract.company.name }}
+          </h1>
 
-    <!-- SUBTÍTULO MAIOR -->
-    <p class="text-slate-600 dark:text-slate-400 text-[11px] mt-0.5 leading-tight">
-      Arquivos, tarefas e histórico do contrato.
-    </p>
+          <!-- SUBTÍTULO -->
+          <p class="text-slate-600 dark:text-slate-400 text-[11px] mt-0.5 leading-tight">
+            Arquivos, tarefas e histórico do contrato.
+          </p>
 
-    <!-- INFORMAÇÕES IMPORTANTES MAIORES -->
-    <div class="mt-1 text-slate-700 dark:text-slate-300 text-[12px] leading-tight font-medium">
-      <p><strong>ID:</strong> {{ contract.id }}</p>
-      <p><strong>CNPJ:</strong> {{ contract.company.cnpj }}</p>
-      <p><strong>Vigência:</strong> {{ contract.start_date }} → {{ contract.end_date }}</p>
-    </div>
-  </div>
+          <!-- INFORMAÇÕES -->
+          <div class="mt-1 text-slate-700 dark:text-slate-300 text-[12px] leading-tight font-medium">
+            <p><strong>ID:</strong> {{ contract.id }}</p>
+            <p><strong>CNPJ:</strong> {{ contract.company.cnpj }}</p>
+            <p><strong>Vigência:</strong> {{ contract.start_date }} → {{ contract.end_date }}</p>
+          </div>
+        </div>
 
-</div>
-
+      </div>
 
       <!-- DIREITA — ARQUIVOS -->
       <div class="bg-white/40 dark:bg-slate-800/40 
@@ -68,29 +67,30 @@
           </h2>
 
           {% if files|length > 0 %}
-          <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1">
 
-            <button onclick="abrirModalAtualizar()"
-                    class="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 
-                           text-white text-[10px] rounded-md shadow flex items-center gap-1">
-              <i class="fa-solid fa-file-arrow-up text-[10px]"></i> Atualizar
-            </button>
-
-            <form method="POST" action="/contract/file/delete/{{ files[0].id }}"
-                  onsubmit="return confirm('Excluir arquivo?');">
-              <button class="px-2 py-0.5 bg-red-600 hover:bg-red-700 
+              <!-- ABRIR MODAL PARA ADICIONAR MAIS ARQUIVOS -->
+              <button onclick="abrirModalAtualizar()"
+                      class="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 
                              text-white text-[10px] rounded-md shadow flex items-center gap-1">
-                <i class="fa-solid fa-trash text-[10px]"></i> Excluir
+                <i class="fa-solid fa-file-arrow-up text-[10px]"></i> Atualizar
               </button>
-            </form>
 
-          </div>
+              <form method="POST" action="/contract/file/delete/{{ files[0].id }}"
+                    onsubmit="return confirm('Excluir arquivo?');">
+                <button class="px-2 py-0.5 bg-red-600 hover:bg-red-700 
+                               text-white text-[10px] rounded-md shadow flex items-center gap-1">
+                  <i class="fa-solid fa-trash text-[10px]"></i> Excluir
+                </button>
+              </form>
+
+            </div>
           {% endif %}
         </div>
 
         {% if files|length == 0 %}
 
-        <!-- ============== ULTRA COMPACTO QUANDO NÃO TEM ARQUIVO ============== -->
+        <!-- ================= SEM ARQUIVOS ================= -->
         <div class="text-center border border-dashed 
                     border-slate-400 dark:border-slate-600 
                     rounded-lg p-2 
@@ -112,10 +112,11 @@
 
               <i class="fa-solid fa-upload text-[14px] text-slate-500 dark:text-slate-400 mb-0.5"></i>
               <span class="text-[10px] text-slate-600 dark:text-slate-300">
-                Selecionar arquivo
+                Selecionar arquivo(s)
               </span>
 
-              <input type="file" name="file" class="hidden" required>
+              <!-- CORRIGIDO PARA MULTIPLOS ARQUIVOS -->
+              <input type="file" name="files[]" multiple class="hidden" required>
             </label>
 
             <button class="mt-1 w-full px-3 py-1 bg-blue-600 hover:bg-blue-700
@@ -129,7 +130,7 @@
 
         {% else %}
 
-        <!-- ============== LISTA DE ARQUIVOS – ALTURA REDUZIDA ============== -->
+        <!-- ============ LISTA DE ARQUIVOS ============ -->
         <div class="space-y-1 max-h-24 overflow-y-auto pr-0.5">
 
           {% for f in files %}
@@ -164,9 +165,6 @@
   </div>
 
 </section>
-
-
-
 <!-- ====================================================== -->
 <!-- ==================== TAREFAS ========================== -->
 <!-- ====================================================== -->
@@ -195,7 +193,9 @@
     </button>
 
   </div>
+
   {% if tasks|length == 0 %}
+
     <p class="text-slate-600 dark:text-slate-400 text-xs">
       Nenhuma tarefa registrada.
     </p>
@@ -203,115 +203,164 @@
   {% else %}
 
   <!-- GRID DE TAREFAS -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
 
-    {% for t in tasks %}
+  {% for t in tasks %}
+  {% set atrasada = (t.status == 'pendente' and t.due_date < now().date()) %}
 
-      {% set atrasada = (t.status == 'pendente' and t.due_date < now().date()) %}
+  <div
+    class="
+      relative p-4 rounded-2xl
+      backdrop-blur-xl
+      shadow-[0_3px_14px_rgba(0,0,0,0.15)]
+      hover:shadow-[0_6px_24px_rgba(0,0,0,0.25)]
+      hover:-translate-y-[3px] hover:scale-[1.01]
+      transition-all duration-300
 
-      <div class="p-4 rounded-xl min-h-[150px] shadow 
-                  border 
-                  {% if atrasada %}
-                    border-red-400/60 dark:border-red-500/40 
-                    bg-red-100/40 dark:bg-red-900/10
-                  {% elif t.status == 'concluída' %}
-                    border-emerald-400/60 dark:border-emerald-500/40 
-                    bg-emerald-100/40 dark:bg-emerald-900/10
-                  {% else %}
-                    border-slate-300 dark:border-slate-700 
-                    bg-white/70 dark:bg-slate-800/40
-                  {% endif %}
-                  backdrop-blur-xl transition">
+      border overflow-hidden group text-[13px]
 
-        <div class="flex flex-col justify-between h-full">
+      {% if t.status == 'concluída' %}
+        bg-emerald-400/10 border-emerald-500/40
+      {% elif atrasada %}
+        bg-red-400/10 border-red-500/40 animate-pulse
+      {% else %}
+        bg-white/20 dark:bg-slate-800/40 
+        border-slate-300/30 dark:border-slate-700/50
+      {% endif %}
+    "
+  >
 
-          <!-- TÍTULO E PRIORIDADE -->
-          <div>
-            <p class="text-slate-800 dark:text-white font-semibold text-sm">
-              {{ t.title }}
-            </p>
+    <!-- Glow discreto -->
+    <div class="absolute inset-0 rounded-2xl 
+                bg-gradient-to-br from-white/5 to-transparent 
+                opacity-0 group-hover:opacity-100 transition duration-500 pointer-events-none"></div>
 
-            <!-- PRIORIDADE -->
-            <span class="text-[9px] px-2 py-0.5 rounded-full border mt-1 inline-block
-                         {% if t.priority == 'Alta' %}
-                           border-red-400 dark:border-red-500 
-                           bg-red-100 dark:bg-red-900/20 
-                           text-red-700 dark:text-red-300
-                         {% elif t.priority == 'Baixa' %}
-                           border-blue-400 dark:border-blue-500 
-                           bg-blue-100 dark:bg-blue-900/20 
-                           text-blue-700 dark:text-blue-300
-                         {% else %}
-                           border-yellow-400 dark:border-yellow-500 
-                           bg-yellow-100 dark:bg-yellow-900/20 
-                           text-yellow-700 dark:text-yellow-300
-                         {% endif %}">
-              {{ t.priority }}
-            </span>
+    <!-- Barrinha lateral -->
+    <div class="
+      absolute left-0 top-0 h-full w-1 rounded-r-xl
+      {% if t.status == 'concluída' %}
+        bg-emerald-500
+      {% elif atrasada %}
+        bg-red-600
+      {% else %}
+        bg-blue-500
+      {% endif %}
+    "></div>
 
-            <p class="text-xs text-slate-600 dark:text-slate-400 mt-2">
-              Entrega: {{ t.due_date }}
-            </p>
+    <!-- Status chip -->
+    <div class="absolute top-2 right-2">
+      {% if t.status == 'concluída' %}
+        <span class="px-2 py-0.5 text-[9px] rounded-full bg-emerald-600 text-white font-semibold shadow">
+          ✔ Concluída
+        </span>
+      {% elif atrasada %}
+        <span class="px-2 py-0.5 text-[9px] rounded-full bg-red-600 text-white font-semibold shadow animate-pulse">
+          ⚠ Atrasada
+        </span>
+      {% else %}
+        <span class="px-2 py-0.5 text-[9px] rounded-full bg-yellow-500 text-white font-semibold shadow">
+          • Pendente
+        </span>
+      {% endif %}
+    </div>
 
-            {% if t.description %}
-            <p class="text-slate-700 dark:text-slate-300 text-[11px] mt-2 leading-relaxed">
-              {{ t.description }}
-            </p>
-            {% endif %}
-          </div>
+    <!-- Header compacto -->
+    <div class="flex items-center gap-3 mb-3">
 
-
-          <!-- AÇÕES -->
-          <div class="mt-3 text-right space-y-1">
-
-            {% if t.status == 'pendente' %}
-
-              {% if atrasada %}
-                <span class="inline-block text-[10px] px-2 py-0.5 rounded-full 
-                             bg-red-200 dark:bg-red-900/30 
-                             text-red-700 dark:text-red-300 font-semibold">
-                  ATRASADA
-                </span>
-              {% else %}
-                <span class="inline-block text-[10px] px-2 py-0.5 rounded-full 
-                             bg-orange-200 dark:bg-orange-900/30 
-                             text-orange-700 dark:text-orange-300 font-semibold">
-                  PENDENTE
-                </span>
-              {% endif %}
-
-              {% if current_user.role == 'admin' %}
-                <button onclick="abrirModalFinalizar({{ t.id }})"
-                        class="w-full mt-1 px-4 py-1 bg-emerald-600 hover:bg-emerald-700 
-                               text-white rounded-lg text-[11px] shadow flex items-center justify-center gap-1">
-                  <i class="fa-solid fa-check text-xs"></i> Finalizar
-                </button>
-              {% endif %}
-
-            {% else %}
-              <span class="inline-block text-[10px] px-2 py-0.5 rounded-full 
-                           bg-emerald-200 dark:bg-emerald-900/30 
-                           text-emerald-700 dark:text-emerald-300 font-semibold">
-                CONCLUÍDA
-              </span>
-
-              <button onclick="abrirDetalhes({{ t.id }})"
-                      class="text-emerald-700 dark:text-emerald-300 text-xs 
-                             underline hover:text-emerald-900 dark:hover:text-emerald-100 
-                             flex items-center justify-end gap-1">
-                <i class="fa-solid fa-eye text-xs"></i> ver mais
-              </button>
-            {% endif %}
-
-          </div>
-
-        </div>
-
+      <!-- Avatar pequeno -->
+      <div class="
+        w-9 h-9 rounded-full flex items-center justify-center shadow 
+        bg-white/30 dark:bg-slate-700/40 backdrop-blur border border-white/10 
+        text-[12px] font-bold
+      ">
+        {{ t.assigned_user.name[0] if t.assigned_user else "A" }}
       </div>
 
-    {% endfor %}
+      <!-- Título compacto -->
+      <div class="leading-tight">
+        <h3 class="text-[14px] font-semibold text-slate-800 dark:text-slate-100">
+          {{ t.title }}
+        </h3>
+        <p class="text-[10px] text-slate-500 dark:text-slate-400">
+          {{ t.assigned_user.name if t.assigned_user else "Todos" }}
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Prioridade -->
+    <span
+      class="text-[10px] px-2 py-[2px] rounded-full border inline-block mb-2 font-semibold tracking-wide
+        {% if t.priority == 'Alta' %}
+          border-red-500 text-red-600 bg-red-500/10
+        {% elif t.priority == 'Baixa' %}
+          border-blue-500 text-blue-600 bg-blue-500/10
+        {% else %}
+          border-yellow-500 text-yellow-600 bg-yellow-500/10
+        {% endif %}
+      ">
+      ⚡ {{ t.priority }}
+    </span>
+
+    <!-- Datas -->
+    <p class="text-[12px] text-slate-700 dark:text-slate-300">
+      <strong>Entrega:</strong> {{ t.due_date }}
+    </p>
+
+    <!-- Dias restantes / atraso -->
+    {% if t.status == 'pendente' %}
+      {% set diff = (t.due_date - now().date()).days %}
+      {% if diff > 0 %}
+        <p class="text-[11px] text-blue-600 dark:text-blue-400">
+          {{ diff }} dia(s) restante(s)
+        </p>
+      {% elif diff == 0 %}
+        <p class="text-[11px] text-yellow-500 dark:text-yellow-400 font-semibold">
+          vence hoje
+        </p>
+      {% else %}
+        <p class="text-[11px] text-red-600 dark:text-red-400 font-semibold">
+          {{ diff | abs }} dia(s) atrasado(s)
+        </p>
+      {% endif %}
+    {% endif %}
+
+    <!-- Descrição reduzida -->
+    {% if t.description %}
+    <p class="mt-2 text-[12px] text-slate-600 dark:text-slate-300 leading-snug line-clamp-3">
+      {{ t.description }}
+    </p>
+    {% endif %}
+
+    <!-- Separador premium -->
+    <div class="my-3 h-px bg-gradient-to-r from-transparent via-slate-400/30 to-transparent"></div>
+
+    <!-- Ações -->
+    <div class="flex justify-end gap-2">
+
+      {% if t.status == 'pendente' and current_user.role == 'admin' %}
+        <button onclick="abrirModalFinalizar({{ t.id }})"
+          class="px-3 py-1 rounded-lg text-[11px] font-semibold
+                 text-white bg-emerald-600 hover:bg-emerald-700 shadow transition">
+          Finalizar
+        </button>
+      {% endif %}
+
+      {% if t.status != 'pendente' %}
+        <button onclick="abrirDetalhes({{ t.id }})"
+          class="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 underline flex items-center gap-1 transition">
+          <i class="fa-solid fa-eye text-[10px]"></i> ver
+        </button>
+      {% endif %}
+
+    </div>
 
   </div>
+
+  {% endfor %}
+</div>
+
+
 
   {% endif %}
 
@@ -384,10 +433,8 @@
                 class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
                        px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
 
-          <!-- OPÇÃO PARA TODOS -->
           <option value="all">Todos os colaboradores</option>
 
-          <!-- LISTAGEM DINÂMICA -->
           {% for c in colaboradores %}
             <option value="{{ c.id }}">{{ c.name }}</option>
           {% endfor %}
@@ -423,7 +470,6 @@
 
 
 
-
 <!-- ===================== MODAL FINALIZAR TAREFA ===================== -->
 <div id="modalFinalizar"
      class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50 
@@ -456,6 +502,8 @@
 
       <div>
         <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Anexos (opcional)</label>
+
+        <!-- MULTIPLOS ARQUIVOS -->
         <input type="file" name="files[]" multiple
                class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
                       px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
@@ -509,8 +557,10 @@
                     bg-slate-100/40 dark:bg-slate-800/40 
                     rounded-lg cursor-pointer hover:bg-slate-200/60 dark:hover:bg-slate-800 transition">
         <i class="fa-solid fa-upload text-2xl text-slate-500 dark:text-slate-300 mb-1"></i>
-        <span class="text-xs text-slate-700 dark:text-slate-400">Selecione um arquivo</span>
-        <input type="file" name="file" class="hidden" required>
+        <span class="text-xs text-slate-700 dark:text-slate-400">Selecione um ou mais arquivos</span>
+
+        <!-- CORRIGIDO PARA MULTIPLOS ARQUIVOS -->
+        <input type="file" name="files[]" multiple class="hidden" required>
       </label>
 
       <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 
@@ -522,6 +572,7 @@
 
   </div>
 </div>
+
 
 
 
@@ -547,6 +598,7 @@
 
   </div>
 </div>
+
 
 
 
@@ -597,4 +649,3 @@ function fecharDetalhes(){ modalDetalhes.classList.add("hidden"); }
 </script>
 
 {% endblock %}
-

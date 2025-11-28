@@ -21,7 +21,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secreto"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 
-# PASTAS EXISTENTES — NÃO ALTEREI
+# PASTAS EXISTENTES
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 app.config["FOTOS_COLAB"] = "static/fotos"
 app.config["LOGO_FOLDER"] = "static/logos"
@@ -58,7 +58,6 @@ class Company(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     active = db.Column(db.Boolean, default=True)
     logo = db.Column(db.String(255), nullable=True)
-
 
 
 class Contract(db.Model):
@@ -105,7 +104,6 @@ class TaskLog(db.Model):
     user = db.relationship("User")
 
 
-# NOVO — tabela correta para **vários anexos**
 class TaskFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task_log_id = db.Column(db.Integer, db.ForeignKey("task_log.id"))
@@ -139,7 +137,7 @@ def load_user(user_id):
 
 
 # =====================================================
-# CRIAR ADMIN AUTOMATICAMENTE
+# CRIA ADMIN AUTOMÁTICO
 # =====================================================
 
 @app.before_request
@@ -154,8 +152,10 @@ def criar_admin_automatico():
         )
         db.session.add(novo)
         db.session.commit()
+
+
 # =====================================================
-# FUNÇÃO: RESUMO DO DASHBOARD
+# RESUMO DO DASHBOARD
 # =====================================================
 
 def tarefas_por_empresa():
@@ -206,7 +206,7 @@ def dashboard():
 
 
 # =====================================================
-# CONTRATOS
+# LISTA DE CONTRATOS
 # =====================================================
 
 @app.route("/contracts")
@@ -215,6 +215,10 @@ def lista_contratos():
     contracts = Contract.query.all()
     return render_template("contracts.html", contracts=contracts)
 
+
+# =====================================================
+# NOVO CONTRATO
+# =====================================================
 
 @app.route("/contracts/new", methods=["POST"])
 @login_required
@@ -250,10 +254,8 @@ def new_contract():
     db.session.add(contract)
     db.session.commit()
 
-    flash("Contrato criado com sucesso!", "success")
+    flash("Contrato criado!", "success")
     return redirect("/contracts")
-
-
 # =====================================================
 # ENCERRAR CONTRATO
 # =====================================================
@@ -289,13 +291,24 @@ def delete_contract(id):
             "mensagem": "Só é possível excluir contratos encerrados"
         })
 
+    # Remove arquivos vinculados
+    arquivos = ContractFile.query.filter_by(contract_id=id).all()
+    for arq in arquivos:
+        try:
+            if arq.file_path and os.path.exists(arq.file_path):
+                os.remove(arq.file_path)
+        except:
+            pass
+        db.session.delete(arq)
+
     db.session.delete(contrato)
     db.session.commit()
+
     return jsonify({"sucesso": True})
 
 
 # =====================================================
-# VISUALIZAÇÃO DO CONTRATO
+# VISUALIZAÇÃO DO CONTRATO (TAREFAS, ARQUIVOS, COLABORADORES)
 # =====================================================
 
 @app.route("/contract/<int:id>")
@@ -306,6 +319,7 @@ def contract_view(id):
 
     colaboradores = User.query.filter_by(role="colaborador").order_by(User.name).all()
 
+    # Admin vê tudo — colaborador vê apenas tarefas destinadas a ele ou "todas"
     if current_user.role == "admin":
         tasks = Task.query.filter_by(contract_id=id).order_by(Task.id.desc()).all()
     else:
@@ -314,6 +328,7 @@ def contract_view(id):
             ((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
         ).order_by(Task.id.desc()).all()
 
+    # Converte datas
     for t in tasks:
         if isinstance(t.due_date, str) and t.due_date:
             try:
@@ -332,36 +347,40 @@ def contract_view(id):
 
 
 # =====================================================
-# UPLOAD DE ARQUIVO DO CONTRATO
+# UPLOAD DE ARQUIVOS DO CONTRATO — AGORA MULTIPLO!
 # =====================================================
 
 @app.route("/contract/<int:id>/upload", methods=["POST"])
 @login_required
 def upload_file(id):
-    file = request.files["file"]
-    filename = secure_filename(file.filename)
 
+    # Pega todos arquivos enviados (input name="files[]")
+    files = request.files.getlist("files[]")
+
+    if not files or files == [""]:
+        flash("Nenhum arquivo enviado!", "error")
+        return redirect(f"/contract/{id}")
+
+    # Garante pasta
     if not os.path.exists(app.config["UPLOAD_FOLDER"]):
         os.makedirs(app.config["UPLOAD_FOLDER"])
 
-    path = f"{app.config['UPLOAD_FOLDER']}/{filename}"
-    file.save(path)
+    for file in files:
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(save_path)
 
-    ultimo = ContractFile.query.filter_by(contract_id=id).order_by(ContractFile.id.desc()).first()
-    if ultimo:
-        try:
-            if ultimo.file_path and os.path.exists(ultimo.file_path):
-                os.remove(ultimo.file_path)
-        except:
-            pass
-        db.session.delete(ultimo)
-        db.session.commit()
+            # cria registro individual
+            novo = ContractFile(
+                contract_id=id,
+                file_path=save_path
+            )
+            db.session.add(novo)
 
-    novo = ContractFile(contract_id=id, file_path=path)
-    db.session.add(novo)
     db.session.commit()
 
-    flash("Arquivo atualizado!", "success")
+    flash("Arquivo(s) enviado(s) com sucesso!", "success")
     return redirect(f"/contract/{id}")
 
 
@@ -399,16 +418,9 @@ def new_task(contract_id):
     description = request.form.get("description", "")
     due_date = request.form["due_date"]
     priority = request.form.get("priority", "Normal")
-
     assigned_to_raw = request.form.get("assigned_to")
 
-    if assigned_to_raw == "all" or not assigned_to_raw:
-        assigned_to_value = None
-    else:
-        try:
-            assigned_to_value = int(assigned_to_raw)
-        except:
-            assigned_to_value = None
+    assigned_to_value = None if assigned_to_raw in ["all", "", None] else int(assigned_to_raw)
 
     nova = Task(
         contract_id=contract_id,
@@ -424,8 +436,6 @@ def new_task(contract_id):
 
     flash("Tarefa criada!", "success")
     return redirect(f"/contract/{contract_id}")
-
-
 # =====================================================
 # LOGS DA TAREFA (DETALHES)
 # =====================================================
@@ -446,28 +456,30 @@ def task_logs(task_id):
         "priority": log.task.priority,
         "files": arquivos
     })
+
+
 # =====================================================
-# FINALIZAR TAREFA (ADMIN E COLABORADOR) – COM MÚLTIPLOS ARQUIVOS
+# FINALIZAR TAREFA — SUPORTA MULTIPLOS ARQUIVOS
 # =====================================================
+
 @app.route("/task/complete/<int:task_id>", methods=["POST"])
 @login_required
 def complete_task(task_id):
     task = Task.query.get_or_404(task_id)
     note = request.form["note"]
 
-    # Pega TODOS os arquivos enviados no campo name="files[]"
+    # arquivos enviados name="files[]"
     files = request.files.getlist("files[]")
 
-    # Cria o log da tarefa primeiro (sem arquivo ainda)
+    # cria log sem os arquivos ainda
     log = TaskLog(
         task_id=task.id,
         user_id=current_user.id,
         note=note
     )
     db.session.add(log)
-    db.session.flush()  # garante log.id sem precisar dar commit agora
+    db.session.flush()  
 
-    # Garante que a pasta de upload existe
     if files:
         if not os.path.exists(app.config["UPLOAD_FOLDER"]):
             os.makedirs(app.config["UPLOAD_FOLDER"])
@@ -475,34 +487,30 @@ def complete_task(task_id):
         for f in files:
             if f and f.filename:
                 filename = secure_filename(f.filename)
-                caminho = f"{app.config['UPLOAD_FOLDER']}/{filename}"
-                f.save(caminho)
+                save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                f.save(save_path)
 
-                # Cria registro de arquivo vinculado ao LOG
-                novo_arquivo = TaskFile(
+                registro_arquivo = TaskFile(
                     task_log_id=log.id,
-                    file_path=caminho
+                    file_path=save_path
                 )
-                db.session.add(novo_arquivo)
+                db.session.add(registro_arquivo)
 
-    # Atualiza status da tarefa
     task.status = "concluida"
-
     db.session.commit()
 
     flash("Tarefa concluída!", "success")
 
-    # ADMIN volta para o contrato
     if current_user.role == "admin":
         return redirect(f"/contract/{task.contract_id}")
 
-    # COLABORADOR volta para o painel
     return redirect("/painel-colaborador")
 
 
 # =====================================================
-# FUNÇÃO: SALVAR FOTO DO COLABORADOR
+# SALVAR FOTO DO COLABORADOR
 # =====================================================
+
 def salvar_foto(arquivo):
     if not arquivo or arquivo.filename == "":
         return None
@@ -518,8 +526,9 @@ def salvar_foto(arquivo):
 
 
 # =====================================================
-# COLABORADORES – LISTA
+# COLABORADORES — LISTA
 # =====================================================
+
 @app.route("/colaboradores")
 @login_required
 def colaboradores():
@@ -531,8 +540,9 @@ def colaboradores():
 
 
 # =====================================================
-# COLABORADORES – CRIAR
+# COLABORADORES — CRIAR
 # =====================================================
+
 @app.route("/colaboradores/salvar", methods=["POST"])
 @login_required
 def salvar_colaborador():
@@ -547,24 +557,20 @@ def salvar_colaborador():
     funcao = request.form.get("funcao")
     password = request.form.get("password")
 
-    # Matrícula duplicada
     if Collaborator.query.filter_by(matricula=matricula).first():
         flash("❌ Matrícula já cadastrada!", "error")
         return redirect("/colaboradores")
 
-    # E-mail duplicado no colaborador
     if Collaborator.query.filter_by(email=email).first():
         flash("❌ Este e-mail já está em uso (colaborador)!", "error")
         return redirect("/colaboradores")
 
-    # E-mail duplicado na tabela de usuários
     if User.query.filter_by(email=email).first():
         flash("❌ Este e-mail já está em uso (usuário)!", "error")
         return redirect("/colaboradores")
 
     foto = salvar_foto(request.files.get("foto"))
 
-    # Salva colaborador
     novo = Collaborator(
         nome=nome,
         matricula=matricula,
@@ -578,7 +584,6 @@ def salvar_colaborador():
     db.session.add(novo)
     db.session.commit()
 
-    # Cria usuário vinculado
     usuario = User(
         name=nome,
         email=email,
@@ -593,8 +598,9 @@ def salvar_colaborador():
 
 
 # =====================================================
-# COLABORADORES – EDITAR
+# COLABORADORES — EDITAR
 # =====================================================
+
 @app.route("/colaboradores/editar/<int:id>", methods=["POST"])
 @login_required
 def editar_colaborador(id):
@@ -615,7 +621,6 @@ def editar_colaborador(id):
     if nova_foto and nova_foto.filename != "":
         colab.foto = salvar_foto(nova_foto)
 
-    # Atualiza o usuário da tabela principal
     usuario = User.query.filter_by(email=email_antigo).first()
     if usuario:
         usuario.name = colab.nome
@@ -623,13 +628,14 @@ def editar_colaborador(id):
 
     db.session.commit()
 
-    flash("✅ Dados do colaborador atualizados!", "success")
+    flash("Atualizado com sucesso!", "success")
     return redirect("/colaboradores")
 
 
 # =====================================================
-# COLABORADORES – EXCLUIR
+# COLABORADORES — EXCLUIR
 # =====================================================
+
 @app.route("/colaboradores/excluir/<int:id>", methods=["POST"])
 @login_required
 def excluir_colaborador(id):
@@ -639,11 +645,9 @@ def excluir_colaborador(id):
     colab = Collaborator.query.get_or_404(id)
     usuario = User.query.filter_by(email=colab.email).first()
 
-    # Remove usuário correspondente
     if usuario:
         db.session.delete(usuario)
 
-    # Remove foto
     if colab.foto and os.path.exists(colab.foto):
         try:
             os.remove(colab.foto)
@@ -653,13 +657,14 @@ def excluir_colaborador(id):
     db.session.delete(colab)
     db.session.commit()
 
-    flash("🗑️ Colaborador removido com sucesso!", "success")
+    flash("Colaborador removido!", "success")
     return redirect("/colaboradores")
 
 
 # =====================================================
-# ADMINISTRADORES – LISTA
+# ADMINISTRADORES — LISTA
 # =====================================================
+
 @app.route("/administradores")
 @login_required
 def administradores():
@@ -670,8 +675,9 @@ def administradores():
 
 
 # =====================================================
-# ADMIN – CRIAR
+# ADMIN — CRIAR
 # =====================================================
+
 @app.route("/administradores/salvar", methods=["POST"])
 @login_required
 def salvar_admin():
@@ -695,13 +701,14 @@ def salvar_admin():
     db.session.add(novo_admin)
     db.session.commit()
 
-    flash("🎉 Administrador criado!", "success")
+    flash("Administrador criado!", "success")
     return redirect("/administradores")
 
 
 # =====================================================
 # ADMIN – EDITAR
 # =====================================================
+
 @app.route("/administradores/editar/<int:id>", methods=["POST"])
 @login_required
 def editar_admin(id):
@@ -709,12 +716,11 @@ def editar_admin(id):
         return redirect("/")
 
     admin = User.query.get_or_404(id)
-
     novo_email = request.form["email"]
     nome = request.form["nome"]
 
     if User.query.filter(User.email == novo_email, User.id != id).first():
-        flash("❌ E-mail já está em uso!", "error")
+        flash("❌ Este e-mail já está em uso!", "error")
         return redirect("/administradores")
 
     admin.name = nome
@@ -725,13 +731,14 @@ def editar_admin(id):
 
     db.session.commit()
 
-    flash("✔ Administrador atualizado!", "success")
+    flash("Administrador atualizado!", "success")
     return redirect("/administradores")
 
 
 # =====================================================
-# ADMIN – EXCLUIR
+# ADMIN — EXCLUIR
 # =====================================================
+
 @app.route("/administradores/excluir/<int:id>", methods=["POST"])
 @login_required
 def excluir_admin(id):
@@ -747,13 +754,14 @@ def excluir_admin(id):
     db.session.delete(admin)
     db.session.commit()
 
-    flash("🗑️ Administrador removido!", "success")
+    flash("Administrador removido!", "success")
     return redirect("/administradores")
 
 
 # =====================================================
-# PAINEL DO COLABORADOR — FILTRADO POR assigned_to
+# PAINEL DO COLABORADOR
 # =====================================================
+
 @app.route("/painel-colaborador")
 @login_required
 def painel_colaborador():
@@ -769,8 +777,9 @@ def painel_colaborador():
 
 
 # =====================================================
-# ALTERAR SENHA VIA MODAL
+# ALTERAR SENHA
 # =====================================================
+
 @app.route("/alterar_senha", methods=["POST"])
 @login_required
 def alterar_senha():
@@ -784,12 +793,13 @@ def alterar_senha():
     current_user.set_password(nova_senha)
     db.session.commit()
 
-    return jsonify({"sucesso": True, "mensagem": "Senha alterada com sucesso!"})
+    return jsonify({"sucesso": True})
 
 
 # =====================================================
-# ATIVIDADES REALIZADAS
+# ATIVIDADES (LOGS)
 # =====================================================
+
 @app.route("/atividades")
 @login_required
 def atividades():
@@ -804,6 +814,7 @@ def atividades():
 # =====================================================
 # LOGIN / LOGOUT
 # =====================================================
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -830,6 +841,7 @@ def logout():
 # =====================================================
 # EXECUTAR APLICAÇÃO
 # =====================================================
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
