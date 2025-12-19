@@ -12,7 +12,6 @@
               border border-slate-300 dark:border-slate-800 
               shadow-lg flex items-center justify-between relative">
 
-    <!-- GLOW -->
     <div class="absolute -top-7 -left-7 w-24 h-24 
                 bg-blue-500/10 dark:bg-blue-600/20 
                 blur-2xl rounded-full"></div>
@@ -24,7 +23,7 @@
       </div>
 
       <div>
-        <h1 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">
           Atividades Realizadas
         </h1>
         <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
@@ -37,6 +36,95 @@
 
 </section>
 
+<!-- ======================================================= -->
+<!-- ======================= FILTROS ======================= -->
+<!-- ======================================================= -->
+<form method="GET"
+      class="mb-6 bg-white/70 dark:bg-slate-900/60 
+             backdrop-blur-xl p-4 rounded-xl shadow 
+             border border-slate-300 dark:border-slate-800">
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+
+    <!-- ================= EMPRESA ================= -->
+    <div>
+      <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+        Empresa
+      </label>
+
+      <select name="empresa"
+              class="w-full mt-1 px-3 py-2 text-sm rounded-lg
+                     bg-white dark:bg-slate-800
+                     border border-slate-300 dark:border-slate-700">
+        <option value="">Todas</option>
+
+        {% for e in empresas %}
+          <option value="{{ e.id }}"
+            {% if request.args.get('empresa') == e.id|string %}selected{% endif %}>
+            {{ e.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- ================= COLABORADOR ================= -->
+    <div>
+      <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+        Colaborador
+      </label>
+
+      <select name="colaborador"
+              class="w-full mt-1 px-3 py-2 text-sm rounded-lg
+                     bg-white dark:bg-slate-800
+                     border border-slate-300 dark:border-slate-700">
+        <option value="">Todos</option>
+
+        {% for u in colaboradores %}
+          <option value="{{ u.id }}"
+            {% if request.args.get('colaborador') == u.id|string %}selected{% endif %}>
+            {{ u.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- ================= PERÍODO ================= -->
+    <div>
+      <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+        Período
+      </label>
+
+      <input
+        type="text"
+        id="periodo"
+        name="periodo"
+        value="{{ request.args.get('periodo','') }}"
+        placeholder="Selecione o período"
+        autocomplete="off"
+        readonly
+        class="w-full mt-1 px-3 py-2 text-sm rounded-lg
+               bg-white dark:bg-slate-800
+               border border-slate-300 dark:border-slate-700
+               cursor-pointer">
+    </div>
+
+    <!-- ================= BOTÃO ================= -->
+    <div>
+      <button
+        type="submit"
+        class="w-full px-4 py-2 rounded-lg
+               bg-blue-600 hover:bg-blue-700
+               text-white text-sm font-semibold shadow">
+        Filtrar
+      </button>
+    </div>
+
+  </div>
+</form>
+
+
+
+
 
 <!-- ======================================================= -->
 <!-- =================== TABELA COMPACTA =================== -->
@@ -46,11 +134,10 @@
             backdrop-blur-xl p-5 rounded-xl shadow-lg 
             border border-slate-300 dark:border-slate-800">
 
-  <table class="w-full rounded-lg text-sm">
+  <table class="w-full text-sm">
     <thead class="bg-slate-200 dark:bg-slate-800/50 
                   text-slate-600 dark:text-slate-400 
-                  text-[11px] uppercase tracking-wide 
-                  border-b border-slate-300 dark:border-slate-700">
+                  text-[11px] uppercase border-b">
       <tr>
         <th class="p-3 text-left">Empresa</th>
         <th class="p-3 text-left">Tarefa</th>
@@ -63,40 +150,29 @@
     <tbody>
       {% for log in logs %}
       {% set tarefa = log.task %}
-      {% set contrato = tarefa.contract if tarefa else None %}
-      {% set empresa = contrato.company if contrato else None %}
+      {% set empresa = tarefa.contract.company if tarefa and tarefa.contract else None %}
 
-      <tr class="border-b border-slate-200 dark:border-slate-800 
-                 hover:bg-slate-100 dark:hover:bg-slate-800/40 
-                 transition">
+      <tr class="border-b hover:bg-slate-100 dark:hover:bg-slate-800/40 transition">
 
-        <!-- EMPRESA -->
         <td class="p-3">
-          <div class="font-semibold text-slate-800 dark:text-slate-100">{{ empresa.name }}</div>
-          <div class="text-[10px] text-slate-500 dark:text-slate-400">{{ empresa.cnpj }}</div>
+          <div class="font-semibold">{{ empresa.name }}</div>
+          <div class="text-[10px] text-slate-500">{{ empresa.cnpj }}</div>
         </td>
 
-        <!-- TAREFA -->
+        <td class="p-3">{{ tarefa.title }}</td>
+
         <td class="p-3">
-          <span class="font-medium text-slate-700 dark:text-slate-200">{{ tarefa.title }}</span>
+          <div>{{ log.user.name }}</div>
+          <div class="text-[10px] text-slate-500">{{ log.user.email }}</div>
         </td>
 
-        <!-- RESPONSÁVEL -->
-        <td class="p-3">
-          <div class="text-slate-700 dark:text-slate-200">{{ log.user.name }}</div>
-          <div class="text-[10px] text-slate-500 dark:text-slate-400">{{ log.user.email }}</div>
-        </td>
-
-        <!-- DATA -->
-        <td class="p-3 text-[12px] text-slate-500 dark:text-slate-400">
+        <td class="p-3 text-[12px] text-slate-500">
           {{ log.created_at.strftime('%d/%m/%Y %H:%M') }}
         </td>
 
-        <!-- AÇÃO -->
         <td class="p-3 text-center">
           <button onclick="abrirModal({{ log.id }})"
-            class="px-3 py-1.5 
-                   bg-blue-600 hover:bg-blue-700 
+            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 
                    text-white text-[11px] rounded-lg shadow">
             Ver
           </button>
@@ -108,125 +184,152 @@
   </table>
 
 </div>
-
 {% else %}
-  <p class="text-center text-slate-500 dark:text-slate-400 mt-10 text-sm italic">
-    Nenhuma atividade concluída até o momento.
-  </p>
+<p class="text-center text-slate-500 italic mt-10">
+  Nenhuma atividade concluída até o momento.
+</p>
 {% endif %}
 
-
-
 <!-- ======================================================= -->
-<!-- ===================== MODAIS COMPACTOS ================= -->
+<!-- ======================== MODAIS ======================= -->
 <!-- ======================================================= -->
 {% for log in logs %}
 {% set tarefa = log.task %}
-{% set contrato = tarefa.contract if tarefa else None %}
-{% set empresa = contrato.company if contrato else None %}
+{% set empresa = tarefa.contract.company if tarefa and tarefa.contract else None %}
 
-<div 
-  id="modal{{ log.id }}"
-  class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50">
+<div id="modal{{ log.id }}"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50">
 
   <div class="bg-white dark:bg-slate-900/95 
               w-full max-w-lg rounded-xl shadow-2xl p-6 
-              border border-slate-300 dark:border-slate-700 
-              relative max-h-[90vh] overflow-y-auto">
+              border relative max-h-[90vh] overflow-y-auto">
 
-    <!-- BOTÃO FECHAR -->
     <button onclick="fecharModal({{ log.id }})"
-      class="absolute top-3 right-4 text-slate-500 dark:text-slate-400 hover:text-red-400 text-xl">
-      &times;
-    </button>
+      class="absolute top-3 right-4 text-xl hover:text-red-400">&times;</button>
 
-    <!-- TÍTULO -->
-    <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-      <i class="fa-solid fa-circle-info text-blue-600 dark:text-blue-400"></i>
+    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-circle-info text-blue-600"></i>
       Detalhes da Atividade
     </h2>
 
-    <div class="space-y-4 text-sm text-slate-700 dark:text-slate-300">
+    <div class="space-y-4 text-sm">
 
-      <p><strong class="text-blue-700 dark:text-blue-300">Empresa:</strong> {{ empresa.name }}</p>
-      <p><strong class="text-blue-700 dark:text-blue-300">CNPJ:</strong> {{ empresa.cnpj }}</p>
+      <p><strong>Empresa:</strong> {{ empresa.name }}</p>
+      <p><strong>CNPJ:</strong> {{ empresa.cnpj }}</p>
 
-      <div class="border-t border-slate-300 dark:border-slate-700"></div>
+      <hr>
 
-      <p><strong class="text-blue-700 dark:text-blue-300">Tarefa:</strong> {{ tarefa.title }}</p>
+      <p><strong>Tarefa:</strong> {{ tarefa.title }}</p>
+      <p><strong>Prazo:</strong> {{ tarefa.due_date }}</p>
 
       {% if tarefa.description %}
-      <p><strong class="text-blue-700 dark:text-blue-300">Descrição:</strong> {{ tarefa.description }}</p>
+        <p><strong>Descrição:</strong> {{ tarefa.description }}</p>
       {% endif %}
 
-      <p><strong class="text-blue-700 dark:text-blue-300">Prazo:</strong> {{ tarefa.due_date }}</p>
+      <hr>
 
-      <div class="border-t border-slate-300 dark:border-slate-700"></div>
+      <!-- ====================== ETAPAS ====================== -->
+      <p class="font-semibold text-blue-600">Etapas realizadas</p>
 
-      <p><strong class="text-blue-700 dark:text-blue-300">Executado por:</strong> {{ log.user.name }}</p>
-      <p><strong class="text-blue-700 dark:text-blue-300">Data/Hora:</strong> {{ log.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+      {% if tarefa.steps %}
+        <div class="space-y-3">
+          {% for step in tarefa.steps %}
+          <div class="border-l-4 border-blue-600 bg-slate-100 dark:bg-slate-800/60 
+                      rounded-lg p-3">
 
-      <div class="border-t border-slate-300 dark:border-slate-700"></div>
+            <p class="text-[11px] text-slate-500">
+              {{ step.created_at.strftime('%d/%m/%Y %H:%M') }} —
+              <strong>{{ step.user.name }}</strong>
+            </p>
 
-      <!-- NOTA -->
-      <p><strong class="text-blue-700 dark:text-blue-300">O que foi feito:</strong></p>
-      <div class="bg-slate-100 dark:bg-slate-800/60 
-                  border border-slate-300 dark:border-slate-700 
-                  rounded-lg p-4 text-slate-700 dark:text-slate-300 
-                  text-sm whitespace-pre-line">
-        {{ log.note }}
-      </div>
+            <p class="text-sm">{{ step.description }}</p>
 
-      <div class="border-t border-slate-300 dark:border-slate-700"></div>
-
-      <!-- ======================================================= -->
-      <!-- ================== ANEXOS EM QUADRADOS ================= -->
-      <!-- ======================================================= -->
-      <p><strong class="text-blue-700 dark:text-blue-300">Anexos:</strong></p>
-
-      {% if log.files and log.files|length > 0 %}
-      <div class="grid grid-cols-2 gap-3">
-        {% for f in log.files %}
-          <a href="/{{ f.file_path }}" target="_blank"
-            class="bg-slate-100 dark:bg-slate-800 
-                   rounded-lg p-4 h-24 flex items-center justify-center text-center
-                   border border-slate-300 dark:border-slate-700 
-                   hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 transition text-xs font-medium shadow">
-            <i class="fa-solid fa-paperclip mr-2"></i>
-            {{ f.file_path.split('/')[-1] }}
-          </a>
-        {% endfor %}
-      </div>
+            {% if step.file_path %}
+              <a href="/{{ step.file_path }}" target="_blank"
+                 class="text-xs text-blue-600 hover:underline mt-1 inline-block">
+                📎 Ver anexo da etapa
+              </a>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
       {% else %}
-        <p class="text-slate-500 dark:text-slate-400 text-[12px] italic">
-          Nenhum anexo enviado.
+        <p class="text-xs text-slate-500 italic">
+          Nenhuma etapa registrada.
         </p>
       {% endif %}
 
-    </div>
+      <hr>
 
+      <!-- ==================== CONCLUSÃO ==================== -->
+      <p><strong>Executado por:</strong> {{ log.user.name }}</p>
+      <p><strong>Data/Hora:</strong> {{ log.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+
+      <div class="bg-slate-100 dark:bg-slate-800/60 rounded-lg p-4 whitespace-pre-line">
+        {{ log.note }}
+      </div>
+
+      <!-- ===================== ANEXOS ====================== -->
+      <p class="font-semibold mt-2">Anexos da conclusão</p>
+
+      {% if log.files %}
+        <div class="grid grid-cols-2 gap-3">
+          {% for f in log.files %}
+            <a href="/{{ f.file_path }}" target="_blank"
+               class="bg-slate-100 dark:bg-slate-800 
+                      rounded-lg p-4 text-xs shadow hover:bg-blue-600 hover:text-white">
+              <i class="fa-solid fa-paperclip mr-1"></i>
+              {{ f.file_path.split('/')[-1] }}
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-xs italic text-slate-500">Nenhum anexo.</p>
+      {% endif %}
+
+    </div>
   </div>
 </div>
-
 {% endfor %}
-
-
 
 <!-- ======================================================= -->
 <!-- ========================= JS =========================== -->
 <!-- ======================================================= -->
 <script>
+/* ===========================
+   MODAL
+=========================== */
 function abrirModal(id) {
   const modal = document.getElementById("modal" + id);
+  if (!modal) return;
   modal.classList.remove("hidden");
   modal.classList.add("flex");
 }
 
 function fecharModal(id) {
   const modal = document.getElementById("modal" + id);
+  if (!modal) return;
   modal.classList.add("hidden");
   modal.classList.remove("flex");
 }
+
+/* ===========================
+   CALENDÁRIO DE PERÍODO
+=========================== */
+document.addEventListener("DOMContentLoaded", function () {
+  const periodoInput = document.getElementById("periodo");
+
+  if (periodoInput && typeof flatpickr !== "undefined") {
+    flatpickr(periodoInput, {
+      mode: "range",
+      dateFormat: "d/m/Y",
+      locale: "pt",
+      allowInput: false,
+      rangeSeparator: " até "
+    });
+  }
+});
 </script>
 
 {% endblock %}
+

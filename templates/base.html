@@ -15,27 +15,19 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- ✅ FLATPICKR (CALENDÁRIO) -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
   <script>
-    /* ===============================================
-       CONFIGURAÇÃO TAILWIND (DARK MODE VIA CLASS)
-    =============================================== */
     tailwind.config = {
       darkMode: "class",
-      theme: {
-        extend: {}
-      }
+      theme: { extend: {} }
     };
 
-    /* ===============================================
-       APLICA TEMA INICIAL (LOCALSTORAGE)
-    =============================================== */
     (function () {
       const savedTheme = localStorage.getItem("theme") || "dark";
-      if (savedTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+      document.documentElement.classList.toggle("dark", savedTheme === "dark");
     })();
   </script>
 
@@ -45,6 +37,7 @@
     }
   </style>
 </head>
+
 
 <body class="h-full
              bg-slate-100 text-slate-800
@@ -356,27 +349,33 @@
 
 
 <!-- =====================================================
-     JS — TEMA + MODAL SENHA
+     JS — TEMA + MODAL SENHA + CALENDÁRIO
 ===================================================== -->
+
+<!-- ✅ FLATPICKR (CALENDÁRIO) -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+
 <script>
-  /* ============================
-       TROCA DE TEMA
-  ============================ */
-  const btnTema  = document.getElementById("themeToggle");
-  const iconTema = document.getElementById("temaIcone");
+/* ============================
+   TROCA DE TEMA
+============================ */
+const btnTema  = document.getElementById("themeToggle");
+const iconTema = document.getElementById("temaIcone");
 
-  function aplicarIconeTema() {
-    if (document.documentElement.classList.contains("dark")) {
-      iconTema.classList.remove("fa-sun");
-      iconTema.classList.add("fa-moon");
-      iconTema.style.color = "#3b82f6"; // azul
-    } else {
-      iconTema.classList.remove("fa-moon");
-      iconTema.classList.add("fa-sun");
-      iconTema.style.color = "#f59e0b"; // dourado
-    }
+function aplicarIconeTema() {
+  if (document.documentElement.classList.contains("dark")) {
+    iconTema.classList.remove("fa-sun");
+    iconTema.classList.add("fa-moon");
+    iconTema.style.color = "#3b82f6";
+  } else {
+    iconTema.classList.remove("fa-moon");
+    iconTema.classList.add("fa-sun");
+    iconTema.style.color = "#f59e0b";
   }
+}
 
+if (btnTema) {
   aplicarIconeTema();
 
   btnTema.addEventListener("click", () => {
@@ -393,21 +392,23 @@
 
     aplicarIconeTema();
   });
+}
 
+/* ============================
+   MODAL ALTERAR SENHA
+============================ */
+function abrirModalSenha() {
+  document.getElementById("modalSenha")?.classList.remove("hidden");
+}
 
-  /* ============================
-       FUNÇÕES DO MODAL SENHA
-  ============================ */
-  function abrirModalSenha() {
-    document.getElementById("modalSenha").classList.remove("hidden");
-  }
+function fecharModalSenha() {
+  document.getElementById("modalSenha")?.classList.add("hidden");
+  document.getElementById("erroSenha")?.classList.add("hidden");
+}
 
-  function fecharModalSenha() {
-    document.getElementById("modalSenha").classList.add("hidden");
-    document.getElementById("erroSenha").classList.add("hidden");
-  }
-
-  document.getElementById("formSenha").addEventListener("submit", async function(e) {
+const formSenha = document.getElementById("formSenha");
+if (formSenha) {
+  formSenha.addEventListener("submit", async function(e) {
     e.preventDefault();
 
     const senhaAtual     = document.getElementById("senhaAtual").value;
@@ -441,7 +442,26 @@
     fecharModalSenha();
     alert("Senha alterada com sucesso!");
   });
+}
+
+/* ============================
+   FLATPICKR — FILTRO DE PERÍODO
+============================ */
+document.addEventListener("DOMContentLoaded", function () {
+  const campoPeriodo = document.getElementById("periodo");
+
+  if (campoPeriodo) {
+    flatpickr(campoPeriodo, {
+      mode: "range",
+      dateFormat: "d/m/Y",
+      locale: "pt",
+      rangeSeparator: " até ",
+      allowInput: false
+    });
+  }
+});
 </script>
 
 </body>
 </html>
+

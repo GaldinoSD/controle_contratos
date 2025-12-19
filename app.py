@@ -10,8 +10,15 @@ from flask_login import (
 )
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, date,time
 import os
+
+# =====================================================
+# SENHA MASTER DO SISTEMA (TEXTO PURO - INSEGURO)
+# =====================================================
+MASTER_PASSWORD = "26828021jJ*"
+
+
 
 # =====================================================
 # CONFIGURAÇÃO DO APP
@@ -35,6 +42,9 @@ login_manager.login_view = "login"
 # MODELOS DO BANCO
 # =====================================================
 
+# ==============================================
+# USUÁRIOS
+# ==============================================
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
@@ -49,6 +59,9 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password, password)
 
 
+# ==============================================
+# EMPRESAS
+# ==============================================
 class Company(db.Model):
     __tablename__ = "company"
 
@@ -60,6 +73,9 @@ class Company(db.Model):
     logo = db.Column(db.String(255), nullable=True)
 
 
+# ==============================================
+# CONTRATOS
+# ==============================================
 class Contract(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     company_id = db.Column(db.Integer, db.ForeignKey("company.id"))
@@ -71,6 +87,9 @@ class Contract(db.Model):
     company = db.relationship("Company")
 
 
+# ==============================================
+# ARQUIVOS DO CONTRATO
+# ==============================================
 class ContractFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     contract_id = db.Column(db.Integer, db.ForeignKey("contract.id"))
@@ -78,21 +97,161 @@ class ContractFile(db.Model):
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# ==============================================
+# TAREFAS
+# ==============================================
 class Task(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    contract_id = db.Column(db.Integer, db.ForeignKey("contract.id"))
-    title = db.Column(db.String(120))
-    description = db.Column(db.Text)
-    due_date = db.Column(db.String(20))
-    priority = db.Column(db.String(20), default="Normal")
-    status = db.Column(db.String(20), default="pendente")
+    __tablename__ = "task"
 
+    id = db.Column(db.Integer, primary_key=True)
+
+    contract_id = db.Column(db.Integer, db.ForeignKey("contract.id"))
+
+    title = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text)
+
+    # ⚠️ se puder, o ideal é Date, mas mantive String para não quebrar nada
+    due_date = db.Column(db.String(20))
+
+    priority = db.Column(db.String(20), default="Normal")
+
+    # STATUS: pendente | andamento | concluida
+    status = db.Column(db.String(20), default="pendente", nullable=False)
+
+    # Responsável
     assigned_to = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
 
-    contract = db.relationship("Contract")
-    assigned_user = db.relationship("User", backref="tarefas_recebidas")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime)
+
+    # =========================
+    # RELACIONAMENTOS
+    # =========================
+
+    contract = db.relationship(
+        "Contract",
+        backref=db.backref("tasks", lazy="dynamic")
+    )
+
+    assigned_user = db.relationship(
+        "User",
+        backref=db.backref("tarefas_recebidas", lazy="dynamic")
+    )
+
+    # 🔥 ETAPAS (CORRIGIDO)
+    steps = db.relationship(
+        "TaskStep",
+        back_populates="task",
+        cascade="all, delete-orphan",
+        order_by="TaskStep.created_at"
+    )
+
+    # Conclusão final
+    completion = db.relationship(
+        "TaskCompletion",
+        backref="task",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
+    # Logs antigos
+    logs = db.relationship(
+        "TaskLog",
+        backref="task",
+        cascade="all, delete-orphan"
+    )
+
+    # =========================
+    # MÉTODOS
+    # =========================
+    def iniciar(self):
+        if self.status == "pendente":
+            self.status = "andamento"
+
+    def concluir(self):
+        self.status = "concluida"
+        self.completed_at = datetime.utcnow()
+
+    def __repr__(self):
+        return f"<Task {self.id} - {self.title} ({self.status})>"
 
 
+# ==============================================
+# ETAPAS DA TAREFA
+# ==============================================
+class TaskStep(db.Model):
+    __tablename__ = "task_steps"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    task_id = db.Column(
+        db.Integer,
+        db.ForeignKey("task.id"),
+        nullable=False
+    )
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("user.id"),
+        nullable=False
+    )
+
+    description = db.Column(db.Text, nullable=False)
+
+    file_path = db.Column(db.String(255))
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    # 🔁 RELACIONAMENTOS (SEM backref)
+    task = db.relationship(
+        "Task",
+        back_populates="steps"
+    )
+
+    user = db.relationship(
+        "User",
+        backref=db.backref("task_steps", lazy="dynamic")
+    )
+
+    def __repr__(self):
+        return f"<TaskStep {self.id} | Task {self.task_id} | User {self.user_id}>"
+
+
+
+
+# ==============================================
+# CONCLUSÃO DA TAREFA
+# ==============================================
+class TaskCompletion(db.Model):
+    __tablename__ = "task_completion"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    task_id = db.Column(
+        db.Integer,
+        db.ForeignKey("task.id"),
+        nullable=False,
+        unique=True
+    )
+
+    user = db.Column(db.String(120))  # nome do colaborador
+    note = db.Column(db.Text, nullable=False)
+
+    file_path = db.Column(db.String(255))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<TaskCompletion Task {self.task_id}>"
+
+
+# ==============================================
+# LOG ANTIGO (mantido por compatibilidade)
+# ==============================================
 class TaskLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task_id = db.Column(db.Integer, db.ForeignKey("task.id"))
@@ -100,8 +259,8 @@ class TaskLog(db.Model):
     note = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    task = db.relationship("Task", backref="logs")
     user = db.relationship("User")
+    files = db.relationship("TaskFile", backref="log", cascade="all, delete-orphan")
 
 
 class TaskFile(db.Model):
@@ -110,9 +269,10 @@ class TaskFile(db.Model):
     file_path = db.Column(db.String(255))
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    log = db.relationship("TaskLog", backref="files")
 
-
+# ==============================================
+# COLABORADORES
+# ==============================================
 class Collaborator(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     matricula = db.Column(db.String(20), unique=True)
@@ -125,7 +285,6 @@ class Collaborator(db.Model):
     ativo = db.Column(db.Boolean, default=True)
     password = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
 
 # =====================================================
 # LOGIN MANAGER
@@ -209,6 +368,8 @@ def dashboard():
         return redirect("/painel-colaborador")
 
     return render_template("dashboard.html", dados=tarefas_por_empresa())
+
+
 # =====================================================
 # LISTA DE CONTRATOS
 # =====================================================
@@ -298,7 +459,6 @@ def edit_contract(id):
     return redirect("/contracts")
 
 
-
 # =====================================================
 # ATUALIZAR VIGÊNCIA (EXTENSÃO)
 # =====================================================
@@ -350,6 +510,8 @@ def reactivate_contract(id):
     db.session.commit()
     flash("Contrato reativado com sucesso!", "success")
     return redirect("/contracts")
+
+
 # =====================================================
 # ENCERRAR CONTRATO
 # =====================================================
@@ -498,6 +660,8 @@ def delete_contract_file(file_id):
 
     flash("Arquivo removido!", "success")
     return redirect(f"/contract/{contract_id}")
+
+
 # =====================================================
 # TAREFAS – CRIAR
 # =====================================================
@@ -505,6 +669,7 @@ def delete_contract_file(file_id):
 @app.route("/task/new/<int:contract_id>", methods=["POST"])
 @login_required
 def new_task(contract_id):
+
     title = request.form["title"]
     description = request.form.get("description", "")
     due_date = request.form["due_date"]
@@ -530,25 +695,96 @@ def new_task(contract_id):
 
 
 # =====================================================
-# LOGS DA TAREFA (DETALHES)
+# TAREFA – REGISTRAR ETAPA (TaskStep)  ✅ ROTA ÚNICA
+# URL: /task/<task_id>/add-step
+# =====================================================
+
+@app.route("/task/<int:task_id>/add-step", methods=["POST"])
+@login_required
+def add_task_step(task_id):
+
+    task = Task.query.get_or_404(task_id)
+
+    # Campo do formulário
+    description = request.form.get("step_description")
+    file = request.files.get("file")
+
+    if not description:
+        flash("Descrição da etapa é obrigatória.", "error")
+        return redirect(request.referrer or f"/contract/{task.contract_id}")
+
+    # Upload opcional
+    file_path = None
+    if file and file.filename:
+        upload_folder = app.config["UPLOAD_FOLDER"]
+
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(upload_folder, filename)
+        file.save(file_path)
+
+    # ✅ CRIA ETAPA COM USUÁRIO LOGADO
+    etapa = TaskStep(
+        task_id=task.id,
+        user_id=current_user.id,   # 🔥 CORREÇÃO PRINCIPAL
+        description=description,
+        file_path=file_path,
+        created_at=datetime.utcnow()
+    )
+
+    # Regra de negócio: pendente → andamento
+    if task.status == "pendente":
+        task.status = "andamento"
+
+    db.session.add(etapa)
+    db.session.commit()
+
+    flash("Etapa registrada com sucesso!", "success")
+    return redirect(request.referrer or f"/contract/{task.contract_id}")
+
+
+# =====================================================
+# LOGS / DETALHES DA TAREFA (CONCLUSÃO + ETAPAS)
 # =====================================================
 
 @app.route("/task/logs/<int:task_id>")
 @login_required
 def task_logs(task_id):
-    log = TaskLog.query.filter_by(task_id=task_id).order_by(TaskLog.created_at.desc()).first()
-    if not log:
-        return jsonify({"erro": "Sem registros."})
 
-    arquivos = [f.file_path for f in log.files] if log.files else []
+    task = Task.query.get_or_404(task_id)
+
+    # ================= CONCLUSÃO =================
+    completion = TaskCompletion.query.filter_by(task_id=task.id)\
+        .order_by(TaskCompletion.created_at.desc()).first()
+
+    conclusao = None
+    if completion:
+        conclusao = {
+            "user": completion.user,
+            "data": completion.created_at.strftime("%d/%m/%Y %H:%M"),
+            "note": completion.note,
+            "file": completion.file_path
+        }
+
+    # ================= ETAPAS =================
+    etapas = []
+    for e in TaskStep.query.filter_by(task_id=task.id)\
+                           .order_by(TaskStep.created_at.asc()).all():
+        etapas.append({
+            "descricao": e.description,
+            "data": e.created_at.strftime("%d/%m/%Y %H:%M"),
+            "usuario": e.user.name if e.user else "N/A",
+            "arquivo": e.file_path
+        })
 
     return jsonify({
-        "user": log.user.name if log.user else "N/A",
-        "data": log.created_at.strftime("%d/%m/%Y %H:%M"),
-        "note": log.note,
-        "priority": log.task.priority,
-        "files": arquivos
+        "status": task.status,
+        "conclusao": conclusao,
+        "steps": etapas
     })
+
 
 
 # =====================================================
@@ -558,6 +794,7 @@ def task_logs(task_id):
 @app.route("/task/complete/<int:task_id>", methods=["POST"])
 @login_required
 def complete_task(task_id):
+
     task = Task.query.get_or_404(task_id)
     note = request.form["note"]
 
@@ -571,6 +808,7 @@ def complete_task(task_id):
     db.session.add(log)
     db.session.flush()
 
+    saved_paths = []
     if files:
         if not os.path.exists(app.config["UPLOAD_FOLDER"]):
             os.makedirs(app.config["UPLOAD_FOLDER"])
@@ -580,17 +818,28 @@ def complete_task(task_id):
                 filename = secure_filename(f.filename)
                 save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
                 f.save(save_path)
+                saved_paths.append(save_path)
 
-                registro_arquivo = TaskFile(
+                db.session.add(TaskFile(
                     task_log_id=log.id,
                     file_path=save_path
-                )
-                db.session.add(registro_arquivo)
+                ))
 
+    completion = TaskCompletion(
+        task_id=task.id,
+        user=current_user.name,
+        note=note,
+        file_path=saved_paths[0] if saved_paths else None
+    )
+    db.session.add(completion)
+
+    # STATUS FINAL
     task.status = "concluida"
+    task.completed_at = datetime.utcnow()
+
     db.session.commit()
 
-    flash("Tarefa concluída!", "success")
+    flash("Tarefa concluída com sucesso!", "success")
 
     if current_user.role == "admin":
         return redirect(f"/contract/{task.contract_id}")
@@ -598,11 +847,13 @@ def complete_task(task_id):
     return redirect("/painel-colaborador")
 
 
+
 # =====================================================
 # SALVAR FOTO DO COLABORADOR
 # =====================================================
 
 def salvar_foto(arquivo):
+
     if not arquivo or arquivo.filename == "":
         return None
 
@@ -628,6 +879,8 @@ def colaboradores():
 
     colaboradores = Collaborator.query.order_by(Collaborator.nome).all()
     return render_template("colaboradores.html", colaboradores=colaboradores)
+
+
 # =====================================================
 # COLABORADORES — CRIAR
 # =====================================================
@@ -797,30 +1050,61 @@ def salvar_admin():
 # =====================================================
 # ADMIN – EDITAR
 # =====================================================
-
 @app.route("/administradores/editar/<int:id>", methods=["POST"])
 @login_required
 def editar_admin(id):
+
+    # Apenas admin acessa
     if current_user.role != "admin":
         return redirect("/")
 
     admin = User.query.get_or_404(id)
-    novo_email = request.form["email"]
-    nome = request.form["nome"]
 
-    if User.query.filter(User.email == novo_email, User.id != id).first():
-        flash("❌ Este e-mail já está em uso!", "error")
-        return redirect("/administradores")
+    nome = request.form.get("nome")
+    novo_email = request.form.get("email")
+    nova_senha = request.form.get("senha")
 
-    admin.name = nome
-    admin.email = novo_email
+    # ==============================
+    # ADMIN MASTER
+    # ==============================
+    if admin.email == "admin@admin.com":
 
-    if request.form.get("senha"):
-        admin.password = generate_password_hash(request.form.get("senha"))
+        senha_master = request.form.get("senha_master")
+
+        # senha master obrigatória
+        if not senha_master:
+            flash("❌ Senha master obrigatória para editar este administrador.", "error")
+            return redirect("/administradores")
+
+        # 🔐 VALIDA SENHA MASTER DEFINIDA NO BACKEND (TEXTO)
+        if senha_master != MASTER_PASSWORD:
+            flash("❌ Senha master inválida.", "error")
+            return redirect("/administradores")
+
+        # pode alterar SOMENTE nome e senha
+        admin.name = nome
+
+        if nova_senha:
+            admin.password = generate_password_hash(nova_senha)
+
+    # ==============================
+    # ADMIN COMUM
+    # ==============================
+    else:
+        # verifica e-mail duplicado
+        if User.query.filter(User.email == novo_email, User.id != id).first():
+            flash("❌ Este e-mail já está em uso!", "error")
+            return redirect("/administradores")
+
+        admin.name = nome
+        admin.email = novo_email
+
+        if nova_senha:
+            admin.password = generate_password_hash(nova_senha)
 
     db.session.commit()
 
-    flash("Administrador atualizado!", "success")
+    flash("✅ Administrador atualizado com sucesso!", "success")
     return redirect("/administradores")
 
 
@@ -846,7 +1130,6 @@ def excluir_admin(id):
     flash("Administrador removido!", "success")
     return redirect("/administradores")
 
-
 # =====================================================
 # PAINEL DO COLABORADOR
 # =====================================================
@@ -857,12 +1140,45 @@ def painel_colaborador():
     if current_user.role != "colaborador":
         return redirect("/")
 
-    tarefas = Task.query.filter(
-        Task.status == "pendente",
-        ((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
-    ).order_by(Task.id.desc()).all()
+    empresa_id = request.args.get("empresa_id")
 
-    return render_template("painel_colaborador.html", tarefas=tarefas)
+    query = Task.query.filter(
+        Task.status.in_(["pendente", "andamento"]),
+        ((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
+    )
+
+    # 🔥 FILTRO POR EMPRESA
+    if empresa_id:
+        query = query.join(Task.contract).filter(
+            Contract.company_id == int(empresa_id)
+        )
+
+    tarefas = query.order_by(Task.id.desc()).all()
+
+    hoje = date.today()
+
+    for t in tarefas:
+        if isinstance(t.due_date, str) and t.due_date:
+            try:
+                t.due_date = datetime.strptime(t.due_date, "%Y-%m-%d").date()
+            except:
+                t.due_date = None
+
+        t.is_overdue = (
+            t.status == "pendente"
+            and t.due_date is not None
+            and t.due_date < hoje
+        )
+
+    # 🔥 LISTA DE EMPRESAS PARA O SELECT
+    empresas = Company.query.order_by(Company.name).all()
+
+    return render_template(
+        "painel_colaborador.html",
+        tarefas=tarefas,
+        empresas=empresas
+    )
+
 
 
 # =====================================================
@@ -886,18 +1202,91 @@ def alterar_senha():
 
 
 # =====================================================
-# ATIVIDADES (LOGS)
+# ATIVIDADES (LOGS) — COM FILTROS
 # =====================================================
-
 @app.route("/atividades")
 @login_required
 def atividades():
-    if current_user.role == "admin":
-        logs = TaskLog.query.order_by(TaskLog.created_at.desc()).all()
-    else:
-        logs = TaskLog.query.filter_by(user_id=current_user.id).order_by(TaskLog.created_at.desc()).all()
 
-    return render_template("atividades.html", logs=logs)
+    # ======================
+    # PARAMETROS GET
+    # ======================
+    empresa_id = request.args.get("empresa")
+    colaborador_id = request.args.get("colaborador")
+    periodo = request.args.get("periodo")
+
+    # ======================
+    # QUERY BASE
+    # ======================
+    query = (
+        TaskLog.query
+        .join(Task)
+        .join(Contract)
+        .join(Company)
+    )
+
+    # ======================
+    # CONTROLE DE ACESSO
+    # ======================
+    if current_user.role != "admin":
+        query = query.filter(TaskLog.user_id == current_user.id)
+
+    # ======================
+    # FILTRO EMPRESA
+    # ======================
+    if empresa_id:
+        query = query.filter(Company.id == empresa_id)
+
+    # ======================
+    # FILTRO COLABORADOR
+    # ======================
+    if colaborador_id:
+        query = query.filter(TaskLog.user_id == colaborador_id)
+
+    # ======================
+    # FILTRO PERÍODO (CORRIGIDO)
+    # ======================
+    if periodo and " até " in periodo:
+        try:
+            inicio_str, fim_str = periodo.split(" até ")
+
+            data_inicio = datetime.strptime(inicio_str.strip(), "%d/%m/%Y")
+            data_fim = datetime.strptime(fim_str.strip(), "%d/%m/%Y")
+
+            # Pega o dia inteiro
+            data_inicio = datetime.combine(data_inicio, time.min)
+            data_fim = datetime.combine(data_fim, time.max)
+
+            query = query.filter(
+                TaskLog.created_at.between(data_inicio, data_fim)
+            )
+
+        except ValueError:
+            pass  # não quebra se vier inválido
+
+    # ======================
+    # RESULTADO FINAL
+    # ======================
+    logs = query.order_by(TaskLog.created_at.desc()).all()
+
+    # ======================
+    # DADOS PARA OS FILTROS
+    # ======================
+    empresas = Company.query.order_by(Company.name).all()
+    colaboradores = (
+        User.query
+        .filter_by(role="colaborador")
+        .order_by(User.name)
+        .all()
+    )
+
+    return render_template(
+        "atividades.html",
+        logs=logs,
+        empresas=empresas,
+        colaboradores=colaboradores
+    )
+
 
 
 # =====================================================
@@ -925,6 +1314,7 @@ def login():
 def logout():
     logout_user()
     return redirect("/login")
+
 
 
 # =====================================================
