@@ -26,7 +26,9 @@ MASTER_PASSWORD = "26828021jJ*"
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secreto"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+    "DATABASE_URL",
+    "postgresql://jonatas:26828021jJ@localhost/contratos")
 
 # PASTAS EXISTENTES
 app.config["UPLOAD_FOLDER"] = "static/uploads"
