@@ -286,38 +286,55 @@
     <div class="my-3 h-px bg-gradient-to-r from-transparent via-slate-400/30 to-transparent"></div>
 
     <!-- AÇÕES -->
-<div class="flex justify-end gap-2">
+    <div class="flex justify-end gap-2 flex-wrap">
 
-  {# 🔹 REGISTRAR ETAPA (PENDENTE OU ANDAMENTO) #}
-  {% if t.status in ['pendente', 'andamento'] %}
-    <button onclick="abrirModalEtapa({{ t.id }})"
-      class="px-3 py-1 rounded-lg text-xs font-semibold
-             bg-blue-600 hover:bg-blue-700 text-white shadow">
-      Etapa
-    </button>
-  {% endif %}
+      {# 🔹 REGISTRAR ETAPA (PENDENTE OU ANDAMENTO) #}
+      {% if t.status in ['pendente', 'andamento'] %}
+        <button onclick="abrirModalEtapa({{ t.id }})"
+          class="px-3 py-1 rounded-lg text-xs font-semibold
+                 bg-blue-600 hover:bg-blue-700 text-white shadow">
+          Etapa
+        </button>
+      {% endif %}
 
-  {# 🔥 FINALIZAR — ADMIN PODE EM PENDENTE E ANDAMENTO #}
-  {% if current_user.role == 'admin' and t.status in ['pendente', 'andamento'] %}
-    <button onclick="abrirModalFinalizar({{ t.id }})"
-      class="px-3 py-1 rounded-lg text-xs font-semibold
-             bg-emerald-600 hover:bg-emerald-700 text-white shadow">
-      Finalizar
-    </button>
-  {% endif %}
+      {# 🔥 FINALIZAR — ADMIN PODE EM PENDENTE E ANDAMENTO #}
+      {% if current_user.role == 'admin' and t.status in ['pendente', 'andamento'] %}
+        <button onclick="abrirModalFinalizar({{ t.id }})"
+          class="px-3 py-1 rounded-lg text-xs font-semibold
+                 bg-emerald-600 hover:bg-emerald-700 text-white shadow">
+          Finalizar
+        </button>
+      {% endif %}
 
-  {# 🔹 VER ETAPAS / DETALHES (ANDAMENTO OU CONCLUÍDA) #}
-  {% if t.status != 'pendente' %}
-    <button onclick="abrirDetalhes({{ t.id }})"
-      class="px-3 py-1 rounded-lg text-xs font-semibold
-             text-blue-600 hover:underline">
-      Ver atividade
-    </button>
-  {% endif %}
+      {# ✅ EDITAR / EXCLUIR — ADMIN #}
+      {% if current_user.role == 'admin' %}
+        <button onclick="abrirModalEditarTarefa({{ t.id }})"
+          class="px-3 py-1 rounded-lg text-xs font-semibold
+                 bg-slate-200 hover:bg-slate-300 text-slate-800
+                 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 shadow">
+          Editar
+        </button>
 
-</div>
+        <form method="POST" action="/task/delete/{{ t.id }}"
+              onsubmit="return confirm('Excluir esta atividade/tarefa?');">
+          <button type="submit"
+            class="px-3 py-1 rounded-lg text-xs font-semibold
+                   bg-red-600 hover:bg-red-700 text-white shadow">
+            Excluir
+          </button>
+        </form>
+      {% endif %}
 
+      {# 🔹 VER ETAPAS / DETALHES (ANDAMENTO OU CONCLUÍDA) #}
+      {% if t.status != 'pendente' %}
+        <button onclick="abrirDetalhes({{ t.id }})"
+          class="px-3 py-1 rounded-lg text-xs font-semibold
+                 text-blue-600 hover:underline">
+          Ver atividade
+        </button>
+      {% endif %}
 
+    </div>
 
   </div>
   {% endfor %}
@@ -325,9 +342,6 @@
   {% endif %}
 </section>
 
-
-
-</section>
 <!-- ====================================================== -->
 <!-- ====================== MODAIS ========================= -->
 <!-- ====================================================== -->
@@ -417,6 +431,90 @@
   </div>
 </div>
 
+<!-- ===================== MODAL EDITAR TAREFA ===================== -->
+<div id="modalEditarTarefa"
+     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50 
+            flex items-center justify-center">
+
+  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700 
+              w-full max-w-md p-6 rounded-xl shadow-2xl relative">
+
+    <button type="button" onclick="fecharModalEditarTarefa()" 
+            class="absolute top-3 right-4 text-slate-500 dark:text-slate-300 
+                   hover:text-red-500 dark:hover:text-red-400 text-xl">
+      &times;
+    </button>
+
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-pen-to-square text-blue-600 dark:text-blue-400"></i>
+      Editar Tarefa
+    </h2>
+
+    <form id="formEditarTarefa" method="POST" class="space-y-4">
+
+      <div>
+        <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Título</label>
+        <input id="edit_title" name="title" required
+               class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                      px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Entrega</label>
+          <input id="edit_due_date" type="date" name="due_date" required
+                 class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                        px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Prioridade</label>
+          <select id="edit_priority" name="priority"
+                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                         px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
+            <option>Normal</option>
+            <option>Alta</option>
+            <option>Baixa</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Responsável</label>
+        <select id="edit_assigned_to" name="assigned_to"
+                class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                       px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
+          <option value="all">Todos os colaboradores</option>
+          {% for c in colaboradores %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Descrição</label>
+        <textarea id="edit_description" name="description" rows="3"
+                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                         px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="fecharModalEditarTarefa()"
+                class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 
+                       rounded-lg text-xs text-slate-700 dark:text-slate-300">
+          Cancelar
+        </button>
+
+        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white 
+                       rounded-lg text-xs font-semibold shadow">
+          Salvar alterações
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
 <!-- ===================== MODAL FINALIZAR TAREFA ===================== -->
 <div id="modalFinalizar"
      class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50 
@@ -492,7 +590,6 @@
       Registrar Etapa da Tarefa
     </h2>
 
-    <!-- CORREÇÃO: name="step_description" -->
     <form id="formEtapa" method="POST" enctype="multipart/form-data" class="space-y-4">
 
       <div>
@@ -555,49 +652,90 @@
   </div>
 </div>
 
-
-
 <!-- ====================================================== -->
 <!-- ======================== JS ========================== -->
 <!-- ====================================================== -->
 
 <script>
 /* =======================================================
+   HELPERS: pegar elemento sem quebrar (caso modal não exista)
+======================================================= */
+function $(id){ return document.getElementById(id); }
+
+/* =======================================================
    ELEMENTOS GLOBAIS (SEGURANÇA)
 ======================================================= */
-const modalNovaTarefa   = document.getElementById("modalNovaTarefa");
-const modalFinalizar    = document.getElementById("modalFinalizar");
-const modalAtualizar    = document.getElementById("modalAtualizar");
-const modalEtapa        = document.getElementById("modalEtapa");
-const modalDetalhes     = document.getElementById("modalDetalhes");
+const modalNovaTarefa     = $("modalNovaTarefa");
+const modalFinalizar      = $("modalFinalizar");
+const modalAtualizar      = $("modalAtualizar");     // pode não existir neste template
+const modalEtapa          = $("modalEtapa");
+const modalDetalhes       = $("modalDetalhes");
+const modalEditarTarefa   = $("modalEditarTarefa");
 
-const formFinalizar     = document.getElementById("formFinalizar");
-const formEtapa         = document.getElementById("formEtapa");
-const conteudoDetalhes  = document.getElementById("conteudoDetalhes");
+const formFinalizar       = $("formFinalizar");
+const formEtapa           = $("formEtapa");
+const formEditarTarefa    = $("formEditarTarefa");
+const conteudoDetalhes    = $("conteudoDetalhes");
 
 /* =======================================================
    ABERTURA / FECHAMENTO DE MODAIS
 ======================================================= */
-function abrirModalNovaTarefa() { modalNovaTarefa.classList.remove("hidden"); }
-function fecharModalNovaTarefa() { modalNovaTarefa.classList.add("hidden"); }
+function abrirModalNovaTarefa() { if(modalNovaTarefa) modalNovaTarefa.classList.remove("hidden"); }
+function fecharModalNovaTarefa(){ if(modalNovaTarefa) modalNovaTarefa.classList.add("hidden"); }
 
-function abrirModalAtualizar() { modalAtualizar.classList.remove("hidden"); }
-function fecharModalAtualizar() { modalAtualizar.classList.add("hidden"); }
+function abrirModalAtualizar()  { if(modalAtualizar) modalAtualizar.classList.remove("hidden"); }
+function fecharModalAtualizar() { if(modalAtualizar) modalAtualizar.classList.add("hidden"); }
 
 function abrirModalFinalizar(id) {
-  formFinalizar.action = `/task/complete/${id}`;
-  modalFinalizar.classList.remove("hidden");
+  if(formFinalizar) formFinalizar.action = `/task/complete/${id}`;
+  if(modalFinalizar) modalFinalizar.classList.remove("hidden");
 }
-function fecharModalFinalizar() { modalFinalizar.classList.add("hidden"); }
+function fecharModalFinalizar(){ if(modalFinalizar) modalFinalizar.classList.add("hidden"); }
 
 function abrirModalEtapa(id) {
-  // 🔥 CORREÇÃO PRINCIPAL
-  formEtapa.action = `/task/${id}/add-step`;
-  modalEtapa.classList.remove("hidden");
+  if(formEtapa) formEtapa.action = `/task/${id}/add-step`;
+  if(modalEtapa) modalEtapa.classList.remove("hidden");
 }
-function fecharModalEtapa() { modalEtapa.classList.add("hidden"); }
+function fecharModalEtapa(){ if(modalEtapa) modalEtapa.classList.add("hidden"); }
 
-function fecharDetalhes() { modalDetalhes.classList.add("hidden"); }
+function fecharDetalhes(){ if(modalDetalhes) modalDetalhes.classList.add("hidden"); }
+
+/* =======================================================
+   EDITAR TAREFA (CARREGAR DADOS + SALVAR)
+   Requer backend:
+   GET  /task/<id>/json
+   POST /task/edit/<id>
+======================================================= */
+function abrirModalEditarTarefa(taskId) {
+
+  fetch(`/task/${taskId}/json`)
+    .then(resp => {
+      if (!resp.ok) throw new Error("Erro ao carregar tarefa");
+      return resp.json();
+    })
+    .then(task => {
+
+      if(formEditarTarefa) formEditarTarefa.action = `/task/edit/${taskId}`;
+
+      $("edit_title").value       = task.title || "";
+      $("edit_due_date").value    = task.due_date || "";
+      $("edit_priority").value    = task.priority || "Normal";
+      $("edit_description").value = task.description || "";
+
+      // assigned_to: "all" ou id do colaborador
+      $("edit_assigned_to").value = task.assigned_to || "all";
+
+      if(modalEditarTarefa) modalEditarTarefa.classList.remove("hidden");
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Não foi possível carregar os dados da tarefa.");
+    });
+}
+
+function fecharModalEditarTarefa(){
+  if(modalEditarTarefa) modalEditarTarefa.classList.add("hidden");
+}
 
 /* =======================================================
    ALTERAR STATUS DA TAREFA (POST REAL)
@@ -619,7 +757,7 @@ function onChangeStatus(taskId, status) {
     return resp.text();
   })
   .then(() => {
-    location.reload(); // mantém comportamento visual simples
+    location.reload();
   })
   .catch(err => {
     alert("Erro ao alterar status da tarefa.");
@@ -710,8 +848,8 @@ function abrirDetalhes(taskId) {
         `;
       }
 
-      document.getElementById("conteudoDetalhes").innerHTML = html;
-      document.getElementById("modalDetalhes").classList.remove("hidden");
+      if(conteudoDetalhes) conteudoDetalhes.innerHTML = html;
+      if(modalDetalhes) modalDetalhes.classList.remove("hidden");
     })
     .catch(() => {
       alert("Erro ao carregar detalhes da tarefa.");

@@ -198,6 +198,7 @@
   </table>
 
 </div>
+
 <!-- ======================================================= -->
 <!-- ==================== MODAL NOVO CONTRATO =============== -->
 <!-- ======================================================= -->
@@ -256,7 +257,7 @@
 
       <div class="md:col-span-2">
         <label class="text-xs font-medium">Logo da Empresa (opcional)</label>
-        <input type="file" name="logo"
+        <input type="file" name="logo" accept="image/*"
                class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 
                       dark:border-slate-700 p-3 rounded-lg text-sm">
       </div>
@@ -279,9 +280,6 @@
 
   </div>
 </div>
-
-
-
 
 <!-- ======================================================= -->
 <!-- ==================== MODAL ENCERRAR ==================== -->
@@ -320,9 +318,6 @@
   </div>
 </div>
 
-
-
-
 <!-- ======================================================= -->
 <!-- ==================== MODAL EXCLUIR ===================== -->
 <!-- ======================================================= -->
@@ -353,12 +348,9 @@
   </div>
 </div>
 
-
-
-
-
 <!-- ======================================================= -->
-<!-- ==================== MODAL EDITAR ====================== -->
+<!-- ==================== MODAL EDITAR (CORRIGIDO) ========== -->
+<!-- ✅ Agora suporta adicionar/trocar/remover LOGO ========= -->
 <!-- ======================================================= -->
 <div id="modalEditar" 
      class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
@@ -373,7 +365,9 @@
       Editar Contrato
     </h2>
 
-    <form id="formEditar" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- ✅ enctype adicionado -->
+    <form id="formEditar" method="POST" enctype="multipart/form-data"
+          class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
       <input type="hidden" name="id" id="edit_id">
 
@@ -398,6 +392,25 @@
                          dark:border-slate-700 p-3 rounded-lg text-sm"></textarea>
       </div>
 
+      <!-- ✅ NOVO: LOGO -->
+      <div class="md:col-span-2">
+        <label class="text-xs font-medium">Logo da Empresa (opcional)</label>
+        <input type="file" name="logo" accept="image/*"
+               class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 
+                      dark:border-slate-700 p-3 rounded-lg text-sm">
+        <p class="text-[11px] text-slate-500 mt-1">
+          Envie uma imagem para adicionar ou substituir a logo atual.
+        </p>
+      </div>
+
+      <!-- ✅ (opcional) remover logo -->
+      <div class="md:col-span-2 flex items-center gap-2">
+        <input type="checkbox" id="remover_logo" name="remover_logo" value="1" class="w-4 h-4">
+        <label for="remover_logo" class="text-xs text-slate-600 dark:text-slate-300">
+          Remover logo atual
+        </label>
+      </div>
+
       <div class="md:col-span-2 mt-4 flex justify-end gap-3">
         <button type="button" onclick="fecharModalEditar()"
           class="px-5 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 
@@ -416,10 +429,6 @@
 
   </div>
 </div>
-
-
-
-
 
 <!-- ======================================================= -->
 <!-- =============== MODAL ESTENDER VIGÊNCIA ================ -->
@@ -464,10 +473,6 @@
 
   </div>
 </div>
-
-
-
-
 
 <!-- ======================================================= -->
 <!-- ================== MODAL REATIVAR ====================== -->
@@ -516,6 +521,7 @@
 
   </div>
 </div>
+
 <script>
 /* =======================================================
    DROPDOWN DE GERENCIAR
@@ -535,7 +541,6 @@ document.addEventListener("click", (e) => {
   }
 });
 
-
 /* =======================================================
    MODAL: NOVO CONTRATO
 ======================================================= */
@@ -546,12 +551,12 @@ function fecharModalContrato() {
   document.getElementById("modalContrato").classList.add("hidden");
 }
 
-
 /* =======================================================
    MODAL: ENCERRAR CONTRATO
 ======================================================= */
 function abrirModalEncerrar(id) {
   document.getElementById("encerrarId").value = id;
+  document.getElementById("senhaEncerrar").value = "";
   document.getElementById("modalEncerrar").classList.remove("hidden");
 }
 function fecharModalEncerrar() {
@@ -576,7 +581,6 @@ function confirmarEncerrar() {
     }
   });
 }
-
 
 /* =======================================================
    MODAL: EXCLUIR CONTRATO
@@ -605,15 +609,18 @@ function confirmarExcluir() {
   });
 }
 
-
 /* =======================================================
-   MODAL: EDITAR CONTRATO
+   MODAL: EDITAR CONTRATO (corrigido)
 ======================================================= */
 function abrirModalEditar(id, company, cnpj, desc) {
   document.getElementById("edit_id").value = id;
   document.getElementById("edit_company").value = company;
   document.getElementById("edit_cnpj").value = cnpj;
   document.getElementById("edit_desc").value = desc;
+
+  // ✅ sempre abre desmarcado
+  const chk = document.getElementById("remover_logo");
+  if (chk) chk.checked = false;
 
   const form = document.getElementById("formEditar");
   form.action = `/contracts/edit/${id}`;
@@ -624,7 +631,6 @@ function abrirModalEditar(id, company, cnpj, desc) {
 function fecharModalEditar() {
   document.getElementById("modalEditar").classList.add("hidden");
 }
-
 
 /* =======================================================
    MODAL: ESTENDER VIGÊNCIA
@@ -644,7 +650,6 @@ function fecharModalVigencia() {
   document.getElementById("modalVigencia").classList.add("hidden");
 }
 
-
 /* =======================================================
    MODAL: REATIVAR CONTRATO (SOMENTE ENCERRADOS)
 ======================================================= */
@@ -661,140 +666,76 @@ function fecharModalReativar() {
   document.getElementById("modalReativar").classList.add("hidden");
 }
 </script>
+
 <style>
 /* ============================================================
    FadeIn (entrada suave dos modais)
 ============================================================ */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(.96); }
+  to   { opacity: 1; transform: scale(1); }
 }
-
-.animate-fadeIn {
-  animation: fadeIn .22s ease-out;
-}
-
+.animate-fadeIn { animation: fadeIn .22s ease-out; }
 
 /* ============================================================
    FadeDown (dropdown menu suave)
 ============================================================ */
 @keyframes fadeDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-.animate-fadeDown {
-  animation: fadeDown .18s ease-out;
-}
-
-
+.animate-fadeDown { animation: fadeDown .18s ease-out; }
 
 /* ============================================================
    Brilho do hover sobre cada linha da tabela
 ============================================================ */
-tr:hover td {
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
+tr:hover td { transition: background 0.2s ease, color 0.2s ease; }
 
 /* ============================================================
    Custom Scrollbar (premium)
 ============================================================ */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: rgba(148, 163, 184, 0.45);
   border-radius: 4px;
 }
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, .7);
-}
-
-
+::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, .7); }
 
 /* ============================================================
    Dropdown Menu de gerenciamento
 ============================================================ */
-.dropdown-menu {
-  animation: fadeDown .18s ease-out;
-  transform-origin: top;
-  z-index: 9999;
-}
-
+.dropdown-menu { animation: fadeDown .18s ease-out; transform-origin: top; z-index: 9999; }
 
 /* ============================================================
    Fundo escuro do modal (blur suave)
 ============================================================ */
-.modal-overlay {
-  backdrop-filter: blur(6px);
-}
-
-
+.modal-overlay { backdrop-filter: blur(6px); }
 
 /* ============================================================
    Suavização geral de sombras
 ============================================================ */
-.shadow-soft {
-  box-shadow: 0 4px 18px rgba(0, 0, 0, .12);
-}
-
-.shadow-soft-hover:hover {
-  box-shadow: 0 8px 26px rgba(0, 0, 0, .16);
-}
-
+.shadow-soft { box-shadow: 0 4px 18px rgba(0, 0, 0, .12); }
+.shadow-soft-hover:hover { box-shadow: 0 8px 26px rgba(0, 0, 0, .16); }
 
 /* ============================================================
    Botões mais suaves ao clicar
 ============================================================ */
-button:active {
-  transform: scale(.97);
-  transition: transform .05s;
-}
-
+button:active { transform: scale(.97); transition: transform .05s; }
 
 /* ============================================================
    Classe opcional: cards com brilho lateral
 ============================================================ */
-.glow-border {
-  position: relative;
-  overflow: hidden;
-}
-
+.glow-border { position: relative; overflow: hidden; }
 .glow-border::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(120deg,
-      transparent,
-      rgba(56, 189, 248, 0.12),
-      transparent);
+  background: linear-gradient(120deg, transparent, rgba(56, 189, 248, 0.12), transparent);
   opacity: 0;
   transition: .3s;
 }
-
-.glow-border:hover::before {
-  opacity: 1;
-}
+.glow-border:hover::before { opacity: 1; }
 </style>
 
 {% endblock %}
