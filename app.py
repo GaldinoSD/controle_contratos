@@ -1913,14 +1913,14 @@ def relatorios_export_word():
     doc.add_paragraph()
 
     # ---------------------------
-    # TABELA: Atividades Realizadas
+    # TABELA: Atividades Realizadas (✅ removido Responsável)
     # ---------------------------
     h3 = doc.add_paragraph()
     h3_run = h3.add_run("Atividades Realizadas")
     h3_run.bold = True
     h3_run.font.size = Pt(12)
 
-    table = doc.add_table(rows=1, cols=3)
+    table = doc.add_table(rows=1, cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     table.autofit = True
     set_table_borders(table)
@@ -1928,11 +1928,12 @@ def relatorios_export_word():
     hdr = table.rows[0].cells
     hdr[0].text = "Data"
     hdr[1].text = "Tarefa"
-    hdr[2].text = "Responsável"
 
     for cell in hdr:
         set_cell_shading(cell, "E6E6E6")
+        cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
         for p in cell.paragraphs:
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for r in p.runs:
                 r.bold = True
                 r.font.size = Pt(9)
@@ -1941,12 +1942,20 @@ def relatorios_export_word():
         row = table.add_row().cells
         row[0].text = c.created_at.strftime("%d/%m/%Y %H:%M") if c.created_at else "-"
         row[1].text = c.task.title if c.task else "-"
-        row[2].text = c.user or "-"
 
-        for cell in row:
-            for p in cell.paragraphs:
-                for r in p.runs:
-                    r.font.size = Pt(9)
+        row[0].vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        row[1].vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+
+        # ✅ Alinhamento: Data centralizada / Tarefa à esquerda (melhor leitura)
+        for p in row[0].paragraphs:
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            for r in p.runs:
+                r.font.size = Pt(9)
+
+        for p in row[1].paragraphs:
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            for r in p.runs:
+                r.font.size = Pt(9)
 
     buff = io.BytesIO()
     doc.save(buff)
@@ -1978,6 +1987,7 @@ def relatorios_export_pdf():
     from reportlab.lib.units import cm
     from reportlab.lib import colors
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER  # ✅ necessário para centralizar texto no Paragraph
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 
     empresa_id = (request.args.get("empresa") or "").strip()
@@ -2082,6 +2092,13 @@ def relatorios_export_pdf():
         textColor=colors.black,
     )
 
+    # ✅ estilo centralizado para o cabeçalho (Data / Atividade)
+    small_center = ParagraphStyle(
+        "SmallCenter",
+        parent=small,
+        alignment=TA_CENTER
+    )
+
     story = []
 
     # ✅ Logo menor no PDF
@@ -2136,35 +2153,43 @@ def relatorios_export_pdf():
     story.append(Paragraph(apresentacao_txt, normal))
     story.append(Spacer(1, 10))
 
-    # Tabela: Atividades Realizadas
+    # Tabela: Atividades Realizadas (✅ removido Responsável)
     story.append(Paragraph("Atividades Realizadas", h2))
 
     table_rows = [[
-        Paragraph("<b>Data</b>", small),
-        Paragraph("<b>Tarefa</b>", small),
-        Paragraph("<b>Responsável</b>", small),
+        Paragraph("<b>Data</b>", small_center),
+        Paragraph("<b>Atividade</b>", small_center),  # ✅ troca "Tarefa" por "Atividade"
     ]]
 
     for it in items:
         data_str = it.created_at.strftime("%d/%m/%Y %H:%M") if it.created_at else "-"
-        tarefa = it.task.title if it.task else "-"
-        resp = it.user or "-"
+        atividade = it.task.title if it.task else "-"
 
         table_rows.append([
             Paragraph(data_str, small),
-            Paragraph(tarefa, small),
-            Paragraph(resp, small),
+            Paragraph(atividade, small),
         ])
 
-    tbl = Table(table_rows, colWidths=[3.8*cm, 8.8*cm, 3.4*cm])
+    # ✅ larguras ajustadas para 2 colunas (alinhado certinho)
+    tbl = Table(table_rows, colWidths=[4.2*cm, 11.8*cm])
     tbl.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+
+        # ✅ garante cabeçalho centralizado no MEIO do campo
+        ("VALIGN", (0, 0), (-1, 0), "MIDDLE"),
+
         ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("LEFTPADDING", (0, 0), (-1, -1), 6),
         ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+
+        # ✅ um pouco mais de “respiro” para o cabeçalho ficar visualmente no meio
+        ("TOPPADDING", (0, 0), (-1, 0), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+
+        # mantém linhas com padding padrão
+        ("TOPPADDING", (0, 1), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
     ]))
     story.append(tbl)
 
@@ -2178,9 +2203,6 @@ def relatorios_export_pdf():
 
     nome = f"relatorio_{ano_base}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
     return send_file(buff, as_attachment=True, download_name=nome, mimetype="application/pdf")
-
-
-
 
 # =====================================================
 # EXECUTAR APLICAÇÃO
