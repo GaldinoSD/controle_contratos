@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+
+import os
+import io
+from pathlib import Path
+from datetime import datetime, date, time, timedelta
+from zoneinfo import ZoneInfo
+
 from flask import (
     Flask, render_template, request, redirect,
     flash, jsonify, url_for, abort
@@ -10,10 +17,7 @@ from flask_login import (
 )
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, date, time, timedelta
-from zoneinfo import ZoneInfo
-import os
-import io 
+
 
 # =====================================================
 # TIMEZONE (CORRIGE +3H)
@@ -41,29 +45,54 @@ def parse_periodo_local(periodo_str: str):
         fim = fim.replace(hour=23, minute=59, second=59, microsecond=999999, tzinfo=TZ)
 
         return (inicio, fim)
-    except:
+    except Exception:
         return (None, None)
 
+
 # =====================================================
-# SENHA MASTER DO SISTEMA (TEXTO PURO - INSEGURO)
+# SENHA MASTER DO SISTEMA (ATENÇÃO: texto puro)
 # =====================================================
 MASTER_PASSWORD = "26828021jJ*"
+
 
 # =====================================================
 # CONFIGURAÇÃO DO APP
 # =====================================================
-app = Flask(__name__)
-app.config["SECRET_KEY"] = "secreto"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+BASE_DIR = Path(__file__).resolve().parent
 
-# PASTAS EXISTENTES
-app.config["UPLOAD_FOLDER"] = "static/uploads"
-app.config["FOTOS_COLAB"] = "static/fotos"
-app.config["LOGO_FOLDER"] = "static/logos"
+INBOX_DIR      = BASE_DIR / "inbox"
+RELATORIOS_DIR = BASE_DIR / "relatorios"
+
+# Pasta de upload (aqui: fotos do checklist)
+UPLOAD_DIR     = BASE_DIR / "static" / "checklist_fotos"
+
+LOGO_PATH      = BASE_DIR / "static" / "logo.png"
+
+REV_INTERVAL     = 10000
+REV_ALERT_MARGIN = 500
+WEEKS_WINDOW     = 4
+
+ALLOWED_EXT = {".png", ".jpg", ".jpeg", ".webp"}
+
+app = Flask(__name__)
+app.config["SECRET_KEY"] = "altere-esta-chave"
+
+# ✅ SQLite local (arquivo dentro do projeto)
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{BASE_DIR / 'checklist.db'}"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# ✅ Uploads
+app.config["UPLOAD_FOLDER"] = str(UPLOAD_DIR)        # <<< CORRIGE O KeyError
+app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32MB uploads
+
+# (opcional) se você quiser também guardar relatórios em pasta fixa
+app.config["RELATORIOS_FOLDER"] = str(RELATORIOS_DIR)
+app.config["INBOX_FOLDER"] = str(INBOX_DIR)
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
+
 
 # =====================================================
 # HELPERS
@@ -76,8 +105,18 @@ def admin_only():
         abort(403)
 
 def ensure_upload_folder():
-    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
-        os.makedirs(app.config["UPLOAD_FOLDER"])
+    """Garante que a pasta de upload exista (evita erro ao salvar arquivo)."""
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+def ensure_base_folders():
+    """Garante que outras pastas do sistema existam (opcional)."""
+    os.makedirs(INBOX_DIR, exist_ok=True)
+    os.makedirs(RELATORIOS_DIR, exist_ok=True)
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# ✅ Cria as pastas ao iniciar (recomendado)
+ensure_base_folders()
+
 
 
 # =====================================================
@@ -590,7 +629,7 @@ def delete_contract(id):
     return jsonify({"sucesso": True})
 
 # =====================================================
-# VISUALIZAÇÃO DO CONTRATO
+# VISUALIZAÇÃO DO CONTRATO (COM REORDENAR)
 # =====================================================
 @app.route("/contract/<int:id>")
 @login_required
@@ -600,15 +639,37 @@ def contract_view(id):
 
     colaboradores = User.query.filter_by(role="colaborador").order_by(User.name).all()
 
+    # ✅ pega ordem do select (default: entrega mais próxima)
+    ordem = (request.args.get("ordem") or "due_asc").strip()
+
+    # ✅ base query
     if current_user.role == "admin":
-        tasks = Task.query.filter_by(contract_id=id).order_by(Task.id.desc()).all()
+        q = Task.query.filter_by(contract_id=id)
     else:
-        tasks = Task.query.filter(
+        q = Task.query.filter(
             Task.contract_id == id,
             ((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
-        ).order_by(Task.id.desc()).all()
+        )
 
-    # Converte datas
+    # ✅ REORDENAR por due_date
+    # (se due_date for Date no banco, isso funciona direto)
+    if ordem == "due_desc":
+        try:
+            q = q.order_by(Task.due_date.desc().nullslast(), Task.id.desc())
+        except Exception:
+            q = q.order_by(Task.due_date.desc(), Task.id.desc())
+    else:
+        # padrão due_asc
+        try:
+            q = q.order_by(Task.due_date.asc().nullslast(), Task.id.desc())
+        except Exception:
+            q = q.order_by(Task.due_date.asc(), Task.id.desc())
+
+    tasks = q.all()
+
+    # ⚠️ Se seu Task.due_date NO BANCO estiver como string, o order_by acima
+    # pode não ficar perfeito. O ideal é due_date ser coluna Date.
+    # Mesmo assim, mantive seu conversor abaixo.
     for t in tasks:
         if isinstance(t.due_date, str) and t.due_date:
             try:
@@ -622,33 +683,44 @@ def contract_view(id):
         files=files,
         tasks=tasks,
         colaboradores=colaboradores,
-        now=agora
+        now=agora,
+        ordem_sel=ordem  # ✅ opcional (pra manter marcado, se quiser usar no template)
     )
 
+
 # =====================================================
-# UPLOAD DE ARQUIVOS DO CONTRATO — MÚLTIPLOS
+# UPLOAD DE ARQUIVOS DO CONTRATO — MÚLTIPLOS (CORRIGIDO)
+# Salva em: static/uploads/contratos/
+# Grava no banco: static/uploads/contratos/nome.ext
 # =====================================================
 @app.route("/contract/<int:id>/upload", methods=["POST"])
 @login_required
 def upload_file(id):
     files = request.files.getlist("files[]")
 
-    if not files or files == [""]:
+    if not files:
         flash("Nenhum arquivo enviado!", "error")
         return redirect(f"/contract/{id}")
 
-    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
-        os.makedirs(app.config["UPLOAD_FOLDER"])
+    # ✅ pasta dentro do static para arquivos de contrato
+    contract_subdir = "uploads/contratos"
+    contract_upload_folder = os.path.join(app.root_path, "static", contract_subdir)
+    os.makedirs(contract_upload_folder, exist_ok=True)
 
     for file in files:
         if file and file.filename:
             filename = secure_filename(file.filename)
-            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(save_path)
+
+            # salva o arquivo no disco (caminho absoluto)
+            save_abs = os.path.join(contract_upload_folder, filename)
+            file.save(save_abs)
+
+            # ✅ caminho web para abrir no navegador
+            db_path = f"static/{contract_subdir}/{filename}"
 
             novo = ContractFile(
                 contract_id=id,
-                file_path=save_path
+                file_path=db_path
             )
             db.session.add(novo)
 
@@ -1217,7 +1289,7 @@ def excluir_admin(id):
     return redirect("/administradores")
 
 # =====================================================
-# PAINEL DO COLABORADOR
+# PAINEL DO COLABORADOR (FILTRO EMPRESA + REORDENAR ENTREGA)
 # =====================================================
 @app.route("/painel-colaborador")
 @login_required
@@ -1225,30 +1297,65 @@ def painel_colaborador():
     if current_user.role != "colaborador":
         return redirect("/")
 
-    # No seu template o select usa name="empresa_id"
-    empresa_id = request.args.get("empresa_id")
+    # ✅ filtros do GET
+    empresa_id = (request.args.get("empresa_id") or "").strip()
+    ordem = (request.args.get("ordem") or "due_asc").strip()  # due_asc | due_desc
 
-    # ============================
-    # QUERY BASE: tarefas do colaborador
-    # ============================
-    query = Task.query.filter(
-        Task.status.in_(["pendente", "andamento"]),
-        ((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
+    # ✅ lista de empresas para o select (somente as que tenham contrato ativo e tarefas do colaborador)
+    empresas = (
+        Company.query
+        .join(Contract, Contract.company_id == Company.id)
+        .join(Task, Task.contract_id == Contract.id)
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
+        .filter((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
+        .distinct()
+        .order_by(Company.name.asc())
+        .all()
     )
 
     # ============================
-    # FILTRO POR EMPRESA (SÓ CONTRATO ATIVO)
+    # QUERY BASE: tarefas do colaborador (pendente/andamento) + contrato ativo + empresa ativa
+    # ============================
+    query = (
+        Task.query
+        .join(Contract, Contract.id == Task.contract_id)
+        .join(Company, Company.id == Contract.company_id)
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
+        .filter(Task.status.in_(["pendente", "andamento"]))
+        .filter((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
+    )
+
+    # ============================
+    # FILTRO POR EMPRESA
     # ============================
     if empresa_id:
-        query = query.join(Task.contract).filter(
-            Contract.company_id == int(empresa_id),
-            Contract.status == "ativo"
-        )
-
-    tarefas = query.order_by(Task.id.desc()).all()
+        try:
+            query = query.filter(Company.id == int(empresa_id))
+        except:
+            empresa_id = ""
 
     # ============================
-    # TRATAR DUE_DATE + ATRASO
+    # ✅ REORDENAR POR ENTREGA (due_date)
+    # ============================
+    if ordem == "due_desc":
+        # mais distante primeiro
+        try:
+            query = query.order_by(Task.due_date.desc().nullslast(), Task.id.desc())
+        except Exception:
+            query = query.order_by(Task.due_date.desc(), Task.id.desc())
+    else:
+        # padrão: mais próxima primeiro
+        try:
+            query = query.order_by(Task.due_date.asc().nullslast(), Task.id.desc())
+        except Exception:
+            query = query.order_by(Task.due_date.asc(), Task.id.desc())
+
+    tarefas = query.all()
+
+    # ============================
+    # TRATAR DUE_DATE + ATRASO (serve pro template usar t.is_overdue)
     # ============================
     hoje = date.today()
 
@@ -1259,11 +1366,21 @@ def painel_colaborador():
             except:
                 t.due_date = None
 
+        # ✅ atrasada se ainda não concluída e data < hoje
         t.is_overdue = (
-            t.status == "pendente"
+            t.status in ["pendente", "andamento"]
             and t.due_date is not None
             and t.due_date < hoje
         )
+
+    return render_template(
+        "painel_colaborador.html",
+        tarefas=tarefas,
+        empresas=empresas,
+        empresa_id_sel=str(empresa_id) if empresa_id else "",
+        ordem_sel=ordem
+    )
+
 
     # ============================
     # LISTA DE EMPRESAS DO FILTRO
@@ -1307,30 +1424,47 @@ def alterar_senha():
     return jsonify({"sucesso": True})
 
 # =====================================================
-# ATIVIDADES (LOGS) — COM FILTROS
+# ATIVIDADES (LOGS) — COM FILTROS + ORDENAR
 # =====================================================
 @app.route("/atividades")
 @login_required
 def atividades():
-    empresa_id = request.args.get("empresa")
-    colaborador_id = request.args.get("colaborador")
-    periodo = request.args.get("periodo")
+    empresa_id = (request.args.get("empresa") or "").strip()
+    colaborador_id = (request.args.get("colaborador") or "").strip()
+    periodo = (request.args.get("periodo") or "").strip()
+
+    # ✅ NOVO: ordenação vinda do select
+    ordem = (request.args.get("ordem") or "recentes").strip()
 
     query = (
         TaskLog.query
-        .join(Task)
-        .join(Contract)
-        .join(Company)
+        .join(Task, Task.id == TaskLog.task_id)
+        .join(Contract, Contract.id == Task.contract_id)
+        .join(Company, Company.id == Contract.company_id)
+        # ✅ não mostrar empresas inativas / contratos inativos
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
     )
 
+    # ✅ precisa desse join para ordenar por colaborador (User.name)
+    # (não atrapalha outros casos)
+    query = query.join(User, User.id == TaskLog.user_id)
+
+    # Se não for admin, só vê os próprios logs
     if current_user.role != "admin":
         query = query.filter(TaskLog.user_id == current_user.id)
 
     if empresa_id:
-        query = query.filter(Company.id == empresa_id)
+        try:
+            query = query.filter(Company.id == int(empresa_id))
+        except:
+            empresa_id = ""
 
     if colaborador_id:
-        query = query.filter(TaskLog.user_id == colaborador_id)
+        try:
+            query = query.filter(TaskLog.user_id == int(colaborador_id))
+        except:
+            colaborador_id = ""
 
     if periodo and " até " in periodo:
         try:
@@ -1342,28 +1476,68 @@ def atividades():
             data_inicio = datetime.combine(data_inicio, time.min)
             data_fim = datetime.combine(data_fim, time.max)
 
-            query = query.filter(
-                TaskLog.created_at.between(data_inicio, data_fim)
-            )
+            query = query.filter(TaskLog.created_at.between(data_inicio, data_fim))
         except ValueError:
             pass
 
-    logs = query.order_by(TaskLog.created_at.desc()).all()
+    # ✅ NOVO: aplica ordenação conforme select "ordem"
+    if ordem == "antigas":
+        query = query.order_by(TaskLog.created_at.asc())
 
-    empresas = Company.query.order_by(Company.name).all()
-    colaboradores = (
-        User.query
-        .filter_by(role="colaborador")
-        .order_by(User.name)
+    elif ordem == "empresa_az":
+        query = query.order_by(Company.name.asc(), TaskLog.created_at.desc())
+
+    elif ordem == "empresa_za":
+        query = query.order_by(Company.name.desc(), TaskLog.created_at.desc())
+
+    elif ordem == "colab_az":
+        query = query.order_by(User.name.asc(), TaskLog.created_at.desc())
+
+    elif ordem == "colab_za":
+        query = query.order_by(User.name.desc(), TaskLog.created_at.desc())
+
+    else:  # "recentes" (padrão)
+        query = query.order_by(TaskLog.created_at.desc())
+
+    logs = query.all()
+
+    # ✅ Empresas para o select: só ativas e que tenham logs (TaskLog)
+    empresas = (
+        Company.query
+        .join(Contract, Contract.company_id == Company.id)
+        .join(Task, Task.contract_id == Contract.id)
+        .join(TaskLog, TaskLog.task_id == Task.id)
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
+        .distinct()
+        .order_by(Company.name.asc())
         .all()
     )
+
+    # ✅ Colaboradores para o select
+    # Admin vê todos; colaborador vê só ele mesmo
+    if current_user.role == "admin":
+        colaboradores = (
+            User.query
+            .filter_by(role="colaborador")
+            .order_by(User.name.asc())
+            .all()
+        )
+    else:
+        colaboradores = [current_user]
 
     return render_template(
         "atividades.html",
         logs=logs,
         empresas=empresas,
-        colaboradores=colaboradores
+        colaboradores=colaboradores,
+        empresa_sel=empresa_id,
+        colaborador_sel=colaborador_id,
+        periodo_sel=periodo,
+        ordem_sel=ordem  # opcional (se quiser usar no template)
     )
+
+
 
 # =====================================================
 # LOGIN / LOGOUT
@@ -1399,17 +1573,33 @@ def relatorios():
 
     empresa_id = request.args.get("empresa", "").strip()
     periodo = request.args.get("periodo", "").strip()  # "dd/mm/yyyy até dd/mm/yyyy"
+    ordem = (request.args.get("ordem") or "data_desc").strip()  # ✅ NOVO
 
-    # Empresas para o select
-    empresas = Company.query.order_by(Company.name).all()
+    # ✅ Empresas para o select (somente as que:
+    # - estão ativas
+    # - possuem contrato ativo
+    # - possuem ao menos 1 conclusão (TaskCompletion)
+    empresas = (
+        Company.query
+        .join(Contract, Contract.company_id == Company.id)
+        .join(Task, Task.contract_id == Contract.id)
+        .join(TaskCompletion, TaskCompletion.task_id == Task.id)
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
+        .distinct()
+        .order_by(Company.name.asc())
+        .all()
+    )
 
-    # Base: conclusões (melhor prova de serviço)
+    # ✅ Base: conclusões (melhor prova de serviço)
     query = (
         TaskCompletion.query
         .join(Task, Task.id == TaskCompletion.task_id)
         .join(Contract, Contract.id == Task.contract_id)
         .join(Company, Company.id == Contract.company_id)
         .filter(Task.status == "concluida")
+        .filter(Company.active == True)        # ✅ não traz empresa inativa
+        .filter(Contract.status == "ativo")    # ✅ não traz contrato removido/inativo
     )
 
     # Filtro por empresa
@@ -1424,7 +1614,27 @@ def relatorios():
     if dt_ini and dt_fim:
         query = query.filter(TaskCompletion.created_at.between(dt_ini, dt_fim))
 
-    logs = query.order_by(TaskCompletion.created_at.desc()).all()
+    # ✅ ORDENAR (conforme o select do template)
+    if ordem == "data_asc":
+        query = query.order_by(TaskCompletion.created_at.asc())
+
+    elif ordem == "empresa_asc":
+        query = query.order_by(Company.name.asc(), TaskCompletion.created_at.desc())
+
+    elif ordem == "empresa_desc":
+        query = query.order_by(Company.name.desc(), TaskCompletion.created_at.desc())
+
+    elif ordem == "tarefa_asc":
+        query = query.order_by(Task.title.asc(), TaskCompletion.created_at.desc())
+
+    elif ordem == "colab_asc":
+        # TaskCompletion.user é string (nome) no seu model
+        query = query.order_by(TaskCompletion.user.asc(), TaskCompletion.created_at.desc())
+
+    else:  # padrão: "data_desc"
+        query = query.order_by(TaskCompletion.created_at.desc())
+
+    logs = query.all()
 
     # KPIs (opcional)
     empresas_ativas = Company.query.filter_by(active=True).count()
@@ -1437,10 +1647,13 @@ def relatorios():
         empresas=empresas,
         empresa_sel=str(empresa_id) if empresa_id else "",
         periodo_sel=periodo or "",
+        ordem_sel=ordem,  # ✅ IMPORTANTE: mantém o select marcado + passa pro export
         empresas_ativas=empresas_ativas,
         contratos_ativos=contratos_ativos,
         total_tarefas=total_tarefas
     )
+
+
 
 
 # =====================================================

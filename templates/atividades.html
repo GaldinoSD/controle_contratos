@@ -44,7 +44,8 @@
              backdrop-blur-xl p-4 rounded-xl shadow 
              border border-slate-300 dark:border-slate-800">
 
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+  <!-- ✅ Agora com 5 colunas no desktop (Empresa, Colaborador, Período, Ordenar, Botão) -->
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
 
     <!-- ================= EMPRESA ================= -->
     <div>
@@ -108,6 +109,37 @@
                cursor-pointer">
     </div>
 
+    <!-- ✅ ================= ORDENAR ================= -->
+    <div>
+      <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+        Ordenar por
+      </label>
+
+      <select name="ordem"
+              class="w-full mt-1 px-3 py-2 text-sm rounded-lg
+                     bg-white dark:bg-slate-800
+                     border border-slate-300 dark:border-slate-700">
+        <option value="recentes" {% if request.args.get('ordem','recentes') == 'recentes' %}selected{% endif %}>
+          Mais recentes
+        </option>
+        <option value="antigas" {% if request.args.get('ordem') == 'antigas' %}selected{% endif %}>
+          Mais antigas
+        </option>
+        <option value="empresa_az" {% if request.args.get('ordem') == 'empresa_az' %}selected{% endif %}>
+          Empresa (A → Z)
+        </option>
+        <option value="empresa_za" {% if request.args.get('ordem') == 'empresa_za' %}selected{% endif %}>
+          Empresa (Z → A)
+        </option>
+        <option value="colab_az" {% if request.args.get('ordem') == 'colab_az' %}selected{% endif %}>
+          Colaborador (A → Z)
+        </option>
+        <option value="colab_za" {% if request.args.get('ordem') == 'colab_za' %}selected{% endif %}>
+          Colaborador (Z → A)
+        </option>
+      </select>
+    </div>
+
     <!-- ================= BOTÃO ================= -->
     <div>
       <button
@@ -121,10 +153,6 @@
 
   </div>
 </form>
-
-
-
-
 
 <!-- ======================================================= -->
 <!-- =================== TABELA COMPACTA =================== -->
@@ -332,4 +360,3 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 {% endblock %}
-
