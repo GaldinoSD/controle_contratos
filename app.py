@@ -58,36 +58,16 @@ MASTER_PASSWORD = "26828021jJ*"
 # =====================================================
 # CONFIGURAÇÃO DO APP
 # =====================================================
-BASE_DIR = Path(__file__).resolve().parent
-
-INBOX_DIR      = BASE_DIR / "inbox"
-RELATORIOS_DIR = BASE_DIR / "relatorios"
-
-# Pasta de upload (aqui: fotos do checklist)
-UPLOAD_DIR     = BASE_DIR / "static" / "checklist_fotos"
-
-LOGO_PATH      = BASE_DIR / "static" / "logo.png"
-
-REV_INTERVAL     = 10000
-REV_ALERT_MARGIN = 500
-WEEKS_WINDOW     = 4
-
-ALLOWED_EXT = {".png", ".jpg", ".jpeg", ".webp"}
-
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "altere-esta-chave"
+app.config["SECRET_KEY"] = "secreto"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+    "DATABASE_URL",
+    "postgresql://jonatas:26828021jJ@localhost/contratos")
 
-# ✅ SQLite local (arquivo dentro do projeto)
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{BASE_DIR / 'checklist.db'}"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-# ✅ Uploads
-app.config["UPLOAD_FOLDER"] = str(UPLOAD_DIR)        # <<< CORRIGE O KeyError
-app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32MB uploads
-
-# (opcional) se você quiser também guardar relatórios em pasta fixa
-app.config["RELATORIOS_FOLDER"] = str(RELATORIOS_DIR)
-app.config["INBOX_FOLDER"] = str(INBOX_DIR)
+# PASTAS EXISTENTES
+app.config["UPLOAD_FOLDER"] = "static/uploads"
+app.config["FOTOS_COLAB"] = "static/fotos"
+app.config["LOGO_FOLDER"] = "static/logos"
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -1424,7 +1404,7 @@ def alterar_senha():
     return jsonify({"sucesso": True})
 
 # =====================================================
-# ATIVIDADES (LOGS) — COM FILTROS + ORDENAR
+# ATIVIDADES (LOGS) — COM FILTROS + ORDENAR + LOAD MORE
 # =====================================================
 @app.route("/atividades")
 @login_required
@@ -1432,28 +1412,37 @@ def atividades():
     empresa_id = (request.args.get("empresa") or "").strip()
     colaborador_id = (request.args.get("colaborador") or "").strip()
     periodo = (request.args.get("periodo") or "").strip()
-
-    # ✅ NOVO: ordenação vinda do select
     ordem = (request.args.get("ordem") or "recentes").strip()
+
+    # ✅ NOVO: limite só da VISUALIZAÇÃO
+    try:
+        show = int(request.args.get("show", 20))
+    except ValueError:
+        show = 20
+
+    # trava de segurança
+    if show < 1:
+        show = 20
+    if show > 500:
+        show = 500
 
     query = (
         TaskLog.query
         .join(Task, Task.id == TaskLog.task_id)
         .join(Contract, Contract.id == Task.contract_id)
         .join(Company, Company.id == Contract.company_id)
-        # ✅ não mostrar empresas inativas / contratos inativos
         .filter(Company.active == True)
         .filter(Contract.status == "ativo")
     )
 
-    # ✅ precisa desse join para ordenar por colaborador (User.name)
-    # (não atrapalha outros casos)
+    # ✅ join para ordenar por colaborador
     query = query.join(User, User.id == TaskLog.user_id)
 
     # Se não for admin, só vê os próprios logs
     if current_user.role != "admin":
         query = query.filter(TaskLog.user_id == current_user.id)
 
+    # filtros
     if empresa_id:
         try:
             query = query.filter(Company.id == int(empresa_id))
@@ -1480,7 +1469,7 @@ def atividades():
         except ValueError:
             pass
 
-    # ✅ NOVO: aplica ordenação conforme select "ordem"
+    # ordenação
     if ordem == "antigas":
         query = query.order_by(TaskLog.created_at.asc())
 
@@ -1496,10 +1485,13 @@ def atividades():
     elif ordem == "colab_za":
         query = query.order_by(User.name.desc(), TaskLog.created_at.desc())
 
-    else:  # "recentes" (padrão)
+    else:  # "recentes"
         query = query.order_by(TaskLog.created_at.desc())
 
-    logs = query.all()
+    # ✅ AQUI: limita visualização e detecta se tem mais
+    rows = query.limit(show + 1).all()
+    has_more = len(rows) > show
+    logs = rows[:show]
 
     # ✅ Empresas para o select: só ativas e que tenham logs (TaskLog)
     empresas = (
@@ -1515,7 +1507,6 @@ def atividades():
     )
 
     # ✅ Colaboradores para o select
-    # Admin vê todos; colaborador vê só ele mesmo
     if current_user.role == "admin":
         colaboradores = (
             User.query
@@ -1526,6 +1517,16 @@ def atividades():
     else:
         colaboradores = [current_user]
 
+    # ✅ Link "Carregar mais" preservando filtros atuais
+    next_url = url_for(
+        "atividades",
+        empresa=empresa_id or "",
+        colaborador=colaborador_id or "",
+        periodo=periodo or "",
+        ordem=ordem or "recentes",
+        show=show + 20,
+    )
+
     return render_template(
         "atividades.html",
         logs=logs,
@@ -1534,9 +1535,12 @@ def atividades():
         empresa_sel=empresa_id,
         colaborador_sel=colaborador_id,
         periodo_sel=periodo,
-        ordem_sel=ordem  # opcional (se quiser usar no template)
+        ordem_sel=ordem,
+        show=show,           # ✅ opcional pro template exibir “Exibindo 20 por vez”
+        has_more=has_more,   # ✅ pro botão aparecer
+        next_url=next_url,   # ✅ link pronto
+        total_count=None     # ✅ se quiser depois eu coloco um count leve/condicional
     )
-
 
 
 # =====================================================
@@ -1566,6 +1570,9 @@ def logout():
 # =====================================================
 # RELATÓRIOS (ADMIN) — BASEADO EM CONCLUSÕES (TaskCompletion)
 # =====================================================
+# =====================================================
+# RELATÓRIOS (ADMIN) — BASEADO EM CONCLUSÕES (TaskCompletion)
+# =====================================================
 @app.route("/relatorios")
 @login_required
 def relatorios():
@@ -1573,7 +1580,19 @@ def relatorios():
 
     empresa_id = request.args.get("empresa", "").strip()
     periodo = request.args.get("periodo", "").strip()  # "dd/mm/yyyy até dd/mm/yyyy"
-    ordem = (request.args.get("ordem") or "data_desc").strip()  # ✅ NOVO
+    ordem = (request.args.get("ordem") or "data_desc").strip()
+
+    # ✅ NOVO: limite apenas da VISUALIZAÇÃO
+    try:
+        show = int(request.args.get("show", 20))
+    except ValueError:
+        show = 20
+
+    # trava de segurança (ajuste se quiser)
+    if show < 1:
+        show = 20
+    if show > 500:
+        show = 500
 
     # ✅ Empresas para o select (somente as que:
     # - estão ativas
@@ -1598,8 +1617,8 @@ def relatorios():
         .join(Contract, Contract.id == Task.contract_id)
         .join(Company, Company.id == Contract.company_id)
         .filter(Task.status == "concluida")
-        .filter(Company.active == True)        # ✅ não traz empresa inativa
-        .filter(Contract.status == "ativo")    # ✅ não traz contrato removido/inativo
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
     )
 
     # Filtro por empresa
@@ -1634,7 +1653,20 @@ def relatorios():
     else:  # padrão: "data_desc"
         query = query.order_by(TaskCompletion.created_at.desc())
 
-    logs = query.all()
+    # ✅ AQUI está a mudança: pega 1 a mais para saber se tem mais registros
+    rows = query.limit(show + 1).all()
+    has_more = len(rows) > show
+    logs = rows[:show]
+
+    # ✅ Link "Carregar mais" preservando filtros
+    next_show = show + 20
+    next_url = url_for(
+        "relatorios",
+        empresa=str(empresa_id) if empresa_id else "",
+        periodo=periodo or "",
+        ordem=ordem or "data_desc",
+        show=next_show,
+    )
 
     # KPIs (opcional)
     empresas_ativas = Company.query.filter_by(active=True).count()
@@ -1647,7 +1679,11 @@ def relatorios():
         empresas=empresas,
         empresa_sel=str(empresa_id) if empresa_id else "",
         periodo_sel=periodo or "",
-        ordem_sel=ordem,  # ✅ IMPORTANTE: mantém o select marcado + passa pro export
+        ordem_sel=ordem,
+        show=show,                 # ✅ opcional (pra mostrar “Exibindo 20 por vez”)
+        has_more=has_more,         # ✅ pro botão aparecer
+        next_url=next_url,         # ✅ link pronto pro “Carregar mais”
+        total_count=None,          # ✅ se quiser depois eu adiciono count sem pesar
         empresas_ativas=empresas_ativas,
         contratos_ativos=contratos_ativos,
         total_tarefas=total_tarefas

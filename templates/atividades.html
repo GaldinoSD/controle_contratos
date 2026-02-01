@@ -32,6 +32,22 @@
       </div>
     </div>
 
+    <!-- ✅ contador -->
+    <div class="relative text-right">
+      <div class="text-[11px] text-slate-600 dark:text-slate-400">
+        Mostrando <span class="font-semibold text-slate-800 dark:text-white">{{ logs|length }}</span>
+        registro(s)
+        {% if total_count %}
+          de <span class="font-semibold text-slate-800 dark:text-white">{{ total_count }}</span>
+        {% endif %}
+      </div>
+      {% if show %}
+        <div class="text-[10px] text-slate-500 dark:text-slate-500 mt-1">
+          Exibindo {{ show }} por vez (visualização)
+        </div>
+      {% endif %}
+    </div>
+
   </div>
 
 </section>
@@ -44,7 +60,7 @@
              backdrop-blur-xl p-4 rounded-xl shadow 
              border border-slate-300 dark:border-slate-800">
 
-  <!-- ✅ Agora com 5 colunas no desktop (Empresa, Colaborador, Período, Ordenar, Botão) -->
+  <!-- ✅ 5 colunas (Empresa, Colaborador, Período, Ordenar, Botão) -->
   <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
 
     <!-- ================= EMPRESA ================= -->
@@ -109,7 +125,7 @@
                cursor-pointer">
     </div>
 
-    <!-- ✅ ================= ORDENAR ================= -->
+    <!-- ================= ORDENAR ================= -->
     <div>
       <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
         Ordenar por
@@ -149,6 +165,11 @@
                text-white text-sm font-semibold shadow">
         Filtrar
       </button>
+
+      <a href="{{ url_for(request.endpoint) }}"
+         class="block mt-2 text-center text-[11px] text-slate-600 dark:text-slate-400 hover:underline">
+        Limpar filtros
+      </a>
     </div>
 
   </div>
@@ -183,19 +204,21 @@
       <tr class="border-b hover:bg-slate-100 dark:hover:bg-slate-800/40 transition">
 
         <td class="p-3">
-          <div class="font-semibold">{{ empresa.name }}</div>
-          <div class="text-[10px] text-slate-500">{{ empresa.cnpj }}</div>
+          <div class="font-semibold">{{ empresa.name if empresa else "-" }}</div>
+          <div class="text-[10px] text-slate-500">{{ empresa.cnpj if empresa else "" }}</div>
         </td>
 
-        <td class="p-3">{{ tarefa.title }}</td>
+        <td class="p-3">
+          {{ tarefa.title if tarefa else "-" }}
+        </td>
 
         <td class="p-3">
-          <div>{{ log.user.name }}</div>
-          <div class="text-[10px] text-slate-500">{{ log.user.email }}</div>
+          <div>{{ log.user.name if log.user else "-" }}</div>
+          <div class="text-[10px] text-slate-500">{{ log.user.email if log.user else "" }}</div>
         </td>
 
         <td class="p-3 text-[12px] text-slate-500">
-          {{ log.created_at.strftime('%d/%m/%Y %H:%M') }}
+          {{ log.created_at.strftime('%d/%m/%Y %H:%M') if log.created_at else "-" }}
         </td>
 
         <td class="p-3 text-center">
@@ -210,6 +233,23 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <!-- ✅ Carregar mais -->
+  {% if has_more %}
+    <div class="flex items-center justify-center pt-4">
+      <a href="{{ next_url }}"
+         class="px-5 py-3 bg-slate-900/90 hover:bg-slate-900 text-white
+                dark:bg-white/10 dark:hover:bg-white/15
+                rounded-lg shadow text-sm font-semibold transition
+                inline-flex items-center gap-2">
+        <i class="fa-solid fa-angles-down"></i> Carregar mais
+      </a>
+    </div>
+
+    <p class="text-center text-[11px] mt-2 text-slate-500 dark:text-slate-500">
+      Isso limita apenas a visualização (exportações continuam completas).
+    </p>
+  {% endif %}
 
 </div>
 {% else %}
@@ -242,15 +282,15 @@
 
     <div class="space-y-4 text-sm">
 
-      <p><strong>Empresa:</strong> {{ empresa.name }}</p>
-      <p><strong>CNPJ:</strong> {{ empresa.cnpj }}</p>
+      <p><strong>Empresa:</strong> {{ empresa.name if empresa else "-" }}</p>
+      <p><strong>CNPJ:</strong> {{ empresa.cnpj if empresa else "-" }}</p>
 
       <hr>
 
-      <p><strong>Tarefa:</strong> {{ tarefa.title }}</p>
-      <p><strong>Prazo:</strong> {{ tarefa.due_date }}</p>
+      <p><strong>Tarefa:</strong> {{ tarefa.title if tarefa else "-" }}</p>
+      <p><strong>Prazo:</strong> {{ tarefa.due_date if tarefa else "-" }}</p>
 
-      {% if tarefa.description %}
+      {% if tarefa and tarefa.description %}
         <p><strong>Descrição:</strong> {{ tarefa.description }}</p>
       {% endif %}
 
@@ -259,15 +299,15 @@
       <!-- ====================== ETAPAS ====================== -->
       <p class="font-semibold text-blue-600">Etapas realizadas</p>
 
-      {% if tarefa.steps %}
+      {% if tarefa and tarefa.steps %}
         <div class="space-y-3">
           {% for step in tarefa.steps %}
           <div class="border-l-4 border-blue-600 bg-slate-100 dark:bg-slate-800/60 
                       rounded-lg p-3">
 
             <p class="text-[11px] text-slate-500">
-              {{ step.created_at.strftime('%d/%m/%Y %H:%M') }} —
-              <strong>{{ step.user.name }}</strong>
+              {{ step.created_at.strftime('%d/%m/%Y %H:%M') if step.created_at else "-" }} —
+              <strong>{{ step.user.name if step.user else "-" }}</strong>
             </p>
 
             <p class="text-sm">{{ step.description }}</p>
@@ -290,11 +330,11 @@
       <hr>
 
       <!-- ==================== CONCLUSÃO ==================== -->
-      <p><strong>Executado por:</strong> {{ log.user.name }}</p>
-      <p><strong>Data/Hora:</strong> {{ log.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+      <p><strong>Executado por:</strong> {{ log.user.name if log.user else "-" }}</p>
+      <p><strong>Data/Hora:</strong> {{ log.created_at.strftime('%d/%m/%Y %H:%M') if log.created_at else "-" }}</p>
 
       <div class="bg-slate-100 dark:bg-slate-800/60 rounded-lg p-4 whitespace-pre-line">
-        {{ log.note }}
+        {{ log.note or "" }}
       </div>
 
       <!-- ===================== ANEXOS ====================== -->

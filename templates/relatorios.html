@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- ================= HEADER ================= -->
 <section class="mb-6 relative">
   <div class="rounded-xl p-5 
               bg-white/60 dark:bg-slate-900/80
@@ -14,7 +15,7 @@
     <div class="absolute bottom-0 right-0 w-32 h-32 
                 bg-cyan-400/10 dark:bg-cyan-500/10 blur-2xl rounded-full"></div>
 
-    <div class="relative flex items-center justify-between">
+    <div class="relative flex items-center justify-between gap-4 flex-wrap">
       <div class="flex items-center gap-4">
         <div class="p-3 bg-blue-500/10 dark:bg-blue-600/10 rounded-xl border border-blue-300/40 dark:border-blue-500/20">
           <i class="fa-solid fa-chart-column text-blue-600 dark:text-blue-400 text-2xl"></i>
@@ -30,8 +31,8 @@
         </div>
       </div>
 
-      <!-- Exportações (usa os filtros atuais) -->
-      <div class="flex items-center gap-2">
+      <!-- ✅ Exportações SEM `show` (sempre completo pelo filtro) -->
+      <div class="flex items-center gap-2 flex-wrap">
         <a href="/relatorios/export/excel?empresa={{ empresa_sel or '' }}&periodo={{ periodo_sel or '' }}&ordem={{ ordem_sel or '' }}"
            class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white 
                   rounded-lg shadow flex items-center gap-2 text-sm transition">
@@ -55,12 +56,12 @@
   </div>
 </section>
 
-<!-- FILTROS -->
+<!-- ================= FILTROS ================= -->
 <div class="rounded-xl shadow-xl border 
             border-slate-300 dark:border-slate-800
             bg-white/70 dark:bg-slate-900/60 backdrop-blur-md p-5 mb-6">
 
-  <!-- ✅ ALTERADO: md:grid-cols-4 (agora tem Reordenar) -->
+  <!-- ✅ Dica: por padrão o filtro volta pra 20 (não preserva show) -->
   <form method="GET" action="/relatorios" class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
     <div>
@@ -88,7 +89,6 @@
       </p>
     </div>
 
-    <!-- ✅ NOVO: REORDENAR -->
     <div>
       <label class="text-xs font-semibold text-slate-600 dark:text-slate-400">Reordenar</label>
       <select name="ordem"
@@ -137,12 +137,12 @@
   </form>
 </div>
 
-<!-- RESULTADOS -->
+<!-- ================= RESULTADOS ================= -->
 <div class="rounded-xl shadow-xl border 
             border-slate-300 dark:border-slate-800
             bg-white/70 dark:bg-slate-900/60 backdrop-blur-md p-4 overflow-hidden">
 
-  <div class="flex items-center justify-between px-2 pb-3">
+  <div class="flex items-center justify-between px-2 pb-3 gap-3 flex-wrap">
     <div>
       <h3 class="font-semibold text-slate-800 dark:text-white">
         Atividades concluídas
@@ -159,11 +159,15 @@
         {% else %}
           Sem filtro de período
         {% endif %}
+
+        {% if show %}
+          • Exibindo {{ show }} por vez
+        {% endif %}
       </p>
     </div>
 
     <span class="text-[11px] text-slate-500 dark:text-slate-400">
-      Mostrando {{ logs|length }} registro(s)
+      Mostrando {{ logs|length }} registro(s){% if total_count %} de {{ total_count }}{% endif %}
     </span>
   </div>
 
@@ -233,6 +237,22 @@
       </tbody>
     </table>
   </div>
+
+  <!-- ✅ Carregar mais (somente VISUALIZAÇÃO) -->
+  {% if has_more %}
+    <div class="flex items-center justify-center pt-4">
+      <a href="{{ next_url }}"
+         class="px-5 py-3 bg-slate-900/90 hover:bg-slate-900 text-white
+                dark:bg-white/10 dark:hover:bg-white/15
+                rounded-lg shadow text-sm font-semibold transition
+                inline-flex items-center gap-2">
+        <i class="fa-solid fa-angles-down"></i> Carregar mais
+      </a>
+    </div>
+
+    <p class="text-center text-[11px] mt-2 text-slate-500 dark:text-slate-500">
+    </p>
+  {% endif %}
 
 </div>
 
