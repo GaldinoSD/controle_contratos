@@ -2,156 +2,216 @@
 {% block content %}
 
 <!-- ======================================================= -->
-<!-- ================= HEADER COMPACTO ====================== -->
+<!-- ================= HEADER PREMIUM (CONTRATO) ============ -->
 <!-- ======================================================= -->
-<section class="mb-4 relative">
+<section class="mb-5 relative">
 
-  <div class="rounded-xl p-3 
-              bg-white/80 dark:bg-slate-900/80 
-              shadow-lg border border-slate-300 dark:border-slate-800
-              backdrop-blur-xl overflow-hidden relative transition">
+  <div class="relative rounded-2xl p-4 sm:p-5
+              bg-white/80 dark:bg-slate-900/70
+              shadow-xl border border-slate-200/70 dark:border-slate-800/70
+              backdrop-blur-xl overflow-hidden transition">
 
-    <div class="relative grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
+    <!-- faixa decorativa -->
+    <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-400 to-indigo-500"></div>
 
-      <!-- ESQUERDA - DADOS DA EMPRESA -->
-      <div class="flex items-start gap-3">
+    <!-- ✅ 2 COLUNAS: empresa maior | contrato menor -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
-        {% if contract.company.logo %}
-          <img src="/{{ contract.company.logo }}"
-            class="w-12 h-12 rounded-lg object-cover 
-                   border border-slate-300 dark:border-slate-700 shadow">
-        {% else %}
-          <div class="w-12 h-12 flex items-center justify-center 
-                      bg-blue-500/10 dark:bg-blue-600/20
-                      text-blue-700 dark:text-blue-300
-                      rounded-lg text-xl font-bold
-                      border border-blue-300/40 dark:border-blue-500/20 shadow">
-            {{ contract.company.name[0] }}
-          </div>
-        {% endif %}
+      <!-- =========================
+           ESQUERDA — EMPRESA (maior)
+      ========================== -->
+      <div class="lg:col-span-8">
+        <div class="rounded-2xl p-4
+                    bg-white/60 dark:bg-slate-800/40
+                    border border-slate-200 dark:border-slate-700
+                    shadow-sm">
 
-        <div>
-          <h1 class="text-xl font-bold text-slate-800 dark:text-white leading-tight">
-            {{ contract.company.name }}
-          </h1>
+          <div class="flex items-start gap-4">
 
-          <p class="text-slate-600 dark:text-slate-400 text-[11px] mt-0.5">
-            Arquivos, tarefas e histórico do contrato.
-          </p>
-
-          <div class="mt-1 text-slate-700 dark:text-slate-300 text-[12px] leading-tight">
-            <p><strong>ID:</strong> {{ contract.id }}</p>
-            <p><strong>CNPJ:</strong> {{ contract.company.cnpj }}</p>
-            <p><strong>Vigência:</strong> {{ contract.start_date }} → {{ contract.end_date }}</p>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- DIREITA — ARQUIVOS -->
-      <div class="bg-white/40 dark:bg-slate-800/40 
-                  border border-slate-300 dark:border-slate-700 
-                  rounded-lg p-2 shadow-sm transition">
-
-        <div class="flex items-center justify-between mb-1">
-
-          <h2 class="text-[11px] font-semibold text-slate-800 dark:text-white flex items-center gap-1.5">
-            <i class="fa-solid fa-file-contract text-blue-600 dark:text-blue-400 text-xs"></i>
-            Arquivos
-          </h2>
-
-          {% if files|length > 0 %}
-            <div class="flex items-center gap-1">
-
-              <!-- MODAL ATUALIZAR -->
-              <button type="button" onclick="abrirModalAtualizar()"
-                      class="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 
-                             text-white text-[10px] rounded-md shadow flex items-center gap-1">
-                <i class="fa-solid fa-file-arrow-up text-[10px]"></i> Atualizar
-              </button>
-
-              <!-- EXCLUIR PRIMEIRO ARQUIVO -->
-              <form method="POST" action="/contract/file/delete/{{ files[0].id }}"
-                    onsubmit="return confirm('Excluir arquivo?');">
-
-                <button class="px-2 py-0.5 bg-red-600 hover:bg-red-700 
-                               text-white text-[10px] rounded-md shadow flex items-center gap-1">
-                  <i class="fa-solid fa-trash text-[10px]"></i> Excluir
-                </button>
-
-              </form>
-
+            <!-- Logo / Iniciais -->
+            <div class="shrink-0">
+              {% if contract.company.logo %}
+                <img src="/{{ contract.company.logo }}"
+                     class="w-14 h-14 rounded-2xl object-cover
+                            border border-slate-200 dark:border-slate-700 shadow">
+              {% else %}
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center
+                            bg-blue-500/10 dark:bg-blue-500/15
+                            text-blue-700 dark:text-blue-300
+                            border border-blue-300/40 dark:border-blue-500/20
+                            font-extrabold text-2xl shadow">
+                  {{ contract.company.name[0] }}
+                </div>
+              {% endif %}
             </div>
-          {% endif %}
-        </div>
 
-        {% if files|length == 0 %}
-        <!-- ================= SEM ARQUIVOS ================= -->
-        <div class="text-center border border-dashed 
-                    border-slate-400 dark:border-slate-600 
-                    rounded-lg p-2 bg-white/30 dark:bg-slate-900/30">
+            <!-- Infos -->
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white leading-tight truncate">
+                  {{ contract.company.name }}
+                </h1>
 
-          <p class="text-slate-600 dark:text-slate-300 text-[10px] mb-1">
-            Nenhum arquivo.
-          </p>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold
+                             bg-slate-900/5 dark:bg-white/10
+                             text-slate-700 dark:text-slate-200
+                             border border-slate-200/60 dark:border-slate-700/60">
+                  Contrato #{{ contract.id }}
+                </span>
+              </div>
 
-          <form method="POST" action="/contract/{{ contract.id }}/upload"
-                enctype="multipart/form-data">
+              <p class="text-[12px] text-slate-600 dark:text-slate-300 mt-1">
+                Arquivos, tarefas e histórico vinculados ao contrato.
+              </p>
 
-            <label class="w-full py-2 flex flex-col items-center justify-center 
-                          border border-dashed border-slate-400 dark:border-slate-500 
-                          bg-white/40 dark:bg-slate-900/40 
-                          rounded-md cursor-pointer hover:bg-white/60 
-                          dark:hover:bg-slate-900/70 transition">
+              <!-- ✅ Pills em grid (mais alinhado e compacto) -->
+              <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
 
-              <i class="fa-solid fa-upload text-[14px] text-slate-500 dark:text-slate-400 mb-0.5"></i>
-              <span class="text-[10px] text-slate-600 dark:text-slate-300">
-                Selecionar arquivo(s)
-              </span>
+                <div class="px-3 py-2 rounded-xl
+                            bg-white/70 dark:bg-slate-900/30
+                            border border-slate-200 dark:border-slate-700">
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">CNPJ</p>
+                  <p class="text-[12px] font-semibold text-slate-800 dark:text-slate-100">
+                    {{ contract.company.cnpj }}
+                  </p>
+                </div>
 
-              <input type="file" name="files[]" multiple class="hidden" required>
-            </label>
+                <div class="px-3 py-2 rounded-xl
+                            bg-white/70 dark:bg-slate-900/30
+                            border border-slate-200 dark:border-slate-700">
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">Vigência</p>
+                  <p class="text-[12px] font-semibold text-slate-800 dark:text-slate-100 truncate">
+                    {{ contract.start_date }} → {{ contract.end_date }}
+                  </p>
+                </div>
 
-            <button class="mt-1 w-full px-3 py-1 bg-blue-600 hover:bg-blue-700
-                           text-white text-[10px] rounded-md shadow">
-              Enviar
-            </button>
+                <div class="px-3 py-2 rounded-xl
+                            bg-white/70 dark:bg-slate-900/30
+                            border border-slate-200 dark:border-slate-700">
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">Status</p>
+                  <p class="text-[12px] font-semibold text-emerald-700 dark:text-emerald-300">
+                    Ativo
+                  </p>
+                </div>
 
-          </form>
-
-        </div>
-
-        {% else %}
-
-        <!-- ============ LISTA DE ARQUIVOS ============ -->
-        <div class="space-y-1 max-h-24 overflow-y-auto pr-0.5">
-
-          {% for f in files %}
-          <div class="flex items-center justify-between p-1.5 rounded-lg 
-                      border border-slate-300 dark:border-slate-700 
-                      bg-white/60 dark:bg-slate-800/50 transition">
-
-            <div class="flex items-center gap-2">
-              <i class="fa-solid fa-file-pdf text-red-600 dark:text-red-500 text-base"></i>
-
-              <div>
-                <a href="/{{ f.file_path }}" target="_blank"
-                   class="text-blue-600 dark:text-blue-400 text-[10px] hover:underline">
-                  {{ f.file_path.split('/')[-1] }}
-                </a>
-
-                <p class="text-[9px] text-slate-500 dark:text-slate-400">
-                  {{ f.uploaded_at.strftime('%d/%m/%Y %H:%M') }}
-                </p>
               </div>
             </div>
 
           </div>
-          {% endfor %}
+        </div>
+      </div>
+
+      <!-- =========================
+           DIREITA — CONTRATO (menor)
+      ========================== -->
+      <div class="lg:col-span-4">
+        <div class="rounded-2xl p-4
+                    bg-white/60 dark:bg-slate-800/40
+                    border border-slate-200 dark:border-slate-700
+                    shadow-sm transition">
+
+          <div class="flex items-center justify-between">
+            <h2 class="text-[12px] font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-file-contract text-blue-600 dark:text-blue-400"></i>
+              Contrato
+            </h2>
+
+            <span class="text-[10px] px-2 py-0.5 rounded-full
+                         bg-slate-900/5 dark:bg-white/10
+                         text-slate-600 dark:text-slate-300
+                         border border-slate-200/60 dark:border-slate-700/60">
+              {{ files|length }} arquivo(s)
+            </span>
+          </div>
+
+          <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1">
+            Documento principal do contrato.
+          </p>
+
+          {% if files|length == 0 %}
+
+            <!-- SEM ARQUIVO: UPLOAD -->
+            <div class="mt-3 border border-dashed
+                        border-slate-300 dark:border-slate-600
+                        rounded-xl p-3 bg-white/40 dark:bg-slate-900/30">
+
+              <p class="text-slate-600 dark:text-slate-300 text-[10px] mb-2">
+                Nenhum contrato anexado.
+              </p>
+
+              <form method="POST" action="/contract/{{ contract.id }}/upload"
+                    enctype="multipart/form-data" class="space-y-2">
+
+                <label class="w-full py-2.5 flex flex-col items-center justify-center
+                              border border-dashed border-slate-300 dark:border-slate-600
+                              bg-white/60 dark:bg-slate-900/40
+                              rounded-xl cursor-pointer hover:bg-white/80
+                              dark:hover:bg-slate-900/70 transition">
+
+                  <i class="fa-solid fa-upload text-[14px] text-slate-500 dark:text-slate-400 mb-1"></i>
+                  <span class="text-[10px] text-slate-600 dark:text-slate-300">
+                    Selecionar arquivo(s)
+                  </span>
+
+                  <input type="file" name="files[]" multiple class="hidden" required>
+                </label>
+
+                <button class="w-full px-4 py-2 rounded-xl
+                               bg-blue-600 hover:bg-blue-700
+                               text-white text-[12px] font-semibold shadow transition">
+                  Enviar contrato
+                </button>
+              </form>
+
+            </div>
+
+          {% else %}
+
+            <!-- COM ARQUIVO -->
+            <div class="mt-4 space-y-2">
+
+              <a href="/{{ files[0].file_path }}" target="_blank"
+                 class="w-full inline-flex items-center justify-center gap-2
+                        px-4 py-2 rounded-xl
+                        bg-emerald-600 hover:bg-emerald-700
+                        text-white text-[12px] font-semibold shadow transition">
+                <i class="fa-solid fa-eye"></i>
+                Ver contrato
+              </a>
+
+              {% if current_user.role == 'admin' %}
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" onclick="abrirModalAtualizarContrato()"
+                          class="px-3 py-2 rounded-xl
+                                 bg-blue-600 hover:bg-blue-700
+                                 text-white text-[11px] font-semibold shadow transition">
+                    Atualizar
+                  </button>
+
+                  <form method="POST" action="/contract/file/delete/{{ files[0].id }}"
+                        onsubmit="return confirm('Excluir arquivo?');">
+                    <button type="submit"
+                            class="w-full px-3 py-2 rounded-xl
+                                   bg-red-600 hover:bg-red-700
+                                   text-white text-[11px] font-semibold shadow transition">
+                      Excluir
+                    </button>
+                  </form>
+                </div>
+              {% endif %}
+
+              <div class="pt-2 text-[10px] text-slate-500 dark:text-slate-400">
+                Último upload:
+                <span class="font-medium text-slate-700 dark:text-slate-200">
+                  {{ files[0].uploaded_at.strftime('%d/%m/%Y %H:%M') }}
+                </span>
+              </div>
+
+            </div>
+
+          {% endif %}
 
         </div>
-
-        {% endif %}
       </div>
 
     </div>
@@ -162,9 +222,9 @@
 <!-- ====================================================== -->
 <!-- ==================== TAREFAS ========================== -->
 <!-- ====================================================== -->
-<section class="bg-white/70 dark:bg-slate-900/60 
-                backdrop-blur-md border 
-                border-slate-300 dark:border-slate-800 
+<section class="bg-white/70 dark:bg-slate-900/60
+                backdrop-blur-md border
+                border-slate-300 dark:border-slate-800
                 rounded-xl p-6 shadow-xl transition">
 
   <div class="flex items-center justify-between mb-6">
@@ -178,11 +238,34 @@
       </p>
     </div>
 
-    <button type="button" onclick="abrirModalNovaTarefa()"
-      class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white 
-             text-xs rounded-lg shadow flex items-center gap-2">
-      <i class="fa-solid fa-plus"></i> Nova
-    </button>
+    <!-- ✅ AQUI: botão Nova + Reordenar -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <!-- ✅ REORDENAR (ENTREGA MAIS PRÓXIMA PRIMEIRO) -->
+      <form id="formOrdenarTarefas" method="GET" class="flex items-center gap-2">
+        <label class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+          Reordenar
+        </label>
+
+        <select id="ordem" name="ordem"
+                class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
+                       px-3 py-2 rounded-lg text-xs text-slate-800 dark:text-slate-100">
+          <option value="due_asc"
+            {% if request.args.get('ordem','due_asc') == 'due_asc' %}selected{% endif %}>
+            Entrega (mais próxima)
+          </option>
+          <option value="due_desc"
+            {% if request.args.get('ordem','') == 'due_desc' %}selected{% endif %}>
+            Entrega (mais distante)
+          </option>
+        </select>
+      </form>
+
+      <button type="button" onclick="abrirModalNovaTarefa()"
+        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white
+               text-xs rounded-lg shadow flex items-center gap-2">
+        <i class="fa-solid fa-plus"></i> Nova
+      </button>
+    </div>
   </div>
 
   {% if tasks|length == 0 %}
@@ -206,7 +289,7 @@
       {% elif t.status == 'andamento' %}
         bg-blue-400/10 border-blue-500/40
       {% else %}
-        bg-white/20 dark:bg-slate-800/40 
+        bg-white/20 dark:bg-slate-800/40
         border-slate-300/30 dark:border-slate-700/50
       {% endif %}
   ">
@@ -270,7 +353,7 @@
       </p>
     {% endif %}
 
-    <!-- 🔥 INFORMAÇÃO DE CONCLUSÃO -->
+    <!-- INFORMAÇÃO DE CONCLUSÃO -->
     {% if t.status == 'concluida' and t.completion %}
       <div class="mt-3 text-[11px] text-emerald-700 dark:text-emerald-400">
         <p class="flex items-center gap-1 font-semibold">
@@ -288,7 +371,6 @@
     <!-- AÇÕES -->
     <div class="flex justify-end gap-2 flex-wrap">
 
-      {# 🔹 REGISTRAR ETAPA (PENDENTE OU ANDAMENTO) #}
       {% if t.status in ['pendente', 'andamento'] %}
         <button onclick="abrirModalEtapa({{ t.id }})"
           class="px-3 py-1 rounded-lg text-xs font-semibold
@@ -297,7 +379,6 @@
         </button>
       {% endif %}
 
-      {# 🔥 FINALIZAR — ADMIN PODE EM PENDENTE E ANDAMENTO #}
       {% if current_user.role == 'admin' and t.status in ['pendente', 'andamento'] %}
         <button onclick="abrirModalFinalizar({{ t.id }})"
           class="px-3 py-1 rounded-lg text-xs font-semibold
@@ -306,7 +387,6 @@
         </button>
       {% endif %}
 
-      {# ✅ EDITAR / EXCLUIR — ADMIN #}
       {% if current_user.role == 'admin' %}
         <button onclick="abrirModalEditarTarefa({{ t.id }})"
           class="px-3 py-1 rounded-lg text-xs font-semibold
@@ -325,7 +405,6 @@
         </form>
       {% endif %}
 
-      {# 🔹 VER ETAPAS / DETALHES (ANDAMENTO OU CONCLUÍDA) #}
       {% if t.status != 'pendente' %}
         <button onclick="abrirDetalhes({{ t.id }})"
           class="px-3 py-1 rounded-lg text-xs font-semibold
@@ -346,17 +425,66 @@
 <!-- ====================== MODAIS ========================= -->
 <!-- ====================================================== -->
 
-<!-- ===================== MODAL NOVA TAREFA ===================== -->
-<div id="modalNovaTarefa"
-     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50 
+<!-- ✅ MODAL ATUALIZAR CONTRATO (NOVO) -->
+<div id="modalAtualizarContrato"
+     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50
             flex items-center justify-center">
 
-  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700 
+  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700
               w-full max-w-md p-6 rounded-xl shadow-2xl relative">
 
-    <!-- FECHAR -->
-    <button type="button" onclick="fecharModalNovaTarefa()" 
-            class="absolute top-3 right-4 text-slate-500 dark:text-slate-300 
+    <button type="button" onclick="fecharModalAtualizarContrato()"
+            class="absolute top-3 right-4 text-slate-500 dark:text-slate-300
+                   hover:text-red-500 dark:hover:text-red-400 text-xl">
+      &times;
+    </button>
+
+    <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
+      <i class="fa-solid fa-file-arrow-up text-blue-600 dark:text-blue-400"></i>
+      Atualizar contrato
+    </h2>
+
+    <p class="text-xs text-slate-600 dark:text-slate-300 mb-4">
+      Isso vai substituir o arquivo atual do contrato.
+    </p>
+
+    <form method="POST" action="/contract/{{ contract.id }}/upload"
+          enctype="multipart/form-data" class="space-y-3">
+
+      <!-- ✅ backend usa isso para apagar os antigos -->
+      <input type="hidden" name="replace" value="1">
+
+      <input type="file" name="files[]" required
+             class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
+                    px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="fecharModalAtualizarContrato()"
+                class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600
+                       rounded-lg text-xs text-slate-700 dark:text-slate-300">
+          Cancelar
+        </button>
+
+        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white
+                       rounded-lg text-xs font-semibold shadow">
+          Atualizar
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL NOVA TAREFA ===================== -->
+<div id="modalNovaTarefa"
+     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50
+            flex items-center justify-center">
+
+  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700
+              w-full max-w-md p-6 rounded-xl shadow-2xl relative">
+
+    <button type="button" onclick="fecharModalNovaTarefa()"
+            class="absolute top-3 right-4 text-slate-500 dark:text-slate-300
                    hover:text-red-500 dark:hover:text-red-400 text-xl">
       &times;
     </button>
@@ -371,7 +499,7 @@
       <div>
         <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Título</label>
         <input name="title" required
-               class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+               class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                       px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
       </div>
 
@@ -379,14 +507,14 @@
         <div>
           <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Entrega</label>
           <input type="date" name="due_date" required
-                 class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                 class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                         px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
         </div>
 
         <div>
           <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Prioridade</label>
           <select name="priority"
-                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                          px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
             <option>Normal</option>
             <option>Alta</option>
@@ -398,7 +526,7 @@
       <div>
         <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Destinar para</label>
         <select name="assigned_to"
-                class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                        px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
           <option value="all">Todos os colaboradores</option>
           {% for c in colaboradores %}
@@ -410,18 +538,18 @@
       <div>
         <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Descrição</label>
         <textarea name="description" rows="3"
-                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                          px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100"></textarea>
       </div>
 
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" onclick="fecharModalNovaTarefa()"
-                class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 
+                class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600
                        rounded-lg text-xs text-slate-700 dark:text-slate-300">
           Cancelar
         </button>
 
-        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white 
+        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white
                        rounded-lg text-xs font-semibold shadow">
           Salvar
         </button>
@@ -433,14 +561,14 @@
 
 <!-- ===================== MODAL EDITAR TAREFA ===================== -->
 <div id="modalEditarTarefa"
-     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50 
+     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50
             flex items-center justify-center">
 
-  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700 
+  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700
               w-full max-w-md p-6 rounded-xl shadow-2xl relative">
 
-    <button type="button" onclick="fecharModalEditarTarefa()" 
-            class="absolute top-3 right-4 text-slate-500 dark:text-slate-300 
+    <button type="button" onclick="fecharModalEditarTarefa()"
+            class="absolute top-3 right-4 text-slate-500 dark:text-slate-300
                    hover:text-red-500 dark:hover:text-red-400 text-xl">
       &times;
     </button>
@@ -455,7 +583,7 @@
       <div>
         <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Título</label>
         <input id="edit_title" name="title" required
-               class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+               class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                       px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
       </div>
 
@@ -463,14 +591,14 @@
         <div>
           <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Entrega</label>
           <input id="edit_due_date" type="date" name="due_date" required
-                 class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                 class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                         px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
         </div>
 
         <div>
           <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Prioridade</label>
           <select id="edit_priority" name="priority"
-                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                          px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
             <option>Normal</option>
             <option>Alta</option>
@@ -482,7 +610,7 @@
       <div>
         <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Responsável</label>
         <select id="edit_assigned_to" name="assigned_to"
-                class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                        px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
           <option value="all">Todos os colaboradores</option>
           {% for c in colaboradores %}
@@ -494,18 +622,18 @@
       <div>
         <label class="text-xs font-medium text-slate-700 dark:text-slate-300">Descrição</label>
         <textarea id="edit_description" name="description" rows="3"
-                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                          px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100"></textarea>
       </div>
 
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" onclick="fecharModalEditarTarefa()"
-                class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 
+                class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600
                        rounded-lg text-xs text-slate-700 dark:text-slate-300">
           Cancelar
         </button>
 
-        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white 
+        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white
                        rounded-lg text-xs font-semibold shadow">
           Salvar alterações
         </button>
@@ -517,14 +645,14 @@
 
 <!-- ===================== MODAL FINALIZAR TAREFA ===================== -->
 <div id="modalFinalizar"
-     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50 
+     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50
             flex items-center justify-center">
 
   <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700
               w-full max-w-md p-6 rounded-xl shadow-2xl relative">
 
-    <button type="button" onclick="fecharModalFinalizar()" 
-            class="absolute top-3 right-4 text-slate-600 dark:text-slate-300 
+    <button type="button" onclick="fecharModalFinalizar()"
+            class="absolute top-3 right-4 text-slate-600 dark:text-slate-300
                    hover:text-red-500 dark:hover:text-red-400 text-xl">
       &times;
     </button>
@@ -541,7 +669,7 @@
           Descrição da conclusão
         </label>
         <textarea name="note" rows="3" required
-                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                          px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100"></textarea>
       </div>
 
@@ -550,18 +678,18 @@
           Anexos (opcional)
         </label>
         <input type="file" name="files[]" multiple
-               class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+               class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                       px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
       </div>
 
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" onclick="fecharModalFinalizar()"
-                class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 
+                class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600
                        rounded-lg text-xs text-slate-700 dark:text-slate-300">
           Cancelar
         </button>
 
-        <button class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white 
+        <button class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white
                        rounded-lg text-xs font-semibold shadow">
           Finalizar
         </button>
@@ -573,14 +701,14 @@
 
 <!-- ===================== MODAL REGISTRAR ETAPA ===================== -->
 <div id="modalEtapa"
-     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50 
+     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50
             flex items-center justify-center">
 
-  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700 
+  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700
               w-full max-w-md p-6 rounded-xl shadow-2xl relative">
 
-    <button type="button" onclick="fecharModalEtapa()" 
-            class="absolute top-3 right-4 text-slate-600 dark:text-slate-300 
+    <button type="button" onclick="fecharModalEtapa()"
+            class="absolute top-3 right-4 text-slate-600 dark:text-slate-300
                    hover:text-red-500 dark:hover:text-red-400 text-xl">
       &times;
     </button>
@@ -597,7 +725,7 @@
           Descrição da etapa
         </label>
         <textarea name="step_description" rows="3" required
-                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+                  class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                          px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100"></textarea>
       </div>
 
@@ -606,18 +734,18 @@
           Anexo (opcional)
         </label>
         <input type="file" name="file"
-               class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 
+               class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700
                       px-3 py-2 rounded-lg text-sm text-slate-800 dark:text-slate-100">
       </div>
 
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" onclick="fecharModalEtapa()"
-                class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 
+                class="px-4 py-2 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600
                        rounded-lg text-xs text-slate-700 dark:text-slate-300">
           Cancelar
         </button>
 
-        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white 
+        <button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white
                        rounded-lg text-xs font-semibold shadow">
           Salvar etapa
         </button>
@@ -629,14 +757,14 @@
 
 <!-- ===================== MODAL DETALHES ===================== -->
 <div id="modalDetalhes"
-     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50 
+     class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50
             flex items-center justify-center">
 
-  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700 
+  <div class="bg-white dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700
               w-full max-w-lg p-6 rounded-xl shadow-2xl relative">
 
-    <button type="button" onclick="fecharDetalhes()" 
-            class="absolute top-3 right-4 text-slate-600 dark:text-slate-300 
+    <button type="button" onclick="fecharDetalhes()"
+            class="absolute top-3 right-4 text-slate-600 dark:text-slate-300
                    hover:text-red-500 dark:hover:text-red-400 text-xl">
       &times;
     </button>
@@ -657,34 +785,25 @@
 <!-- ====================================================== -->
 
 <script>
-/* =======================================================
-   HELPERS: pegar elemento sem quebrar (caso modal não exista)
-======================================================= */
 function $(id){ return document.getElementById(id); }
 
-/* =======================================================
-   ELEMENTOS GLOBAIS (SEGURANÇA)
-======================================================= */
-const modalNovaTarefa     = $("modalNovaTarefa");
-const modalFinalizar      = $("modalFinalizar");
-const modalAtualizar      = $("modalAtualizar");     // pode não existir neste template
-const modalEtapa          = $("modalEtapa");
-const modalDetalhes       = $("modalDetalhes");
-const modalEditarTarefa   = $("modalEditarTarefa");
+const modalNovaTarefa           = $("modalNovaTarefa");
+const modalFinalizar            = $("modalFinalizar");
+const modalAtualizarContrato    = $("modalAtualizarContrato");
+const modalEtapa                = $("modalEtapa");
+const modalDetalhes             = $("modalDetalhes");
+const modalEditarTarefa         = $("modalEditarTarefa");
 
-const formFinalizar       = $("formFinalizar");
-const formEtapa           = $("formEtapa");
-const formEditarTarefa    = $("formEditarTarefa");
-const conteudoDetalhes    = $("conteudoDetalhes");
+const formFinalizar             = $("formFinalizar");
+const formEtapa                 = $("formEtapa");
+const formEditarTarefa          = $("formEditarTarefa");
+const conteudoDetalhes          = $("conteudoDetalhes");
 
-/* =======================================================
-   ABERTURA / FECHAMENTO DE MODAIS
-======================================================= */
 function abrirModalNovaTarefa() { if(modalNovaTarefa) modalNovaTarefa.classList.remove("hidden"); }
 function fecharModalNovaTarefa(){ if(modalNovaTarefa) modalNovaTarefa.classList.add("hidden"); }
 
-function abrirModalAtualizar()  { if(modalAtualizar) modalAtualizar.classList.remove("hidden"); }
-function fecharModalAtualizar() { if(modalAtualizar) modalAtualizar.classList.add("hidden"); }
+function abrirModalAtualizarContrato(){ if(modalAtualizarContrato) modalAtualizarContrato.classList.remove("hidden"); }
+function fecharModalAtualizarContrato(){ if(modalAtualizarContrato) modalAtualizarContrato.classList.add("hidden"); }
 
 function abrirModalFinalizar(id) {
   if(formFinalizar) formFinalizar.action = `/task/complete/${id}`;
@@ -700,29 +819,19 @@ function fecharModalEtapa(){ if(modalEtapa) modalEtapa.classList.add("hidden"); 
 
 function fecharDetalhes(){ if(modalDetalhes) modalDetalhes.classList.add("hidden"); }
 
-/* =======================================================
-   EDITAR TAREFA (CARREGAR DADOS + SALVAR)
-   Requer backend:
-   GET  /task/<id>/json
-   POST /task/edit/<id>
-======================================================= */
 function abrirModalEditarTarefa(taskId) {
-
   fetch(`/task/${taskId}/json`)
     .then(resp => {
       if (!resp.ok) throw new Error("Erro ao carregar tarefa");
       return resp.json();
     })
     .then(task => {
-
       if(formEditarTarefa) formEditarTarefa.action = `/task/edit/${taskId}`;
 
       $("edit_title").value       = task.title || "";
       $("edit_due_date").value    = task.due_date || "";
       $("edit_priority").value    = task.priority || "Normal";
       $("edit_description").value = task.description || "";
-
-      // assigned_to: "all" ou id do colaborador
       $("edit_assigned_to").value = task.assigned_to || "all";
 
       if(modalEditarTarefa) modalEditarTarefa.classList.remove("hidden");
@@ -732,66 +841,42 @@ function abrirModalEditarTarefa(taskId) {
       alert("Não foi possível carregar os dados da tarefa.");
     });
 }
-
 function fecharModalEditarTarefa(){
   if(modalEditarTarefa) modalEditarTarefa.classList.add("hidden");
 }
 
-/* =======================================================
-   ALTERAR STATUS DA TAREFA (POST REAL)
-======================================================= */
 function onChangeStatus(taskId, status) {
-
   const formData = new FormData();
   formData.append("status", status);
 
   fetch(`/task/status/${taskId}`, {
     method: "POST",
     body: formData,
-    headers: {
-      "X-Requested-With": "XMLHttpRequest"
-    }
+    headers: { "X-Requested-With": "XMLHttpRequest" }
   })
   .then(resp => {
     if (!resp.ok) throw new Error("Erro ao atualizar status");
     return resp.text();
   })
-  .then(() => {
-    location.reload();
-  })
+  .then(() => location.reload())
   .catch(err => {
     alert("Erro ao alterar status da tarefa.");
     console.error(err);
   });
 }
 
-/* =======================================================
-   DETALHES DA TAREFA (LOGS + ETAPAS)
-   Consome: /task/logs/<id>
-======================================================= */
 function abrirDetalhes(taskId) {
-
   fetch(`/task/logs/${taskId}`)
     .then(resp => resp.json())
     .then(data => {
-
       let html = "";
 
-      /* ================= CONCLUSÃO ================= */
       if (data.conclusao) {
         html += `
           <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
-            <p class="text-sm">
-              <strong>Finalizado por:</strong> ${data.conclusao.user}
-            </p>
-            <p class="text-xs text-slate-500">
-              ${data.conclusao.data}
-            </p>
-
-            <p class="mt-3 text-sm">
-              <strong>Descrição final:</strong><br>
-              ${data.conclusao.note}
-            </p>
+            <p class="text-sm"><strong>Finalizado por:</strong> ${data.conclusao.user}</p>
+            <p class="text-xs text-slate-500">${data.conclusao.data}</p>
+            <p class="mt-3 text-sm"><strong>Descrição final:</strong><br>${data.conclusao.note}</p>
         `;
 
         if (data.conclusao.file) {
@@ -806,25 +891,17 @@ function abrirDetalhes(taskId) {
         html += `</div><hr class="my-4">`;
       }
 
-      /* ================= ETAPAS ================= */
       if (data.steps && data.steps.length > 0) {
-
         html += `
-          <h3 class="font-semibold mb-3">
-            Etapas registradas
-          </h3>
+          <h3 class="font-semibold mb-3">Etapas registradas</h3>
           <div class="space-y-4">
         `;
 
         data.steps.forEach(step => {
           html += `
             <div class="border-l-4 border-blue-500 pl-4">
-              <p class="text-xs text-slate-500">
-                <strong>${step.usuario}</strong> — ${step.data}
-              </p>
-              <p class="text-sm mt-1">
-                ${step.descricao}
-              </p>
+              <p class="text-xs text-slate-500"><strong>${step.usuario}</strong> — ${step.data}</p>
+              <p class="text-sm mt-1">${step.descricao}</p>
           `;
 
           if (step.arquivo) {
@@ -841,19 +918,23 @@ function abrirDetalhes(taskId) {
 
         html += `</div>`;
       } else {
-        html += `
-          <p class="text-xs text-slate-500">
-            Nenhuma etapa registrada.
-          </p>
-        `;
+        html += `<p class="text-xs text-slate-500">Nenhuma etapa registrada.</p>`;
       }
 
       if(conteudoDetalhes) conteudoDetalhes.innerHTML = html;
       if(modalDetalhes) modalDetalhes.classList.remove("hidden");
     })
-    .catch(() => {
-      alert("Erro ao carregar detalhes da tarefa.");
-    });
+    .catch(() => alert("Erro ao carregar detalhes da tarefa."));
 }
+
+/* ✅ AUTO-APLICAR REORDENAR */
+document.addEventListener("DOMContentLoaded", function () {
+  const ordem = document.getElementById("ordem");
+  const form = document.getElementById("formOrdenarTarefas");
+  if (ordem && form) {
+    ordem.addEventListener("change", () => form.submit());
+  }
+});
 </script>
+
 {% endblock %}

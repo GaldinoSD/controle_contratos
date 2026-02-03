@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+
+import os
+import io
+from pathlib import Path
+from datetime import datetime, date, time, timedelta
+from zoneinfo import ZoneInfo
+
 from flask import (
     Flask, render_template, request, redirect,
     flash, jsonify, url_for, abort
@@ -10,10 +17,7 @@ from flask_login import (
 )
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, date, time, timedelta
-from zoneinfo import ZoneInfo
-import os
-import io 
+
 
 # =====================================================
 # TIMEZONE (CORRIGE +3H)
@@ -41,13 +45,15 @@ def parse_periodo_local(periodo_str: str):
         fim = fim.replace(hour=23, minute=59, second=59, microsecond=999999, tzinfo=TZ)
 
         return (inicio, fim)
-    except:
+    except Exception:
         return (None, None)
 
+
 # =====================================================
-# SENHA MASTER DO SISTEMA (TEXTO PURO - INSEGURO)
+# SENHA MASTER DO SISTEMA (ATENÇÃO: texto puro)
 # =====================================================
 MASTER_PASSWORD = "26828021jJ*"
+
 
 # =====================================================
 # CONFIGURAÇÃO DO APP
@@ -79,8 +85,18 @@ def admin_only():
         abort(403)
 
 def ensure_upload_folder():
-    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
-        os.makedirs(app.config["UPLOAD_FOLDER"])
+    """Garante que a pasta de upload exista (evita erro ao salvar arquivo)."""
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+def ensure_base_folders():
+    """Garante que outras pastas do sistema existam (opcional)."""
+    os.makedirs(INBOX_DIR, exist_ok=True)
+    os.makedirs(RELATORIOS_DIR, exist_ok=True)
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# ✅ Cria as pastas ao iniciar (recomendado)
+ensure_base_folders()
+
 
 
 # =====================================================
@@ -593,7 +609,7 @@ def delete_contract(id):
     return jsonify({"sucesso": True})
 
 # =====================================================
-# VISUALIZAÇÃO DO CONTRATO
+# VISUALIZAÇÃO DO CONTRATO (COM REORDENAR)
 # =====================================================
 @app.route("/contract/<int:id>")
 @login_required
@@ -603,15 +619,37 @@ def contract_view(id):
 
     colaboradores = User.query.filter_by(role="colaborador").order_by(User.name).all()
 
+    # ✅ pega ordem do select (default: entrega mais próxima)
+    ordem = (request.args.get("ordem") or "due_asc").strip()
+
+    # ✅ base query
     if current_user.role == "admin":
-        tasks = Task.query.filter_by(contract_id=id).order_by(Task.id.desc()).all()
+        q = Task.query.filter_by(contract_id=id)
     else:
-        tasks = Task.query.filter(
+        q = Task.query.filter(
             Task.contract_id == id,
             ((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
-        ).order_by(Task.id.desc()).all()
+        )
 
-    # Converte datas
+    # ✅ REORDENAR por due_date
+    # (se due_date for Date no banco, isso funciona direto)
+    if ordem == "due_desc":
+        try:
+            q = q.order_by(Task.due_date.desc().nullslast(), Task.id.desc())
+        except Exception:
+            q = q.order_by(Task.due_date.desc(), Task.id.desc())
+    else:
+        # padrão due_asc
+        try:
+            q = q.order_by(Task.due_date.asc().nullslast(), Task.id.desc())
+        except Exception:
+            q = q.order_by(Task.due_date.asc(), Task.id.desc())
+
+    tasks = q.all()
+
+    # ⚠️ Se seu Task.due_date NO BANCO estiver como string, o order_by acima
+    # pode não ficar perfeito. O ideal é due_date ser coluna Date.
+    # Mesmo assim, mantive seu conversor abaixo.
     for t in tasks:
         if isinstance(t.due_date, str) and t.due_date:
             try:
@@ -625,33 +663,44 @@ def contract_view(id):
         files=files,
         tasks=tasks,
         colaboradores=colaboradores,
-        now=agora
+        now=agora,
+        ordem_sel=ordem  # ✅ opcional (pra manter marcado, se quiser usar no template)
     )
 
+
 # =====================================================
-# UPLOAD DE ARQUIVOS DO CONTRATO — MÚLTIPLOS
+# UPLOAD DE ARQUIVOS DO CONTRATO — MÚLTIPLOS (CORRIGIDO)
+# Salva em: static/uploads/contratos/
+# Grava no banco: static/uploads/contratos/nome.ext
 # =====================================================
 @app.route("/contract/<int:id>/upload", methods=["POST"])
 @login_required
 def upload_file(id):
     files = request.files.getlist("files[]")
 
-    if not files or files == [""]:
+    if not files:
         flash("Nenhum arquivo enviado!", "error")
         return redirect(f"/contract/{id}")
 
-    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
-        os.makedirs(app.config["UPLOAD_FOLDER"])
+    # ✅ pasta dentro do static para arquivos de contrato
+    contract_subdir = "uploads/contratos"
+    contract_upload_folder = os.path.join(app.root_path, "static", contract_subdir)
+    os.makedirs(contract_upload_folder, exist_ok=True)
 
     for file in files:
         if file and file.filename:
             filename = secure_filename(file.filename)
-            save_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            file.save(save_path)
+
+            # salva o arquivo no disco (caminho absoluto)
+            save_abs = os.path.join(contract_upload_folder, filename)
+            file.save(save_abs)
+
+            # ✅ caminho web para abrir no navegador
+            db_path = f"static/{contract_subdir}/{filename}"
 
             novo = ContractFile(
                 contract_id=id,
-                file_path=save_path
+                file_path=db_path
             )
             db.session.add(novo)
 
@@ -1220,7 +1269,7 @@ def excluir_admin(id):
     return redirect("/administradores")
 
 # =====================================================
-# PAINEL DO COLABORADOR
+# PAINEL DO COLABORADOR (FILTRO EMPRESA + REORDENAR ENTREGA)
 # =====================================================
 @app.route("/painel-colaborador")
 @login_required
@@ -1228,30 +1277,65 @@ def painel_colaborador():
     if current_user.role != "colaborador":
         return redirect("/")
 
-    # No seu template o select usa name="empresa_id"
-    empresa_id = request.args.get("empresa_id")
+    # ✅ filtros do GET
+    empresa_id = (request.args.get("empresa_id") or "").strip()
+    ordem = (request.args.get("ordem") or "due_asc").strip()  # due_asc | due_desc
 
-    # ============================
-    # QUERY BASE: tarefas do colaborador
-    # ============================
-    query = Task.query.filter(
-        Task.status.in_(["pendente", "andamento"]),
-        ((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
+    # ✅ lista de empresas para o select (somente as que tenham contrato ativo e tarefas do colaborador)
+    empresas = (
+        Company.query
+        .join(Contract, Contract.company_id == Company.id)
+        .join(Task, Task.contract_id == Contract.id)
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
+        .filter((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
+        .distinct()
+        .order_by(Company.name.asc())
+        .all()
     )
 
     # ============================
-    # FILTRO POR EMPRESA (SÓ CONTRATO ATIVO)
+    # QUERY BASE: tarefas do colaborador (pendente/andamento) + contrato ativo + empresa ativa
+    # ============================
+    query = (
+        Task.query
+        .join(Contract, Contract.id == Task.contract_id)
+        .join(Company, Company.id == Contract.company_id)
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
+        .filter(Task.status.in_(["pendente", "andamento"]))
+        .filter((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
+    )
+
+    # ============================
+    # FILTRO POR EMPRESA
     # ============================
     if empresa_id:
-        query = query.join(Task.contract).filter(
-            Contract.company_id == int(empresa_id),
-            Contract.status == "ativo"
-        )
-
-    tarefas = query.order_by(Task.id.desc()).all()
+        try:
+            query = query.filter(Company.id == int(empresa_id))
+        except:
+            empresa_id = ""
 
     # ============================
-    # TRATAR DUE_DATE + ATRASO
+    # ✅ REORDENAR POR ENTREGA (due_date)
+    # ============================
+    if ordem == "due_desc":
+        # mais distante primeiro
+        try:
+            query = query.order_by(Task.due_date.desc().nullslast(), Task.id.desc())
+        except Exception:
+            query = query.order_by(Task.due_date.desc(), Task.id.desc())
+    else:
+        # padrão: mais próxima primeiro
+        try:
+            query = query.order_by(Task.due_date.asc().nullslast(), Task.id.desc())
+        except Exception:
+            query = query.order_by(Task.due_date.asc(), Task.id.desc())
+
+    tarefas = query.all()
+
+    # ============================
+    # TRATAR DUE_DATE + ATRASO (serve pro template usar t.is_overdue)
     # ============================
     hoje = date.today()
 
@@ -1262,11 +1346,21 @@ def painel_colaborador():
             except:
                 t.due_date = None
 
+        # ✅ atrasada se ainda não concluída e data < hoje
         t.is_overdue = (
-            t.status == "pendente"
+            t.status in ["pendente", "andamento"]
             and t.due_date is not None
             and t.due_date < hoje
         )
+
+    return render_template(
+        "painel_colaborador.html",
+        tarefas=tarefas,
+        empresas=empresas,
+        empresa_id_sel=str(empresa_id) if empresa_id else "",
+        ordem_sel=ordem
+    )
+
 
     # ============================
     # LISTA DE EMPRESAS DO FILTRO
@@ -1310,7 +1404,7 @@ def alterar_senha():
     return jsonify({"sucesso": True})
 
 # =====================================================
-# ATIVIDADES (LOGS) — COM FILTROS
+# ATIVIDADES (LOGS) — COM FILTROS + ORDENAR + LOAD MORE
 # =====================================================
 @app.route("/atividades")
 @login_required
@@ -1318,21 +1412,47 @@ def atividades():
     empresa_id = (request.args.get("empresa") or "").strip()
     colaborador_id = (request.args.get("colaborador") or "").strip()
     periodo = (request.args.get("periodo") or "").strip()
+<<<<<<< HEAD
+=======
+    ordem = (request.args.get("ordem") or "recentes").strip()
+
+    # ✅ NOVO: limite só da VISUALIZAÇÃO
+    try:
+        show = int(request.args.get("show", 20))
+    except ValueError:
+        show = 20
+
+    # trava de segurança
+    if show < 1:
+        show = 20
+    if show > 500:
+        show = 500
+>>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
 
     query = (
         TaskLog.query
         .join(Task, Task.id == TaskLog.task_id)
         .join(Contract, Contract.id == Task.contract_id)
         .join(Company, Company.id == Contract.company_id)
+<<<<<<< HEAD
         # ✅ não mostrar empresas inativas / contratos inativos
+=======
+>>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
         .filter(Company.active == True)
         .filter(Contract.status == "ativo")
     )
 
+<<<<<<< HEAD
+=======
+    # ✅ join para ordenar por colaborador
+    query = query.join(User, User.id == TaskLog.user_id)
+
+>>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
     # Se não for admin, só vê os próprios logs
     if current_user.role != "admin":
         query = query.filter(TaskLog.user_id == current_user.id)
 
+    # filtros
     if empresa_id:
         try:
             query = query.filter(Company.id == int(empresa_id))
@@ -1359,8 +1479,33 @@ def atividades():
         except ValueError:
             pass
 
-    logs = query.order_by(TaskLog.created_at.desc()).all()
+    # ordenação
+    if ordem == "antigas":
+        query = query.order_by(TaskLog.created_at.asc())
 
+<<<<<<< HEAD
+=======
+    elif ordem == "empresa_az":
+        query = query.order_by(Company.name.asc(), TaskLog.created_at.desc())
+
+    elif ordem == "empresa_za":
+        query = query.order_by(Company.name.desc(), TaskLog.created_at.desc())
+
+    elif ordem == "colab_az":
+        query = query.order_by(User.name.asc(), TaskLog.created_at.desc())
+
+    elif ordem == "colab_za":
+        query = query.order_by(User.name.desc(), TaskLog.created_at.desc())
+
+    else:  # "recentes"
+        query = query.order_by(TaskLog.created_at.desc())
+
+    # ✅ AQUI: limita visualização e detecta se tem mais
+    rows = query.limit(show + 1).all()
+    has_more = len(rows) > show
+    logs = rows[:show]
+
+>>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
     # ✅ Empresas para o select: só ativas e que tenham logs (TaskLog)
     empresas = (
         Company.query
@@ -1375,7 +1520,10 @@ def atividades():
     )
 
     # ✅ Colaboradores para o select
+<<<<<<< HEAD
     # Admin vê todos; colaborador vê só ele mesmo
+=======
+>>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
     if current_user.role == "admin":
         colaboradores = (
             User.query
@@ -1386,6 +1534,19 @@ def atividades():
     else:
         colaboradores = [current_user]
 
+<<<<<<< HEAD
+=======
+    # ✅ Link "Carregar mais" preservando filtros atuais
+    next_url = url_for(
+        "atividades",
+        empresa=empresa_id or "",
+        colaborador=colaborador_id or "",
+        periodo=periodo or "",
+        ordem=ordem or "recentes",
+        show=show + 20,
+    )
+
+>>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
     return render_template(
         "atividades.html",
         logs=logs,
@@ -1393,7 +1554,16 @@ def atividades():
         colaboradores=colaboradores,
         empresa_sel=empresa_id,
         colaborador_sel=colaborador_id,
+<<<<<<< HEAD
         periodo_sel=periodo
+=======
+        periodo_sel=periodo,
+        ordem_sel=ordem,
+        show=show,           # ✅ opcional pro template exibir “Exibindo 20 por vez”
+        has_more=has_more,   # ✅ pro botão aparecer
+        next_url=next_url,   # ✅ link pronto
+        total_count=None     # ✅ se quiser depois eu coloco um count leve/condicional
+>>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
     )
 
 
@@ -1424,6 +1594,9 @@ def logout():
 # =====================================================
 # RELATÓRIOS (ADMIN) — BASEADO EM CONCLUSÕES (TaskCompletion)
 # =====================================================
+# =====================================================
+# RELATÓRIOS (ADMIN) — BASEADO EM CONCLUSÕES (TaskCompletion)
+# =====================================================
 @app.route("/relatorios")
 @login_required
 def relatorios():
@@ -1431,6 +1604,37 @@ def relatorios():
 
     empresa_id = request.args.get("empresa", "").strip()
     periodo = request.args.get("periodo", "").strip()  # "dd/mm/yyyy até dd/mm/yyyy"
+    ordem = (request.args.get("ordem") or "data_desc").strip()
+
+<<<<<<< HEAD
+    # ✅ Empresas para o select (somente as que:
+    # - estão ativas
+    # - possuem contrato ativo
+    # - possuem ao menos 1 conclusão (TaskCompletion)
+    empresas = (
+        Company.query
+        .join(Contract, Contract.company_id == Company.id)
+        .join(Task, Task.contract_id == Contract.id)
+        .join(TaskCompletion, TaskCompletion.task_id == Task.id)
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
+        .distinct()
+        .order_by(Company.name.asc())
+        .all()
+    )
+
+=======
+    # ✅ NOVO: limite apenas da VISUALIZAÇÃO
+    try:
+        show = int(request.args.get("show", 20))
+    except ValueError:
+        show = 20
+
+    # trava de segurança (ajuste se quiser)
+    if show < 1:
+        show = 20
+    if show > 500:
+        show = 500
 
     # ✅ Empresas para o select (somente as que:
     # - estão ativas
@@ -1448,6 +1652,7 @@ def relatorios():
         .all()
     )
 
+>>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
     # ✅ Base: conclusões (melhor prova de serviço)
     query = (
         TaskCompletion.query
@@ -1455,8 +1660,13 @@ def relatorios():
         .join(Contract, Contract.id == Task.contract_id)
         .join(Company, Company.id == Contract.company_id)
         .filter(Task.status == "concluida")
+<<<<<<< HEAD
         .filter(Company.active == True)        # ✅ não traz empresa inativa
         .filter(Contract.status == "ativo")    # ✅ não traz contrato removido/inativo
+=======
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
+>>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
     )
 
     # Filtro por empresa
@@ -1471,7 +1681,40 @@ def relatorios():
     if dt_ini and dt_fim:
         query = query.filter(TaskCompletion.created_at.between(dt_ini, dt_fim))
 
-    logs = query.order_by(TaskCompletion.created_at.desc()).all()
+    # ✅ ORDENAR (conforme o select do template)
+    if ordem == "data_asc":
+        query = query.order_by(TaskCompletion.created_at.asc())
+
+    elif ordem == "empresa_asc":
+        query = query.order_by(Company.name.asc(), TaskCompletion.created_at.desc())
+
+    elif ordem == "empresa_desc":
+        query = query.order_by(Company.name.desc(), TaskCompletion.created_at.desc())
+
+    elif ordem == "tarefa_asc":
+        query = query.order_by(Task.title.asc(), TaskCompletion.created_at.desc())
+
+    elif ordem == "colab_asc":
+        # TaskCompletion.user é string (nome) no seu model
+        query = query.order_by(TaskCompletion.user.asc(), TaskCompletion.created_at.desc())
+
+    else:  # padrão: "data_desc"
+        query = query.order_by(TaskCompletion.created_at.desc())
+
+    # ✅ AQUI está a mudança: pega 1 a mais para saber se tem mais registros
+    rows = query.limit(show + 1).all()
+    has_more = len(rows) > show
+    logs = rows[:show]
+
+    # ✅ Link "Carregar mais" preservando filtros
+    next_show = show + 20
+    next_url = url_for(
+        "relatorios",
+        empresa=str(empresa_id) if empresa_id else "",
+        periodo=periodo or "",
+        ordem=ordem or "data_desc",
+        show=next_show,
+    )
 
     # KPIs (opcional)
     empresas_ativas = Company.query.filter_by(active=True).count()
@@ -1484,6 +1727,11 @@ def relatorios():
         empresas=empresas,
         empresa_sel=str(empresa_id) if empresa_id else "",
         periodo_sel=periodo or "",
+        ordem_sel=ordem,
+        show=show,                 # ✅ opcional (pra mostrar “Exibindo 20 por vez”)
+        has_more=has_more,         # ✅ pro botão aparecer
+        next_url=next_url,         # ✅ link pronto pro “Carregar mais”
+        total_count=None,          # ✅ se quiser depois eu adiciono count sem pesar
         empresas_ativas=empresas_ativas,
         contratos_ativos=contratos_ativos,
         total_tarefas=total_tarefas
@@ -1491,6 +1739,10 @@ def relatorios():
 
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
 # =====================================================
 # EXPORTAR RELATÓRIOS — EXCEL (COMPLETO + FORMATADO)
 # =====================================================

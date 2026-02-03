@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# DBs
+*.db
+instance/*.db
+
+# Uploads / arquivos gerados
+static/uploads/
+static/logos/
+
+# Ambiente
+.env
+venv/
+.venv/
