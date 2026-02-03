@@ -176,7 +176,7 @@
           </td>
 
           <td class="p-3 text-slate-600 dark:text-slate-400">
-            {{ lg.user.name if lg.user else "N/A" }}
+            {{ (lg.user.name if lg.user and lg.user.name is defined else (lg.user.username if lg.user and lg.user.username is defined else (lg.user if lg.user else "N/A"))) }}
           </td>
 
           <td class="p-3 text-center whitespace-nowrap">

@@ -67,6 +67,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
+
 # =====================================================
 # HELPERS
 # =====================================================
@@ -1314,25 +1315,35 @@ def alterar_senha():
 @app.route("/atividades")
 @login_required
 def atividades():
-    empresa_id = request.args.get("empresa")
-    colaborador_id = request.args.get("colaborador")
-    periodo = request.args.get("periodo")
+    empresa_id = (request.args.get("empresa") or "").strip()
+    colaborador_id = (request.args.get("colaborador") or "").strip()
+    periodo = (request.args.get("periodo") or "").strip()
 
     query = (
         TaskLog.query
-        .join(Task)
-        .join(Contract)
-        .join(Company)
+        .join(Task, Task.id == TaskLog.task_id)
+        .join(Contract, Contract.id == Task.contract_id)
+        .join(Company, Company.id == Contract.company_id)
+        # ✅ não mostrar empresas inativas / contratos inativos
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
     )
 
+    # Se não for admin, só vê os próprios logs
     if current_user.role != "admin":
         query = query.filter(TaskLog.user_id == current_user.id)
 
     if empresa_id:
-        query = query.filter(Company.id == empresa_id)
+        try:
+            query = query.filter(Company.id == int(empresa_id))
+        except:
+            empresa_id = ""
 
     if colaborador_id:
-        query = query.filter(TaskLog.user_id == colaborador_id)
+        try:
+            query = query.filter(TaskLog.user_id == int(colaborador_id))
+        except:
+            colaborador_id = ""
 
     if periodo and " até " in periodo:
         try:
@@ -1344,28 +1355,47 @@ def atividades():
             data_inicio = datetime.combine(data_inicio, time.min)
             data_fim = datetime.combine(data_fim, time.max)
 
-            query = query.filter(
-                TaskLog.created_at.between(data_inicio, data_fim)
-            )
+            query = query.filter(TaskLog.created_at.between(data_inicio, data_fim))
         except ValueError:
             pass
 
     logs = query.order_by(TaskLog.created_at.desc()).all()
 
-    empresas = Company.query.order_by(Company.name).all()
-    colaboradores = (
-        User.query
-        .filter_by(role="colaborador")
-        .order_by(User.name)
+    # ✅ Empresas para o select: só ativas e que tenham logs (TaskLog)
+    empresas = (
+        Company.query
+        .join(Contract, Contract.company_id == Company.id)
+        .join(Task, Task.contract_id == Contract.id)
+        .join(TaskLog, TaskLog.task_id == Task.id)
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
+        .distinct()
+        .order_by(Company.name.asc())
         .all()
     )
+
+    # ✅ Colaboradores para o select
+    # Admin vê todos; colaborador vê só ele mesmo
+    if current_user.role == "admin":
+        colaboradores = (
+            User.query
+            .filter_by(role="colaborador")
+            .order_by(User.name.asc())
+            .all()
+        )
+    else:
+        colaboradores = [current_user]
 
     return render_template(
         "atividades.html",
         logs=logs,
         empresas=empresas,
-        colaboradores=colaboradores
+        colaboradores=colaboradores,
+        empresa_sel=empresa_id,
+        colaborador_sel=colaborador_id,
+        periodo_sel=periodo
     )
+
 
 # =====================================================
 # LOGIN / LOGOUT
@@ -1402,16 +1432,31 @@ def relatorios():
     empresa_id = request.args.get("empresa", "").strip()
     periodo = request.args.get("periodo", "").strip()  # "dd/mm/yyyy até dd/mm/yyyy"
 
-    # Empresas para o select
-    empresas = Company.query.order_by(Company.name).all()
+    # ✅ Empresas para o select (somente as que:
+    # - estão ativas
+    # - possuem contrato ativo
+    # - possuem ao menos 1 conclusão (TaskCompletion)
+    empresas = (
+        Company.query
+        .join(Contract, Contract.company_id == Company.id)
+        .join(Task, Task.contract_id == Contract.id)
+        .join(TaskCompletion, TaskCompletion.task_id == Task.id)
+        .filter(Company.active == True)
+        .filter(Contract.status == "ativo")
+        .distinct()
+        .order_by(Company.name.asc())
+        .all()
+    )
 
-    # Base: conclusões (melhor prova de serviço)
+    # ✅ Base: conclusões (melhor prova de serviço)
     query = (
         TaskCompletion.query
         .join(Task, Task.id == TaskCompletion.task_id)
         .join(Contract, Contract.id == Task.contract_id)
         .join(Company, Company.id == Contract.company_id)
         .filter(Task.status == "concluida")
+        .filter(Company.active == True)        # ✅ não traz empresa inativa
+        .filter(Contract.status == "ativo")    # ✅ não traz contrato removido/inativo
     )
 
     # Filtro por empresa
@@ -1443,6 +1488,7 @@ def relatorios():
         contratos_ativos=contratos_ativos,
         total_tarefas=total_tarefas
     )
+
 
 
 # =====================================================
