@@ -14,3 +14,7 @@ static/logos/
 .env
 venv/
 .venv/
+__pycache__/
+*.pyc
+instance/*.db
+*.db
