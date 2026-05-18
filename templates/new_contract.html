@@ -1,156 +1,82 @@
 {% extends "base.html" %}
+{% set page_title = "Novo Contrato" %}
 {% block content %}
 
-<!-- ======================================================= -->
-<!-- ===================== HEADER COMPACTO ================== -->
-<!-- ======================================================= -->
-<section class="mb-6 relative">
+<!-- ✅ HEADER PREMIUM NOVO CONTRATO -->
+<div class="mb-8 animate-premium">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 glass-premium p-8 rounded-[2.5rem] shadow-xl overflow-hidden relative border border-white/20 dark:border-white/5">
+        <!-- Decorativos -->
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
 
-  <div class="rounded-xl p-5 
-              bg-slate-900/80 dark:bg-slate-900/80 light:bg-white/70
-              backdrop-blur-xl shadow-lg 
-              border border-slate-800 dark:border-slate-800 light:border-slate-300
-              flex items-center gap-4 relative">
-
-    <!-- GLOW -->
-    <div class="absolute -top-7 -left-7 w-24 h-24 
-                bg-blue-600/20 dark:bg-blue-600/20 light:bg-blue-500/10
-                blur-2xl rounded-full"></div>
-
-    <div class="relative flex items-center gap-4">
-
-      <div class="p-3 
-                  bg-blue-600/10 dark:bg-blue-600/10 light:bg-blue-500/10 
-                  rounded-lg border 
-                  border-blue-500/20 dark:border-blue-500/20 light:border-blue-300/40">
-        <i class="fa-solid fa-file-circle-plus 
-                  text-blue-400 dark:text-blue-400 light:text-blue-600 
-                  text-xl"></i>
-      </div>
-
-      <div>
-        <h1 class="text-2xl font-bold 
-                   text-white dark:text-white light:text-slate-800 tracking-tight">
-          Novo Contrato
-        </h1>
-
-        <p class="text-xs mt-1 
-                   text-slate-400 dark:text-slate-400 light:text-slate-600">
-          Cadastre um novo contrato no sistema
-        </p>
-      </div>
-
+        <div class="flex items-center gap-6 relative z-10">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-blue-500/20">
+                <i class="fa-solid fa-file-circle-plus text-2xl"></i>
+            </div>
+            <div>
+                <nav class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                    <span>Administração</span>
+                    <i class="fa-solid fa-chevron-right text-[8px] opacity-30"></i>
+                    <span class="text-blue-500">Novo Contrato</span>
+                </nav>
+                <h2 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Cadastro de Contrato</h2>
+            </div>
+        </div>
     </div>
+</div>
 
-  </div>
+<!-- ✅ FORMULÁRIO PREMIUM -->
+<div class="max-w-4xl mx-auto animate-premium">
+    <form method="POST" class="card-premium p-10 space-y-8 border border-slate-900/5 dark:border-white/10 shadow-2xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="md:col-span-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Nome da Empresa / Cliente</label>
+                <input name="company" required placeholder="Razão Social ou Nome Fantasia"
+                       class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-2xl px-6 py-4 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 transition-all">
+            </div>
 
-</section>
+            <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">CNPJ / Identificação</label>
+                <input name="cnpj" required maxlength="20" placeholder="00.000.000/0000-00"
+                       class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-2xl px-6 py-4 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 transition-all">
+            </div>
 
+            <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Tipo de Contrato</label>
+                <select class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-2xl px-6 py-4 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
+                    <option>Prestação de Serviços</option>
+                    <option>Manutenção Preventiva</option>
+                    <option>Suporte Técnico</option>
+                    <option>Consultoria</option>
+                </select>
+            </div>
 
+            <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Data de Início</label>
+                <input name="start" type="date" required
+                       class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-2xl px-6 py-4 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
+            </div>
 
-<!-- ======================================================= -->
-<!-- ===================== FORMULÁRIO ======================= -->
-<!-- ======================================================= -->
-<form method="POST"
-      class="rounded-xl shadow-xl 
-             bg-slate-900/60 dark:bg-slate-900/60 light:bg-white/70
-             backdrop-blur-xl border
-             border-slate-800 dark:border-slate-800 light:border-slate-300
-             grid grid-cols-1 gap-5 p-6 
-             text-white dark:text-white light:text-slate-800">
+            <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Data de Término</label>
+                <input name="end" type="date" required
+                       class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-2xl px-6 py-4 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer">
+            </div>
 
-  <!-- EMPRESA -->
-  <div>
-    <label class="font-medium text-sm 
-                 text-slate-300 dark:text-slate-300 light:text-slate-700">Empresa</label>
+            <div class="md:col-span-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Descrição / Notas Adicionais</label>
+                <textarea name="desc" rows="4" placeholder="Informações relevantes sobre o escopo do contrato..."
+                          class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-2xl p-6 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 transition-all resize-none"></textarea>
+            </div>
+        </div>
 
-    <input name="company" required
-           class="w-full mt-1 px-4 py-2.5 
-                  bg-slate-800/50 dark:bg-slate-800/50 light:bg-white/80
-                  border border-slate-700 dark:border-slate-700 light:border-slate-400
-                  rounded-lg 
-                  text-white dark:text-white light:text-slate-900 
-                  placeholder-slate-500 dark:placeholder-slate-500 light:placeholder-slate-500
-                  focus:outline-none focus:border-blue-500 transition"
-           placeholder="Nome da empresa">
-  </div>
-
-  <!-- CNPJ -->
-  <div>
-    <label class="font-medium text-sm 
-                 text-slate-300 dark:text-slate-300 light:text-slate-700">CNPJ</label>
-
-    <input name="cnpj" required maxlength="20"
-           class="w-full mt-1 px-4 py-2.5 
-                  bg-slate-800/50 dark:bg-slate-800/50 light:bg-white/80
-                  border border-slate-700 dark:border-slate-700 light:border-slate-400
-                  rounded-lg 
-                  text-white dark:text-white light:text-slate-900
-                  placeholder-slate-500
-                  focus:outline-none focus:border-blue-500 transition"
-           placeholder="00.000.000/0000-00">
-  </div>
-
-  <!-- DESCRIÇÃO -->
-  <div>
-    <label class="font-medium text-sm 
-                 text-slate-300 dark:text-slate-300 light:text-slate-700">Descrição</label>
-
-    <textarea name="desc" rows="3"
-              class="w-full mt-1 px-4 py-2.5 
-                     bg-slate-800/50 dark:bg-slate-800/50 light:bg-white/80
-                     border border-slate-700 dark:border-slate-700 light:border-slate-400
-                     rounded-lg 
-                     text-white dark:text-white light:text-slate-900
-                     placeholder-slate-500
-                     focus:outline-none focus:border-blue-500 transition"
-              placeholder="Informações adicionais sobre o contrato"></textarea>
-  </div>
-
-  <!-- DATAS -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-    <div>
-      <label class="font-medium text-sm 
-                   text-slate-300 dark:text-slate-300 light:text-slate-700">Início</label>
-
-      <input name="start" type="date"
-             class="w-full mt-1 px-4 py-2.5 
-                    bg-slate-800/50 dark:bg-slate-800/50 light:bg-white/80
-                    border border-slate-700 dark:border-slate-700 light:border-slate-400
-                    rounded-lg 
-                    text-white dark:text-white light:text-slate-900
-                    focus:outline-none focus:border-blue-500 transition">
-    </div>
-
-    <div>
-      <label class="font-medium text-sm 
-                   text-slate-300 dark:text-slate-300 light:text-slate-700">Fim</label>
-
-      <input name="end" type="date"
-             class="w-full mt-1 px-4 py-2.5 
-                    bg-slate-800/50 dark:bg-slate-800/50 light:bg-white/80
-                    border border-slate-700 dark:border-slate-700 light:border-slate-400
-                    rounded-lg 
-                    text-white dark:text-white light:text-slate-900
-                    focus:outline-none focus:border-blue-500 transition">
-    </div>
-
-  </div>
-
-  <!-- BOTÃO SALVAR -->
-  <button
-    class="mt-2 
-           bg-blue-600 hover:bg-blue-700 text-white 
-           dark:bg-blue-600 dark:hover:bg-blue-700
-           light:bg-blue-600 light:hover:bg-blue-700
-           py-2.5 rounded-lg shadow-lg 
-           font-semibold tracking-wide text-sm 
-           transition duration-200 
-           hover:-translate-y-[2px] active:scale-95">
-    Salvar Contrato
-  </button>
-
-</form>
+        <div class="flex gap-4 pt-6">
+            <a href="/contracts" class="flex-1 py-5 text-center text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors">Voltar para Lista</a>
+            <button type="submit" class="flex-[2] py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-500/30 transition-all active:scale-95">
+                Cadastrar Contrato
+            </button>
+        </div>
+    </form>
+</div>
 
 {% endblock %}

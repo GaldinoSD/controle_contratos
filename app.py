@@ -68,6 +68,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 app.config["FOTOS_COLAB"] = "static/fotos"
 app.config["LOGO_FOLDER"] = "static/logos"
+app.config["MANUAIS_FOLDER"] = "static/manuais"
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -89,10 +90,16 @@ def ensure_upload_folder():
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 def ensure_base_folders():
-    """Garante que outras pastas do sistema existam (opcional)."""
-    os.makedirs(INBOX_DIR, exist_ok=True)
-    os.makedirs(RELATORIOS_DIR, exist_ok=True)
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    """Garante que as pastas do sistema existam."""
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+    os.makedirs(app.config["FOTOS_COLAB"], exist_ok=True)
+    os.makedirs(app.config["LOGO_FOLDER"], exist_ok=True)
+    os.makedirs(app.config["MANUAIS_FOLDER"], exist_ok=True)
+
+    # pastas opcionais
+    os.makedirs(os.path.join(app.root_path, "static", "inbox"), exist_ok=True)
+    os.makedirs(os.path.join(app.root_path, "static", "relatorios"), exist_ok=True)
+
 
 # ✅ Cria as pastas ao iniciar (recomendado)
 ensure_base_folders()
@@ -111,7 +118,10 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(120))
     email = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(255))
-    role = db.Column(db.String(20))  # admin / colaborador
+    role = db.Column(db.String(20))  # admin / colaborador / cliente_colaborador
+    company_id = db.Column(db.Integer, db.ForeignKey("company.id"), nullable=True)
+
+    company = db.relationship("Company")
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -330,6 +340,109 @@ class Collaborator(db.Model):
     password = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=agora)
 
+class Announcement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    target_type = db.Column(db.String(20), default="all")  # all | internal | company | user
+    target_company_id = db.Column(db.Integer, db.ForeignKey("company.id"), nullable=True)
+    target_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    created_at = db.Column(db.DateTime, default=agora)
+    expires_at = db.Column(db.DateTime, nullable=True)  # Null = Permanente
+
+    target_company = db.relationship("Company")
+    target_user = db.relationship("User", foreign_keys=[target_user_id])
+    sender = db.relationship("User", foreign_keys=[sender_id])
+
+class AnnouncementRead(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    announcement_id = db.Column(db.Integer, db.ForeignKey("announcement.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    read_at = db.Column(db.DateTime, default=agora)
+
+# ==============================================
+# MANUAIS
+# ==============================================
+class Manual(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    file_path = db.Column(db.String(255), nullable=False)
+    target_role = db.Column(db.String(20), default="colaborador")  # admin | colaborador
+    created_at = db.Column(db.DateTime, default=agora)
+
+class SystemManual(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    role = db.Column(db.String(20), unique=True)  # admin | colaborador
+    content = db.Column(db.Text)
+    updated_at = db.Column(db.DateTime, default=agora, onupdate=agora)
+
+# ==============================================
+# AUTOMAÇÕES
+# ==============================================
+class Automation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text)
+    link = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=agora)
+
+# ==============================================
+# TREINAMENTOS (LMS)
+# ==============================================
+class Training(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text)
+    content_url = db.Column(db.String(255))  # Link vídeo ou PDF
+    target_type = db.Column(db.String(20), default="all")  # all | internal | company | user
+    target_company_id = db.Column(db.Integer, db.ForeignKey("company.id"), nullable=True)
+    target_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=agora)
+    
+    # Novos campos para Selo de Aprovação
+    badge_icon = db.Column(db.String(50), default="fa-award")
+    badge_color = db.Column(db.String(20), default="#3b82f6")
+
+    target_company = db.relationship("Company")
+    target_user = db.relationship("User", foreign_keys=[target_user_id])
+    questions = db.relationship("TrainingQuestion", backref="training", cascade="all, delete-orphan")
+
+class TrainingQuestion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    training_id = db.Column(db.Integer, db.ForeignKey("training.id"))
+    question_text = db.Column(db.Text, nullable=False)
+    options = db.relationship("TrainingOption", backref="question", cascade="all, delete-orphan")
+
+class TrainingOption(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question_id = db.Column(db.Integer, db.ForeignKey("training_question.id"))
+    option_text = db.Column(db.String(255), nullable=False)
+    is_correct = db.Column(db.Boolean, default=False)
+
+class TrainingProgress(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    training_id = db.Column(db.Integer, db.ForeignKey("training.id"))
+    completed_at = db.Column(db.DateTime, default=agora)
+
+    user = db.relationship("User")
+    training = db.relationship("Training")
+
+# ==============================================
+# COLABORADORES EXTERNOS (DOS CLIENTES)
+# ==============================================
+class ExternalCollaborator(db.Model):
+    __tablename__ = "external_collaborator"
+    id = db.Column(db.Integer, primary_key=True)
+    company_id = db.Column(db.Integer, db.ForeignKey("company.id"))
+    name = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(120), unique=True)
+    phone = db.Column(db.String(20))
+    created_at = db.Column(db.DateTime, default=agora)
+
+    company = db.relationship("Company")
+
 # =====================================================
 # LOGIN MANAGER
 # =====================================================
@@ -403,6 +516,9 @@ def tarefas_por_empresa():
 def dashboard():
     if current_user.role == "colaborador":
         return redirect("/painel-colaborador")
+    
+    if current_user.role == "cliente_colaborador":
+        return redirect("/portal-externo")
 
     return render_template("dashboard.html", dados=tarefas_por_empresa())
 
@@ -412,8 +528,12 @@ def dashboard():
 @app.route("/contracts")
 @login_required
 def lista_contratos():
-    contracts = Contract.query.all()
-    return render_template("contracts.html", contracts=contracts)
+    ordem = request.args.get("ordem", "recent")
+    if ordem == "oldest":
+        contracts = Contract.query.order_by(Contract.id.asc()).all()
+    else:
+        contracts = Contract.query.order_by(Contract.id.desc()).all()
+    return render_template("contracts.html", contracts=contracts, current_ordem=ordem)
 
 # =====================================================
 # NOVO CONTRATO
@@ -559,8 +679,98 @@ def reactivate_contract(id):
     contrato.status = "ativo"
 
     db.session.commit()
-    flash("Contrato reativado com sucesso!", "success")
-    return redirect("/contracts")
+    flash("✅ Contrato enviado com sucesso!", "success")
+    return redirect(f"/contract/{id}")
+
+# =====================================================
+# REGISTRAR COLABORADOR EXTERNO (CLIENTE)
+# =====================================================
+@app.route("/contract/<int:id>/collaborators/add", methods=["POST"])
+@login_required
+def add_external_collaborator(id):
+    admin_only()
+    contr = Contract.query.get_or_404(id)
+    name = request.form.get("name")
+    email = request.form.get("email")
+    phone = request.form.get("phone")
+    password = request.form.get("password")
+    
+    # Se não informar senha, usa o CNPJ automático
+    if not password:
+        raw_cnpj = contr.company.cnpj or "123456"
+        password = "".join(filter(str.isdigit, raw_cnpj))
+        if not password: password = "123456"
+
+    # Verifica se já existe
+    if User.query.filter_by(email=email).first():
+        flash("❌ Este e-mail já está em uso!", "error")
+        return redirect(f"/contract/{id}")
+
+    # Criar registro de colaborador externo
+    novo_ext = ExternalCollaborator(
+        company_id=contr.company_id,
+        name=name,
+        email=email,
+        phone=phone
+    )
+    db.session.add(novo_ext)
+
+    # Criar User correspondente
+    usuario = User(
+        name=name,
+        email=email,
+        role="cliente_colaborador",
+        company_id=contr.company_id
+    )
+    usuario.set_password(password)
+    db.session.add(usuario)
+    db.session.commit()
+
+    flash(f"✅ Colaborador {name} registrado com sucesso!", "success")
+    return redirect(f"/contract/{id}")
+
+# =====================================================
+# EDITAR COLABORADOR EXTERNO
+# =====================================================
+@app.route("/contract/<int:id>/collaborators/edit/<int:colab_id>", methods=["POST"])
+@login_required
+def edit_external_collaborator(id, colab_id):
+    admin_only()
+    colab = ExternalCollaborator.query.get_or_404(colab_id)
+    user = User.query.filter_by(email=colab.email).first()
+    
+    name = request.form.get("name")
+    email = request.form.get("email")
+    phone = request.form.get("phone")
+    password = request.form.get("password")
+    
+    colab.name = name
+    colab.email = email
+    colab.phone = phone
+    
+    if user:
+        user.name = name
+        user.email = email
+        if password:
+            user.set_password(password)
+            
+    db.session.commit()
+    flash(f"✅ Cadastro de {name} atualizado!", "success")
+    return redirect(f"/contract/{id}")
+
+@app.route("/contract/<int:id>/collaborators/delete/<int:colab_id>", methods=["POST"])
+@login_required
+def delete_external_collaborator(id, colab_id):
+    admin_only()
+    colab = ExternalCollaborator.query.get_or_404(colab_id)
+    # Também remove o usuário correspondente se existir
+    user = User.query.filter_by(email=colab.email).first()
+    if user:
+        db.session.delete(user)
+    
+    db.session.delete(colab)
+    db.session.commit()
+    return jsonify({"sucesso": True, "mensagem": "Colaborador removido com sucesso."})
 
 # =====================================================
 # ENCERRAR CONTRATO
@@ -616,6 +826,9 @@ def delete_contract(id):
 def contract_view(id):
     contr = Contract.query.get_or_404(id)
     files = ContractFile.query.filter_by(contract_id=id).all()
+    
+    # Colaboradores da empresa do contrato
+    ext_colaboradores = ExternalCollaborator.query.filter_by(company_id=contr.company_id).all()
 
     colaboradores = User.query.filter_by(role="colaborador").order_by(User.name).all()
 
@@ -631,15 +844,18 @@ def contract_view(id):
             ((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
         )
 
-    # ✅ REORDENAR por due_date
-    # (se due_date for Date no banco, isso funciona direto)
-    if ordem == "due_desc":
+    # ✅ REORDENAR
+    if ordem == "id_desc":
+        q = q.order_by(Task.id.desc())
+    elif ordem == "id_asc":
+        q = q.order_by(Task.id.asc())
+    elif ordem == "due_desc":
         try:
             q = q.order_by(Task.due_date.desc().nullslast(), Task.id.desc())
         except Exception:
             q = q.order_by(Task.due_date.desc(), Task.id.desc())
     else:
-        # padrão due_asc
+        # padrão due_asc (Entrega mais próxima)
         try:
             q = q.order_by(Task.due_date.asc().nullslast(), Task.id.desc())
         except Exception:
@@ -663,6 +879,7 @@ def contract_view(id):
         files=files,
         tasks=tasks,
         colaboradores=colaboradores,
+        ext_colaboradores=ext_colaboradores,
         now=agora,
         ordem_sel=ordem  # ✅ opcional (pra manter marcado, se quiser usar no template)
     )
@@ -1288,6 +1505,7 @@ def painel_colaborador():
         .join(Task, Task.contract_id == Contract.id)
         .filter(Company.active == True)
         .filter(Contract.status == "ativo")
+        .filter(Task.status.in_(["pendente", "andamento"]))
         .filter((Task.assigned_to == current_user.id) | (Task.assigned_to == None))
         .distinct()
         .order_by(Company.name.asc())
@@ -1353,55 +1571,52 @@ def painel_colaborador():
             and t.due_date < hoje
         )
 
+    # ✅ Conquistas (Selo de Aprovação)
+    progressos = TrainingProgress.query.filter_by(user_id=current_user.id).all()
+    conquistas = [p.training for p in progressos if p.training]
+
     return render_template(
         "painel_colaborador.html",
         tarefas=tarefas,
         empresas=empresas,
+        conquistas=conquistas,
         empresa_id_sel=str(empresa_id) if empresa_id else "",
         ordem_sel=ordem
     )
 
 
-    # ============================
-    # LISTA DE EMPRESAS DO FILTRO
-    # ✅ SOMENTE EMPRESAS COM CONTRATO ATIVO
-    # ============================
-    empresas = (
-        db.session.query(Company)
-        .join(Contract, Contract.company_id == Company.id)
-        .filter(
-            Contract.status == "ativo",
-            Company.active == True
-        )
-        .distinct()
-        .order_by(Company.name)
-        .all()
-    )
 
-    return render_template(
-        "painel_colaborador.html",
-        tarefas=tarefas,
-        empresas=empresas
-    )
-
-
-# =====================================================
-# ALTERAR SENHA
-# =====================================================
-@app.route("/alterar_senha", methods=["POST"])
+@app.route("/alterar_senha", methods=["GET", "POST"])
 @login_required
 def alterar_senha():
-    data = request.get_json()
-    senha_atual = data.get("senha_atual")
-    nova_senha = data.get("nova_senha")
+    if request.method == "POST":
+        # Suporta tanto JSON quanto Form normal
+        if request.is_json:
+            data = request.get_json()
+            senha_atual = data.get("senha_atual")
+            nova_senha = data.get("nova_senha")
+            
+            if senha_atual and not current_user.check_password(senha_atual):
+                return jsonify({"sucesso": False, "mensagem": "Senha atual incorreta."})
+            
+            current_user.set_password(nova_senha)
+            db.session.commit()
+            return jsonify({"sucesso": True})
+        else:
+            nova_senha = request.form.get("nova")
+            if not nova_senha:
+                flash("❌ A nova senha não pode estar vazia!", "error")
+                return redirect("/alterar_senha")
+                
+            current_user.set_password(nova_senha)
+            db.session.commit()
+            flash("✅ Senha atualizada com sucesso!", "success")
+            
+            if current_user.role == 'cliente_colaborador':
+                return redirect("/painel_colaborador")
+            return redirect("/dashboard")
 
-    if not current_user.check_password(senha_atual):
-        return jsonify({"sucesso": False, "mensagem": "Senha atual incorreta."})
-
-    current_user.set_password(nova_senha)
-    db.session.commit()
-
-    return jsonify({"sucesso": True})
+    return render_template("alterar_senha.html")
 
 # =====================================================
 # ATIVIDADES (LOGS) — COM FILTROS + ORDENAR + LOAD MORE
@@ -1412,8 +1627,7 @@ def atividades():
     empresa_id = (request.args.get("empresa") or "").strip()
     colaborador_id = (request.args.get("colaborador") or "").strip()
     periodo = (request.args.get("periodo") or "").strip()
-<<<<<<< HEAD
-=======
+
     ordem = (request.args.get("ordem") or "recentes").strip()
 
     # ✅ NOVO: limite só da VISUALIZAÇÃO
@@ -1427,85 +1641,74 @@ def atividades():
         show = 20
     if show > 500:
         show = 500
->>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
 
     query = (
         TaskLog.query
         .join(Task, Task.id == TaskLog.task_id)
         .join(Contract, Contract.id == Task.contract_id)
         .join(Company, Company.id == Contract.company_id)
-<<<<<<< HEAD
         # ✅ não mostrar empresas inativas / contratos inativos
-=======
->>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
         .filter(Company.active == True)
         .filter(Contract.status == "ativo")
     )
-
-<<<<<<< HEAD
-=======
-    # ✅ join para ordenar por colaborador
+# ✅ join para ordenar por colaborador
     query = query.join(User, User.id == TaskLog.user_id)
-
->>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
+    
     # Se não for admin, só vê os próprios logs
     if current_user.role != "admin":
         query = query.filter(TaskLog.user_id == current_user.id)
-
+    
     # filtros
     if empresa_id:
         try:
             query = query.filter(Company.id == int(empresa_id))
         except:
             empresa_id = ""
-
+    
     if colaborador_id:
         try:
             query = query.filter(TaskLog.user_id == int(colaborador_id))
         except:
             colaborador_id = ""
-
+    
     if periodo and " até " in periodo:
         try:
             inicio_str, fim_str = periodo.split(" até ")
-
+    
             data_inicio = datetime.strptime(inicio_str.strip(), "%d/%m/%Y")
             data_fim = datetime.strptime(fim_str.strip(), "%d/%m/%Y")
-
+    
             data_inicio = datetime.combine(data_inicio, time.min)
             data_fim = datetime.combine(data_fim, time.max)
-
+    
             query = query.filter(TaskLog.created_at.between(data_inicio, data_fim))
         except ValueError:
             pass
-
+    
     # ordenação
     if ordem == "antigas":
         query = query.order_by(TaskLog.created_at.asc())
-
-<<<<<<< HEAD
-=======
+    
     elif ordem == "empresa_az":
         query = query.order_by(Company.name.asc(), TaskLog.created_at.desc())
-
+    
     elif ordem == "empresa_za":
         query = query.order_by(Company.name.desc(), TaskLog.created_at.desc())
-
+    
     elif ordem == "colab_az":
         query = query.order_by(User.name.asc(), TaskLog.created_at.desc())
-
+    
     elif ordem == "colab_za":
         query = query.order_by(User.name.desc(), TaskLog.created_at.desc())
-
+    
     else:  # "recentes"
         query = query.order_by(TaskLog.created_at.desc())
-
+    
     # ✅ AQUI: limita visualização e detecta se tem mais
     rows = query.limit(show + 1).all()
     has_more = len(rows) > show
     logs = rows[:show]
-
->>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
+    
     # ✅ Empresas para o select: só ativas e que tenham logs (TaskLog)
     empresas = (
         Company.query
@@ -1518,12 +1721,9 @@ def atividades():
         .order_by(Company.name.asc())
         .all()
     )
-
+    
     # ✅ Colaboradores para o select
-<<<<<<< HEAD
     # Admin vê todos; colaborador vê só ele mesmo
-=======
->>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
     if current_user.role == "admin":
         colaboradores = (
             User.query
@@ -1533,9 +1733,7 @@ def atividades():
         )
     else:
         colaboradores = [current_user]
-
-<<<<<<< HEAD
-=======
+    
     # ✅ Link "Carregar mais" preservando filtros atuais
     next_url = url_for(
         "atividades",
@@ -1545,8 +1743,7 @@ def atividades():
         ordem=ordem or "recentes",
         show=show + 20,
     )
-
->>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
+    
     return render_template(
         "atividades.html",
         logs=logs,
@@ -1554,18 +1751,13 @@ def atividades():
         colaboradores=colaboradores,
         empresa_sel=empresa_id,
         colaborador_sel=colaborador_id,
-<<<<<<< HEAD
-        periodo_sel=periodo
-=======
         periodo_sel=periodo,
         ordem_sel=ordem,
         show=show,           # ✅ opcional pro template exibir “Exibindo 20 por vez”
         has_more=has_more,   # ✅ pro botão aparecer
         next_url=next_url,   # ✅ link pronto
-        total_count=None     # ✅ se quiser depois eu coloco um count leve/condicional
->>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
+        total_count=None,
     )
-
 
 # =====================================================
 # LOGIN / LOGOUT
@@ -1577,7 +1769,6 @@ def login():
         password = request.form["password"]
 
         user = User.query.filter_by(email=email).first()
-
         if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect("/")
@@ -1606,7 +1797,6 @@ def relatorios():
     periodo = request.args.get("periodo", "").strip()  # "dd/mm/yyyy até dd/mm/yyyy"
     ordem = (request.args.get("ordem") or "data_desc").strip()
 
-<<<<<<< HEAD
     # ✅ Empresas para o select (somente as que:
     # - estão ativas
     # - possuem contrato ativo
@@ -1623,7 +1813,6 @@ def relatorios():
         .all()
     )
 
-=======
     # ✅ NOVO: limite apenas da VISUALIZAÇÃO
     try:
         show = int(request.args.get("show", 20))
@@ -1652,7 +1841,6 @@ def relatorios():
         .all()
     )
 
->>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
     # ✅ Base: conclusões (melhor prova de serviço)
     query = (
         TaskCompletion.query
@@ -1660,13 +1848,10 @@ def relatorios():
         .join(Contract, Contract.id == Task.contract_id)
         .join(Company, Company.id == Contract.company_id)
         .filter(Task.status == "concluida")
-<<<<<<< HEAD
         .filter(Company.active == True)        # ✅ não traz empresa inativa
         .filter(Contract.status == "ativo")    # ✅ não traz contrato removido/inativo
-=======
         .filter(Company.active == True)
         .filter(Contract.status == "ativo")
->>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
     )
 
     # Filtro por empresa
@@ -1739,10 +1924,6 @@ def relatorios():
 
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> e9da946352a29362d65d912ed1478bf6b14bb666
 # =====================================================
 # EXPORTAR RELATÓRIOS — EXCEL (COMPLETO + FORMATADO)
 # =====================================================
@@ -2503,6 +2684,472 @@ def relatorios_export_pdf():
 
     nome = f"relatorio_{ano_base}_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
     return send_file(buff, as_attachment=True, download_name=nome, mimetype="application/pdf")
+
+# =====================================================
+# COMUNICADOS, MANUAIS E AUTOMAÇÕES
+# =====================================================
+@app.route("/comunicados")
+@login_required
+def lista_comunicados():
+    admin_only() # ✅ Apenas admins podem ver a página completa de gestão
+    agora_local = agora()
+    
+    comunicados = Announcement.query.filter(
+        (Announcement.expires_at == None) | (Announcement.expires_at > agora_local)
+    ).order_by(Announcement.created_at.desc()).all()
+    
+    manual_admin = SystemManual.query.filter_by(role="admin").first()
+    manual_colab = SystemManual.query.filter_by(role="colaborador").first()
+    manual_externo = SystemManual.query.filter_by(role="cliente_colaborador").first()
+    
+    # Fallback se não existirem
+    if not manual_admin:
+        manual_admin = SystemManual(role="admin", content="")
+        db.session.add(manual_admin)
+    if not manual_colab:
+        manual_colab = SystemManual(role="colaborador", content="")
+        db.session.add(manual_colab)
+    if not manual_externo:
+        manual_externo = SystemManual(role="cliente_colaborador", content="")
+        db.session.add(manual_externo)
+    
+    if db.session.new:
+        db.session.commit()
+    
+    automacoes = Automation.query.order_by(Automation.title.asc()).all()
+    # Pega todos os usuários para o admin poder escolher
+    all_users = User.query.order_by(User.name).all()
+    all_companies = Company.query.order_by(Company.name).all()
+    
+    return render_template(
+        "comunicados.html",
+        comunicados=comunicados,
+        manual_admin=manual_admin,
+        manual_colab=manual_colab,
+        manual_externo=manual_externo,
+        automacoes=automacoes,
+        all_users=all_users,
+        all_companies=all_companies
+    )
+
+@app.route("/comunicados/send", methods=["POST"])
+@login_required
+def send_announcement():
+    admin_only()
+    
+    title = request.form.get("title")
+    message = request.form.get("message")
+    target_type = request.form.get("target_type")  # all | internal | external | company | user | user_internal | user_external
+    target_company_id = request.form.get("target_company_id")
+    target_user_id = request.form.get("target_user_id")
+    
+    # Mapear subtipos para o tipo base 'user'
+    if target_type in ["user_internal", "user_external"]:
+        target_type = "user"
+        
+    duration = request.form.get("duration")  # 1 | 3 | 7 | permanent
+    
+    expires_at = None
+    if duration and duration != "permanent":
+        expires_at = agora() + timedelta(days=int(duration))
+    
+    # Validações extras baseadas no tipo
+    if target_type == "user" and not target_user_id:
+        flash("Selecione um destinatário individual.", "error")
+        return redirect("/comunicados")
+    if target_type == "company" and not target_company_id:
+        flash("Selecione uma empresa específica.", "error")
+        return redirect("/comunicados")
+        
+    novo = Announcement(
+        title=title,
+        message=message,
+        target_type=target_type,
+        target_company_id=int(target_company_id) if (target_type == "company" and target_company_id) else None,
+        target_user_id=int(target_user_id) if (target_type == "user" and target_user_id) else None,
+        sender_id=current_user.id,
+        expires_at=expires_at
+    )
+    db.session.add(novo)
+    db.session.commit()
+    
+    flash("Comunicado enviado com sucesso!", "success")
+    return redirect("/comunicados")
+
+@app.route("/manuais/add", methods=["POST"])
+@login_required
+def add_manual():
+    admin_only()
+    
+    title = request.form.get("title")
+    target_role = request.form.get("target_role") or "colaborador"
+    file = request.files.get("file")
+    
+    if not file or file.filename == "":
+        flash("Selecione um arquivo para o manual.", "error")
+        return redirect("/comunicados")
+        
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(app.config["MANUAIS_FOLDER"], filename)
+    file.save(file_path)
+    
+    novo = Manual(title=title, file_path=file_path, target_role=target_role)
+    db.session.add(novo)
+    db.session.commit()
+    
+    flash("Manual adicionado com sucesso!", "success")
+    return redirect("/comunicados")
+
+@app.route("/automacoes/add", methods=["POST"])
+@login_required
+def add_automation():
+    admin_only()
+    
+    title = request.form.get("title")
+    description = request.form.get("description")
+    link = request.form.get("link")
+    
+    novo = Automation(title=title, description=description, link=link)
+    db.session.add(novo)
+    db.session.commit()
+    
+    flash("Automação adicionada com sucesso!", "success")
+    return redirect("/comunicados")
+
+@app.route("/comunicados/delete/<int:id>", methods=["POST"])
+@login_required
+def delete_announcement(id):
+    admin_only()
+    item = Announcement.query.get_or_404(id)
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({"sucesso": True})
+
+@app.route("/manuais/delete/<int:id>", methods=["POST"])
+@login_required
+def delete_manual(id):
+    admin_only()
+    item = Manual.query.get_or_404(id)
+    try:
+        if os.path.exists(item.file_path):
+            os.remove(item.file_path)
+    except:
+        pass
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({"sucesso": True})
+
+@app.route("/automacoes/delete/<int:id>", methods=["POST"])
+@login_required
+def delete_automation(id):
+    admin_only()
+    novo = Automation.query.get_or_404(id)
+    db.session.delete(novo)
+    db.session.commit()
+    return jsonify({"sucesso": True})
+
+# --- APIs PARA TOPBAR (NOTIFICAÇÕES E AJUDA) ---
+
+@app.route("/api/comunicados/recent")
+@login_required
+def api_comunicados_recent():
+    agora_local = agora()
+    
+    # Lógica de filtro para notificações
+    role_filter = Announcement.target_type == "all"
+    if current_user.role in ["admin", "colaborador"]:
+        role_filter |= (Announcement.target_type == "internal")
+    elif current_user.role == "cliente_colaborador":
+        role_filter |= (Announcement.target_type == "external")
+
+    # Pega IDs de comunicados já lidos pelo usuário
+    lidos = [r.announcement_id for r in AnnouncementRead.query.filter_by(user_id=current_user.id).all()]
+
+    comunicados = Announcement.query.filter(
+        (role_filter) | 
+        ((Announcement.target_type == "user") & (Announcement.target_user_id == current_user.id)) |
+        ((Announcement.target_type == "company") & (Announcement.target_company_id == current_user.company_id)),
+        (Announcement.expires_at == None) | (Announcement.expires_at > agora_local),
+        ~Announcement.id.in_(lidos) if lidos else True
+    ).order_by(Announcement.created_at.desc()).limit(10).all()
+    
+    lista = []
+    for c in comunicados:
+        lista.append({
+            "id": c.id,
+            "title": c.title,
+            "message": c.message[:100] + ("..." if len(c.message) > 100 else ""),
+            "created_at": c.created_at.strftime("%d/%m/%Y"),
+            "sender": c.sender.name if c.sender else "Sistema"
+        })
+    
+    return jsonify({"comunicados": lista})
+
+@app.route("/api/comunicados/read/<int:id>", methods=["POST"])
+@login_required
+def api_comunicados_read(id):
+    # Verifica se já leu
+    existente = AnnouncementRead.query.filter_by(announcement_id=id, user_id=current_user.id).first()
+    if not existente:
+        novo = AnnouncementRead(announcement_id=id, user_id=current_user.id)
+        db.session.add(novo)
+        db.session.commit()
+    return jsonify({"sucesso": True})
+
+@app.route("/api/manuais/save", methods=["POST"])
+@login_required
+def save_system_manual():
+    admin_only()
+    data = request.json
+    role = data.get("role")
+    content = data.get("content")
+    
+    if role not in ["admin", "colaborador", "cliente_colaborador"]:
+        return jsonify({"sucesso": False, "mensagem": "Papel inválido."})
+    
+    manual = SystemManual.query.filter_by(role=role).first()
+    if not manual:
+        manual = SystemManual(role=role)
+        db.session.add(manual)
+    
+    manual.content = content
+    db.session.commit()
+    return jsonify({"sucesso": True})
+
+@app.route("/api/manuais/help")
+@login_required
+def api_manuais_help():
+    # Pega o manual de texto para o cargo do usuário
+    role_buscada = "admin" if current_user.role == "admin" else "colaborador"
+    manual = SystemManual.query.filter_by(role=role_buscada).first()
+    
+    if not manual or not manual.content:
+        return jsonify({"sucesso": False, "mensagem": "Nenhum manual configurado."})
+    
+    return jsonify({
+        "sucesso": True,
+        "content": manual.content
+    })
+
+@app.route("/portal-externo")
+@login_required
+def portal_externo():
+    if current_user.role != "cliente_colaborador":
+        return redirect("/")
+    
+    # Cliente Colaborador vê apenas os da sua empresa ou os específicos para ele
+    treinamentos = Training.query.filter(
+        ((Training.target_type == "company") & (Training.target_company_id == current_user.company_id)) |
+        ((Training.target_type == "user") & (Training.target_user_id == current_user.id))
+    ).order_by(Training.created_at.desc()).all()
+    
+    # Carrega progresso e conquistas
+    progressos = TrainingProgress.query.filter_by(user_id=current_user.id).all()
+    concluidos_ids = [p.training_id for p in progressos]
+    conquistas = [p.training for p in progressos if p.training]
+    
+    return render_template("portal_externo.html", 
+                           treinamentos=treinamentos, 
+                           concluidos_ids=concluidos_ids,
+                           conquistas=conquistas)
+
+# =====================================================
+# TREINAMENTOS (LMS) — LISTA
+# =====================================================
+@app.route("/treinamentos")
+@login_required
+def list_treinamentos():
+    # Admin vê tudo
+    if current_user.role == "admin":
+        treinamentos = Training.query.order_by(Training.created_at.desc()).all()
+        companies = Company.query.filter_by(active=True).order_by(Company.name).all()
+        users = User.query.filter(User.role != 'admin').order_by(User.name).all()
+        concluidos_ids = [p.training_id for p in TrainingProgress.query.all()]
+        return render_template("treinamentos.html", treinamentos=treinamentos, companies=companies, users=users, concluidos_ids=concluidos_ids)
+    
+    # Colaborador Interno vê apenas os específicos para ele
+    elif current_user.role == "colaborador":
+        treinamentos = Training.query.filter(
+            (Training.target_type == "user") & (Training.target_user_id == current_user.id)
+        ).order_by(Training.created_at.desc()).all()
+    
+    # Cliente Colaborador vê apenas os da sua empresa ou os específicos para ele
+    else:
+        treinamentos = Training.query.filter(
+            ((Training.target_type == "company") & (Training.target_company_id == current_user.company_id)) |
+            ((Training.target_type == "user") & (Training.target_user_id == current_user.id))
+        ).order_by(Training.created_at.desc()).all()
+    
+    # Pega progresso do usuário
+    progressos = TrainingProgress.query.filter_by(user_id=current_user.id).all()
+    concluidos_ids = [p.training_id for p in progressos]
+    
+    # Fallback para variáveis de template
+    companies = []
+    users = []
+    if current_user.role == "admin":
+        companies = Company.query.filter_by(active=True).order_by(Company.name).all()
+        users = User.query.filter(User.role != 'admin').order_by(User.name).all()
+
+    return render_template("treinamentos.html", 
+                           treinamentos=treinamentos, 
+                           concluidos_ids=concluidos_ids,
+                           companies=companies,
+                           users=users)
+
+# =====================================================
+# TREINAMENTOS — SALVAR
+# =====================================================
+@app.route("/treinamentos/save", methods=["POST"])
+@login_required
+def save_treinamento():
+    admin_only()
+    
+    id = request.form.get("id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    target_type = request.form.get("target_type")
+    target_company_id = request.form.get("target_company_id")
+    target_user_id = request.form.get("target_user_id")
+    badge_icon = request.form.get("badge_icon", "fa-award")
+    badge_color = request.form.get("badge_color", "#3b82f6")
+    
+    if target_company_id == "all" or not target_company_id:
+        target_company_id = None
+    
+    if target_user_id == "all" or not target_user_id:
+        target_user_id = None
+
+    if id:
+        t = Training.query.get(id)
+        t.title = title
+        t.description = description
+        t.target_type = target_type
+        t.target_company_id = target_company_id
+        t.target_user_id = target_user_id
+        t.badge_icon = badge_icon
+        t.badge_color = badge_color
+    else:
+        t = Training(
+            title=title,
+            description=description,
+            target_type=target_type,
+            target_company_id=target_company_id,
+            target_user_id=target_user_id,
+            badge_icon=badge_icon,
+            badge_color=badge_color
+        )
+        db.session.add(t)
+    
+    # Salvar Avaliação (Assessment)
+    assessment_json = request.form.get("assessment_json")
+    if assessment_json:
+        import json
+        try:
+            questions_data = json.loads(assessment_json)
+            # Limpa questões antigas e insere novas
+            TrainingQuestion.query.filter_by(training_id=t.id).delete()
+            for q_data in questions_data:
+                q = TrainingQuestion(training_id=t.id, question_text=q_data['text'])
+                db.session.add(q)
+                db.session.flush() # Para pegar o ID da questão
+                for opt_data in q_data['options']:
+                    opt = TrainingOption(
+                        question_id=q.id,
+                        option_text=opt_data['text'],
+                        is_correct=opt_data['is_correct']
+                    )
+                    db.session.add(opt)
+        except Exception as e:
+            print(f"Erro ao salvar avaliação: {e}")
+
+    db.session.commit()
+    flash("✅ Treinamento salvo com sucesso!", "success")
+    return redirect("/treinamentos")
+
+@app.route("/api/treinamentos/<int:id>/questions")
+@login_required
+def get_training_questions(id):
+    t = Training.query.get_or_404(id)
+    questions = []
+    for q in t.questions:
+        options = []
+        for opt in q.options:
+            options.append({
+                "id": opt.id,
+                "text": opt.option_text
+            })
+        questions.append({
+            "id": q.id,
+            "text": q.question_text,
+            "options": options
+        })
+    return jsonify(questions)
+
+@app.route("/treinamentos/submit_assessment/<int:id>", methods=["POST"])
+@login_required
+def submit_assessment(id):
+    t = Training.query.get_or_404(id)
+    answers = request.json.get("answers") # {question_id: option_id}
+    
+    total_questions = len(t.questions)
+    if total_questions == 0:
+        # Se não tem prova, marca como concluído direto
+        return complete_training_logic(t.id)
+
+    correct_count = 0
+    for q in t.questions:
+        user_opt_id = answers.get(str(q.id))
+        correct_opt = TrainingOption.query.filter_by(question_id=q.id, is_correct=True).first()
+        if correct_opt and str(correct_opt.id) == str(user_opt_id):
+            correct_count += 1
+            
+    if correct_count == total_questions:
+        return complete_training_logic(t.id)
+    else:
+        return jsonify({
+            "sucesso": False, 
+            "mensagem": f"Você acertou {correct_count} de {total_questions}. Tente novamente para ganhar seu selo!"
+        })
+
+def complete_training_logic(training_id):
+    existing = TrainingProgress.query.filter_by(user_id=current_user.id, training_id=training_id).first()
+    if not existing:
+        novo = TrainingProgress(user_id=current_user.id, training_id=training_id)
+        db.session.add(novo)
+        db.session.commit()
+    return jsonify({"sucesso": True, "mensagem": "Parabéns! Você concluiu o treinamento e ganhou seu selo!"})
+
+# =====================================================
+# TREINAMENTOS — CONCLUIR
+# =====================================================
+@app.route("/treinamentos/complete/<int:id>", methods=["POST"])
+@login_required
+def complete_treinamento(id):
+    existing = TrainingProgress.query.filter_by(user_id=current_user.id, training_id=id).first()
+    if not existing:
+        novo = TrainingProgress(user_id=current_user.id, training_id=id)
+        db.session.add(novo)
+        db.session.commit()
+        return jsonify({"sucesso": True, "mensagem": "✅ Parabéns! Treinamento concluído."})
+    
+    return jsonify({"sucesso": True, "mensagem": "Treinamento já estava concluído."})
+
+# =====================================================
+# TREINAMENTOS — EXCLUIR
+# =====================================================
+@app.route("/treinamentos/delete/<int:id>", methods=["POST"])
+@login_required
+def delete_treinamento(id):
+    admin_only()
+    t = Training.query.get_or_404(id)
+    
+    # Remove progressos associados
+    TrainingProgress.query.filter_by(training_id=id).delete()
+    
+    db.session.delete(t)
+    db.session.commit()
+    return jsonify({"sucesso": True})
 
 # =====================================================
 # EXECUTAR APLICAÇÃO

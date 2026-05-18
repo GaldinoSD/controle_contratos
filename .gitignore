@@ -18,3 +18,8 @@ __pycache__/
 *.pyc
 instance/*.db
 *.db
+
+# Backups and Scratch
+*.bkp_*
+app.py.bkp_*
+scratch/

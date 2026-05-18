@@ -1,72 +1,45 @@
 {% extends "base.html" %}
+{% set page_title = "Dashboard Geral" %}
 {% block content %}
 
-<!-- ======================================================= -->
-<!-- ===================== HEADER COMPACTO ================== -->
-<!-- ======================================================= -->
-<section class="mb-6 relative">
+<!-- ✅ HEADER PREMIUM DASHBOARD -->
+<div class="mb-8 animate-premium">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 glass-premium p-8 rounded-[2.5rem] shadow-xl overflow-hidden relative border border-white/20 dark:border-white/5">
+        <!-- Decorativos -->
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
 
-  <div class="rounded-xl p-5 bg-white/70 dark:bg-slate-900/80 shadow-lg 
-              border border-slate-300 dark:border-slate-800 backdrop-blur-xl 
-              overflow-hidden relative">
-
-    <!-- Glows decorativos -->
-    <div class="absolute -top-8 -left-8 w-28 h-28 
-                bg-blue-400/10 dark:bg-blue-600/20 blur-2xl rounded-full"></div>
-
-    <div class="absolute bottom-0 right-0 w-28 h-28 
-                bg-cyan-400/10 dark:bg-cyan-500/10 blur-2xl rounded-full"></div>
-
-    <div class="relative flex items-center justify-between gap-4">
-
-      <!-- Título -->
-      <div class="flex items-center gap-4">
-        <div class="p-2.5 bg-blue-500/10 dark:bg-blue-600/10 
-                    rounded-lg border border-blue-300/40 dark:border-blue-500/20">
-          <i class="fa-solid fa-chart-line 
-                    text-blue-600 dark:text-blue-400 text-xl"></i>
+        <div class="flex items-center gap-6 relative z-10">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-blue-500/20">
+                <i class="fa-solid fa-chart-pie text-2xl"></i>
+            </div>
+            <div>
+                <nav class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                    <span>Visão Geral</span>
+                    <i class="fa-solid fa-chevron-right text-[8px] opacity-30"></i>
+                    <span class="text-blue-500">Dashboard</span>
+                </nav>
+                <h2 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Painel de Controle</h2>
+            </div>
         </div>
 
-        <div>
-          <h1 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">
-            Painel Geral
-          </h1>
-
-          <p class="text-xs mt-1 text-slate-600 dark:text-slate-400">
-            Visão consolidada das empresas, contratos e tarefas.
-          </p>
+        <!-- ✅ Legenda de status premium -->
+        <div class="flex flex-wrap items-center gap-4 relative z-10">
+            <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">Em dia</span>
+            </div>
+            <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                <span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+                <span class="text-[10px] font-black text-yellow-700 dark:text-yellow-400 uppercase tracking-widest">Atenção</span>
+            </div>
+            <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                <span class="text-[10px] font-black text-red-700 dark:text-red-400 uppercase tracking-widest">Atrasado</span>
+            </div>
         </div>
-      </div>
-
-      <!-- Legenda de status -->
-      <div class="hidden md:flex items-center gap-3 
-                  text-[11px] text-slate-600 dark:text-slate-400">
-
-        <span class="inline-flex items-center gap-1">
-          <span class="w-3 h-3 rounded-full bg-emerald-500/70"></span> Em dia
-        </span>
-
-        <span class="inline-flex items-center gap-1">
-          <span class="w-3 h-3 rounded-full bg-yellow-400/80"></span> Em andamento
-        </span>
-
-        <span class="inline-flex items-center gap-1">
-          <span class="w-3 h-3 rounded-full bg-red-500/80"></span> Com atrasos
-        </span>
-
-      </div>
-
     </div>
-
-  </div>
-
-</section>
-
-
-
-<!-- ======================================================= -->
-<!-- ================== RESUMO SUPERIOR ===================== -->
-<!-- ======================================================= -->
+</div>
 
 {% set ns = namespace(
   total_tarefas=0,
@@ -84,314 +57,190 @@
   {% set ns.total_contratos   = ns.total_contratos   + item.contratos %}
 {% endfor %}
 
-
-<section class="mb-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-
-  <!-- TOTAL TAREFAS -->
-  <div class="rounded-xl bg-white/80 dark:bg-slate-900/80 border 
-              border-slate-300 dark:border-slate-800 shadow-lg p-4 
-              flex items-center gap-3">
-
-    <div class="p-2.5 rounded-lg bg-slate-900/5 dark:bg-slate-100/5">
-      <i class="fa-solid fa-list-check text-slate-700 dark:text-slate-300"></i>
+<!-- ✅ KPI CARDS PREMIUM -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
+    <div class="card-premium p-6 group">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 shadow-lg transition-transform group-hover:scale-110">
+                <i class="fa-solid fa-file-signature text-xl"></i>
+            </div>
+            <span class="text-[9px] font-black text-blue-500 bg-blue-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Ativos</span>
+        </div>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Contratos</p>
+        <h3 class="text-3xl font-black text-slate-800 dark:text-white mt-1">{{ ns.total_contratos }}</h3>
+        <p class="text-[9px] text-slate-400 mt-2">Gestão ativa</p>
     </div>
 
-    <div>
-      <p class="text-[11px] uppercase tracking-wide 
-                text-slate-500 dark:text-slate-400">
-        Tarefas totais
-      </p>
-      <h2 class="text-xl font-bold text-slate-900 dark:text-white">
-        {{ ns.total_tarefas }}
-      </h2>
+    <div class="card-premium p-6 group">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-lg transition-transform group-hover:scale-110">
+                <i class="fa-solid fa-list-check text-xl"></i>
+            </div>
+            <span class="text-[9px] font-black text-slate-400 bg-slate-400/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Total Geral</span>
+        </div>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Tarefas Registradas</p>
+        <h3 class="text-3xl font-black text-slate-800 dark:text-white mt-1">{{ ns.total_tarefas }}</h3>
+        <p class="text-[9px] text-slate-400 mt-2">Volume consolidado</p>
     </div>
 
-  </div>
-
-
-  <!-- CONCLUÍDAS -->
-  <div class="rounded-xl bg-emerald-50/80 dark:bg-emerald-900/40 
-              border border-emerald-300/70 dark:border-emerald-700 
-              shadow-lg p-4 flex items-center gap-3">
-
-    <div class="p-2.5 rounded-lg bg-emerald-500/10">
-      <i class="fa-solid fa-circle-check text-emerald-700 dark:text-emerald-300"></i>
+    <div class="card-premium p-6 group">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 shadow-lg transition-transform group-hover:scale-110">
+                <i class="fa-solid fa-circle-check text-xl"></i>
+            </div>
+            <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Performance</span>
+        </div>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Concluídas</p>
+        <h3 class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ ns.total_concluidas }}</h3>
+        <div class="mt-3 h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+            <div class="h-full bg-emerald-500" style="width: {{ (ns.total_concluidas / (ns.total_tarefas if ns.total_tarefas > 0 else 1) * 100) | round(0) }}%"></div>
+        </div>
     </div>
 
-    <div>
-      <p class="text-[11px] uppercase tracking-wide 
-                text-emerald-700/80 dark:text-emerald-200">
-        Concluídas
-      </p>
-      <h2 class="text-xl font-bold text-emerald-800 dark:text-emerald-100">
-        {{ ns.total_concluidas }}
-      </h2>
+    <div class="card-premium p-6 group">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 shadow-lg transition-transform group-hover:scale-110">
+                <i class="fa-solid fa-hourglass-half text-xl"></i>
+            </div>
+            <span class="text-[9px] font-black text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Em Fila</span>
+        </div>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Pendentes</p>
+        <h3 class="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ ns.total_pendentes }}</h3>
+        <p class="text-[9px] text-slate-400 mt-2">Aguardando execução</p>
     </div>
 
-  </div>
-
-
-  <!-- PENDENTES -->
-  <div class="rounded-xl bg-yellow-50/80 dark:bg-yellow-900/30 
-              border border-yellow-300/70 dark:border-yellow-700 shadow-lg 
-              p-4 flex items-center gap-3">
-
-    <div class="p-2.5 rounded-lg bg-yellow-500/10">
-      <i class="fa-solid fa-hourglass-half 
-                text-yellow-700 dark:text-yellow-300"></i>
+    <div class="card-premium p-6 group">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 shadow-lg transition-transform group-hover:scale-110">
+                <i class="fa-solid fa-circle-exclamation text-xl"></i>
+            </div>
+            <span class="text-[9px] font-black text-red-500 bg-red-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Urgente</span>
+        </div>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Atrasadas</p>
+        <h3 class="text-3xl font-black text-red-600 dark:text-red-400 mt-1">{{ ns.total_atrasadas }}</h3>
+        <p class="text-[9px] text-red-400 mt-2">Ação imediata necessária</p>
     </div>
+</div>
 
-    <div>
-      <p class="text-[11px] uppercase tracking-wide 
-                text-yellow-700/90 dark:text-yellow-200">
-        Pendentes
-      </p>
-      <h2 class="text-xl font-bold text-yellow-800 dark:text-yellow-100">
-        {{ ns.total_pendentes }}
-      </h2>
-    </div>
-
-  </div>
-
-
-  <!-- ATRASADAS -->
-  <div class="rounded-xl bg-red-50/80 dark:bg-red-900/30 border 
-              border-red-300/70 dark:border-red-700 shadow-lg p-4 
-              flex items-center gap-3">
-
-    <div class="p-2.5 rounded-lg bg-red-500/10">
-      <i class="fa-solid fa-circle-exclamation 
-                text-red-700 dark:text-red-300"></i>
-    </div>
-
-    <div>
-      <p class="text-[11px] uppercase tracking-wide 
-                text-red-700/90 dark:text-red-200">
-        Atrasadas
-      </p>
-      <h2 class="text-xl font-bold text-red-800 dark:text-red-100">
-        {{ ns.total_atrasadas }}
-      </h2>
-    </div>
-
-  </div>
-
-</section>
-
-
-
-<!-- ======================================================= -->
-<!-- ======================== GRID ========================= -->
-<!-- ======================================================= -->
-
+<!-- ✅ GRID DE EMPRESAS -->
 {% if dados %}
-
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
   {% for item in dados %}
-
     {% set total = item.total if item.total > 0 else 1 %}
     {% set perc_concluidas = (item.concluidas / total * 100) %}
     {% set perc_pendentes  = (item.pendentes  / total * 100) %}
     {% set perc_atrasadas  = (item.atrasadas  / total * 100) %}
 
     {% if item.atrasadas > 0 %}
-      {% set status_label = "Com atrasos" %}
-      {% set status_color = "bg-red-500/15 text-red-700 dark:text-red-300 border-red-400/60 dark:border-red-500/40" %}
+      {% set status_label = "Crítico" %}
+      {% set status_color = "bg-red-500/10 text-red-600 border-red-500/20" %}
       {% set dot_color = "bg-red-500" %}
-
     {% elif item.pendentes > 0 %}
-      {% set status_label = "Em andamento" %}
-      {% set status_color = "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-400/60 dark:border-yellow-500/40" %}
-      {% set dot_color = "bg-yellow-400" %}
-
+      {% set status_label = "Operacional" %}
+      {% set status_color = "bg-amber-500/10 text-amber-600 border-amber-500/20" %}
+      {% set dot_color = "bg-amber-500" %}
     {% else %}
-      {% set status_label = "Em dia" %}
-      {% set status_color = "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/60 dark:border-emerald-500/40" %}
+      {% set status_label = "Estável" %}
+      {% set status_color = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" %}
       {% set dot_color = "bg-emerald-500" %}
     {% endif %}
 
+    <div class="card-premium p-8 relative overflow-hidden group h-full flex flex-col">
+      <!-- Glow decorativo no card -->
+      <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors"></div>
 
-    <!-- CARD DA EMPRESA -->
-<div class="relative 
-            bg-white/60 dark:bg-slate-900/60 
-            backdrop-blur-xl rounded-xl 
-            border border-slate-300 dark:border-slate-800 
-            shadow-lg hover:shadow-2xl
-            hover:-translate-y-[2px] transition-all duration-200 p-4 overflow-hidden">
-
-  <!-- Glow interno -->
-  <div class="absolute inset-0 
-              bg-gradient-to-br 
-              from-blue-300/10 dark:from-blue-600/10 
-              via-transparent 
-              to-slate-200/10 dark:to-slate-900/10 pointer-events-none">
-  </div>
-
-  <div class="relative z-10 flex flex-col gap-3">
-
-    <!-- Cabeçalho -->
-    <div class="flex items-start justify-between gap-3">
-
-      <div class="flex items-center gap-3">
-
-        {% if item.empresa.logo %}
-          <!-- LOGO DA EMPRESA -->
-          <img src="/{{ item.empresa.logo }}"
-               class="w-12 h-12 rounded-lg object-cover
-                      border border-slate-300 dark:border-slate-700 shadow-sm">
-        {% else %}
-          <!-- AVATAR COM A INICIAL -->
-          <div class="w-12 h-12 flex items-center justify-center 
-                      bg-blue-500/10 dark:bg-blue-600/20
-                      text-blue-700 dark:text-blue-300
-                      rounded-lg text-lg font-bold
-                      border border-blue-300/40 dark:border-blue-500/20">
-            {{ item.empresa.name[0] }}
+      <div class="relative z-10 flex-1 flex flex-col">
+        <!-- Header do Card -->
+        <div class="flex items-start justify-between mb-6">
+          <div class="flex items-center gap-4">
+            {% if item.empresa.logo %}
+              <img src="/{{ item.empresa.logo }}" class="w-14 h-14 rounded-2xl object-cover shadow-lg border border-slate-900/5 dark:border-white/5">
+            {% else %}
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-white/5 dark:to-white/10 flex items-center justify-center text-xl font-black text-slate-500 dark:text-slate-400 border border-slate-900/5 dark:border-white/5 shadow-inner">
+                {{ item.empresa.name[0] }}
+              </div>
+            {% endif %}
+            <div class="min-w-0">
+              <h4 class="text-lg font-black text-slate-800 dark:text-white truncate max-w-[150px]">{{ item.empresa.name }}</h4>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">ID: #{{ item.empresa.id }}</p>
+            </div>
           </div>
-        {% endif %}
-
-        <div>
-          <h2 class="text-lg font-semibold text-slate-800 dark:text-white">
-            {{ item.empresa.name }}
-          </h2>
-
-          <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
-            <span class="font-medium">CNPJ:</span> {{ item.empresa.cnpj }}
-          </p>
-
-          <p class="text-[10px] text-slate-500 dark:text-slate-500">
-            Contratos ativos: <span class="font-semibold">{{ item.contratos }}</span>
-          </p>
+          <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border {{ status_color }} flex items-center gap-1.5 shrink-0">
+            <span class="w-1.5 h-1.5 rounded-full {{ dot_color }}"></span>
+            {{ status_label }}
+          </span>
         </div>
 
-      </div>
+        <!-- Info Grid -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-center justify-between">
+                <div>
+                    <p class="text-[8px] font-black text-blue-500 uppercase tracking-tighter mb-0.5">Contratos</p>
+                    <p class="text-lg font-black text-slate-800 dark:text-white">{{ item.contratos }}</p>
+                </div>
+                <i class="fa-solid fa-file-signature text-blue-200 dark:text-blue-900/50 text-xl"></i>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-900/5 dark:border-white/5 flex items-center justify-between">
+                <div>
+                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-tighter mb-0.5">Tarefas</p>
+                    <p class="text-lg font-black text-slate-800 dark:text-white">{{ item.total }}</p>
+                </div>
+                <i class="fa-solid fa-list-ol text-slate-200 dark:text-slate-800 text-xl"></i>
+            </div>
+        </div>
 
-      <!-- Badge Status -->
-      <span class="inline-flex items-center gap-1 px-2 py-1 text-[10px] rounded-full border {{ status_color }}">
-        <span class="w-2 h-2 rounded-full {{ dot_color }}"></span>
-        {{ status_label }}
-      </span>
+        <div class="grid grid-cols-3 gap-3 mb-8">
+            <div class="text-center p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                <p class="text-[8px] font-black text-emerald-500 uppercase tracking-tighter mb-1">OK</p>
+                <p class="text-sm font-black text-emerald-600 dark:text-emerald-400">{{ item.concluidas }}</p>
+            </div>
+            <div class="text-center p-3 rounded-2xl bg-amber-500/5 border border-amber-500/10">
+                <p class="text-[8px] font-black text-amber-500 uppercase tracking-tighter mb-1">Pendente</p>
+                <p class="text-sm font-black text-amber-600 dark:text-amber-400">{{ item.pendentes }}</p>
+            </div>
+            <div class="text-center p-3 rounded-2xl bg-red-500/5 border border-red-500/10">
+                <p class="text-[8px] font-black text-red-500 uppercase tracking-tighter mb-1">Alerta</p>
+                <p class="text-sm font-black text-red-600 dark:text-red-400">{{ item.atrasadas }}</p>
+            </div>
+        </div>
 
-    </div>
+        <!-- Progress Section -->
+        <div class="mb-8 mt-auto">
+            <div class="flex justify-between items-center mb-2">
+                <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Saúde Operacional</p>
+                <p class="text-[10px] font-black text-blue-600 dark:text-blue-400">{{ perc_concluidas | round(0) }}%</p>
+            </div>
+            <div class="w-full h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden flex shadow-inner">
+                <div class="h-full bg-emerald-500 transition-all duration-700" style="width: {{ perc_concluidas }}%"></div>
+                <div class="h-full bg-amber-400 transition-all duration-700" style="width: {{ perc_pendentes }}%"></div>
+                <div class="h-full bg-red-500 transition-all duration-700" style="width: {{ perc_atrasadas }}%"></div>
+            </div>
+        </div>
 
-    <!-- Mini cards de porcentagem -->
-    <div class="grid grid-cols-3 gap-2 mt-1">
-
-      <div class="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
-        <p class="text-[10px] text-emerald-700 dark:text-emerald-300">Concluídas</p>
-        <h3 class="font-bold text-emerald-700 dark:text-emerald-300 text-sm">
-          {{ perc_concluidas | round(0) }}%
-        </h3>
-      </div>
-
-      <div class="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-center">
-        <p class="text-[10px] text-yellow-700 dark:text-yellow-300">Pendentes</p>
-        <h3 class="font-bold text-yellow-700 dark:text-yellow-300 text-sm">
-          {{ perc_pendentes | round(0) }}%
-        </h3>
-      </div>
-
-      <div class="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
-        <p class="text-[10px] text-red-700 dark:text-red-300">Atrasadas</p>
-        <h3 class="font-bold text-red-700 dark:text-red-300 text-sm">
-          {{ perc_atrasadas | round(0) }}%
-        </h3>
-      </div>
-
-    </div>
-
-    <!-- Barra de progresso -->
-    <div class="mt-2">
-      <div class="flex justify-between text-[10px] mb-1 text-slate-600 dark:text-slate-400">
-        <span>Distribuição das tarefas</span>
-        <span>Total: <strong>{{ item.total }}</strong></span>
-      </div>
-
-      <div class="w-full h-3 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden flex">
-        <div style="width: {{ perc_concluidas }}%;" class="h-full bg-emerald-500/90"></div>
-        <div style="width: {{ perc_pendentes }}%;" class="h-full bg-yellow-400/90"></div>
-        <div style="width: {{ perc_atrasadas }}%;" class="h-full bg-red-500/90"></div>
-      </div>
-
-      <div class="flex justify-between mt-1 text-[10px] text-slate-500 dark:text-slate-500">
-        <span><span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>Concluídas</span>
-        <span><span class="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-1"></span>Pendentes</span>
-        <span><span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>Atrasadas</span>
+        <!-- Action Footer -->
+        <div class="flex items-center justify-between pt-6 border-t border-slate-900/5 dark:border-white/5 mt-auto">
+            <div class="flex items-center gap-3">
+                <div class="flex -space-x-2">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] text-white font-black shadow-lg">G</div>
+                    <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] text-slate-500 font-black shadow-lg">SD</div>
+                </div>
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Equipe Alocada</span>
+            </div>
+            <a href="/contracts" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-blue-500/20 group-hover:px-6 transition-all">
+                Painel <i class="fa-solid fa-arrow-right ml-1"></i>
+            </a>
+        </div>
       </div>
     </div>
-
-    <!-- Indicadores numericos -->
-    <div class="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-
-      <div class="flex items-center justify-between 
-                  bg-slate-100 dark:bg-slate-900/40 
-                  border border-slate-300 dark:border-slate-800 
-                  rounded-lg py-1.5 px-2.5">
-        <div class="flex items-center gap-1.5">
-          <i class="fa-solid fa-list-check text-slate-700 dark:text-slate-300 text-[11px]"></i>
-          <span>Total</span>
-        </div>
-        <span class="font-semibold text-slate-900 dark:text-white">
-          {{ item.total }}
-        </span>
-      </div>
-
-      <div class="flex items-center justify-between 
-                  bg-emerald-100/60 dark:bg-emerald-900/30 
-                  border border-emerald-300 dark:border-emerald-800/60 
-                  rounded-lg py-1.5 px-2.5">
-        <div class="flex items-center gap-1.5">
-          <i class="fa-solid fa-circle-check text-emerald-700 dark:text-emerald-300 text-[11px]"></i>
-          <span>Concluídas</span>
-        </div>
-        <span class="font-semibold text-emerald-800 dark:text-emerald-100">
-          {{ item.concluidas }}
-        </span>
-      </div>
-
-      <div class="flex items-center justify-between 
-                  bg-yellow-100/70 dark:bg-yellow-900/30 
-                  border border-yellow-300 dark:border-yellow-800/60 
-                  rounded-lg py-1.5 px-2.5">
-        <div class="flex items-center gap-1.5">
-          <i class="fa-solid fa-hourglass-half text-yellow-700 dark:text-yellow-300 text-[11px]"></i>
-          <span>Pendentes</span>
-        </div>
-        <span class="font-semibold text-yellow-800 dark:text-yellow-100">
-          {{ item.pendentes }}
-        </span>
-      </div>
-
-      <div class="flex items-center justify-between 
-                  bg-red-100/70 dark:bg-red-900/30 
-                  border border-red-300 dark:border-red-800/60 
-                  rounded-lg py-1.5 px-2.5">
-        <div class="flex items-center gap-1.5">
-          <i class="fa-solid fa-circle-exclamation text-red-700 dark:text-red-300 text-[11px]"></i>
-          <span>Atrasadas</span>
-        </div>
-        <span class="font-semibold text-red-800 dark:text-red-100">
-          {{ item.atrasadas }}
-        </span>
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-
   {% endfor %}
-
 </div>
-
-
 {% else %}
-  <p class="text-center text-slate-500 dark:text-slate-400 mt-10 text-sm italic">
-    Nenhuma empresa com dados de tarefas cadastrados até o momento.
-  </p>
+<div class="text-center py-40 card-premium">
+    <i class="fa-solid fa-folder-open text-6xl text-slate-200 mb-6 block"></i>
+    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium italic">
+        Nenhuma empresa com dados de tarefas cadastrados até o momento.
+    </p>
+</div>
 {% endif %}
 
 {% endblock %}

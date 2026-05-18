@@ -1,309 +1,274 @@
 {% extends "base.html" %}
+{% set page_title = "Meu Painel" %}
 {% block content %}
 
-<!-- ======================================================= -->
-<!-- ===================== HEADER ========================== -->
-<!-- ======================================================= -->
+<!-- ✅ HEADER PREMIUM COLABORADOR -->
+<div class="mb-8 animate-premium">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-6 glass-premium p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl overflow-hidden relative border border-white/20 dark:border-white/5">
+        <!-- Decorativos -->
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
 
-<section class="mb-6">
-  <div class="rounded-2xl p-6 bg-white/80 dark:bg-slate-900/80
-              backdrop-blur-xl border border-slate-300 dark:border-slate-800
-              shadow-xl flex items-center gap-4">
+        <div class="flex items-center gap-3 md:gap-6 relative z-10">
+            <div class="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-blue-500/20">
+                <i class="fa-solid fa-person-digging text-lg md:text-2xl"></i>
+            </div>
+            <div>
+                <nav class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                    <span>Área Operacional</span>
+                    <i class="fa-solid fa-chevron-right text-[8px] opacity-30"></i>
+                    <span class="text-blue-500">Minhas Atividades</span>
+                </nav>
+                <h2 class="text-xl md:text-3xl font-black text-slate-800 dark:text-white tracking-tight">Meu Painel</h2>
+            </div>
+        </div>
 
-    <div class="p-3 rounded-xl bg-blue-600/10 border border-blue-500/30">
-      <i class="fa-solid fa-list-check text-blue-600 text-2xl"></i>
+        <div class="flex flex-col items-end gap-2 relative z-10">
+            <div class="text-right">
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Atividades em Aberto</div>
+                <div class="text-2xl font-black text-blue-600 dark:text-blue-400">{{ tarefas|length }}</div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <div>
-      <h1 class="text-2xl font-bold text-slate-800 dark:text-white">
-        Atividades Pendentes
-      </h1>
-      <p class="text-sm text-slate-600 dark:text-slate-400">
-        Registre etapas e finalize as atividades quando concluir
-      </p>
+<!-- ✅ CONQUISTAS E SELOS -->
+{% if conquistas %}
+<div class="mb-12 animate-premium">
+    <div class="flex items-center gap-3 mb-6 px-4">
+        <div class="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+            <i class="fa-solid fa-trophy text-sm"></i>
+        </div>
+        <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">Minhas Conquistas</h3>
     </div>
-  </div>
-</section>
-
-<!-- ===================== FILTRO + LEGENDA ===================== -->
-<div class="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-
-  <!-- ===== FILTRO POR EMPRESA + REORDENAR ===== -->
-  <form method="GET">
-    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-
-      <label class="text-sm font-medium text-slate-700 dark:text-slate-300">
-        Empresa:
-      </label>
-
-      <select name="empresa_id"
-              onchange="this.form.submit()"
-              class="px-3 py-2 text-sm rounded-lg
-                     bg-white dark:bg-slate-800
-                     border border-slate-300 dark:border-slate-700
-                     text-slate-800 dark:text-slate-200">
-
-        <option value="">Todas as empresas</option>
-
-        {% for empresa in empresas %}
-          <option value="{{ empresa.id }}"
-            {% if empresa.id|string == request.args.get('empresa_id') %}
-              selected
-            {% endif %}
-          >
-            {{ empresa.name }}
-          </option>
+    
+    <div class="flex flex-wrap gap-6 px-2">
+        {% for c in conquistas %}
+        <div class="group relative flex flex-col items-center">
+            <div class="w-20 h-20 rounded-[1.8rem] flex items-center justify-center text-3xl shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:-rotate-6" 
+                 style="background: {{ c.badge_color }}; color: white; box-shadow: 0 15px 30px {{ c.badge_color }}44;">
+                <i class="fa-solid {{ c.badge_icon }}"></i>
+            </div>
+            <div class="absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-20">
+                <div class="bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-2xl">
+                    {{ c.title }}
+                </div>
+            </div>
+        </div>
         {% endfor %}
-
-      </select>
-
-      <!-- ✅ REORDENAR POR ENTREGA -->
-      <label class="text-sm font-medium text-slate-700 dark:text-slate-300 sm:ml-2">
-        Reordenar:
-      </label>
-
-      <!-- mantém empresa_id ao trocar ordem (e vice-versa) -->
-      <input type="hidden" name="empresa_id" value="{{ request.args.get('empresa_id','') }}">
-
-      <select name="ordem"
-              onchange="this.form.submit()"
-              class="px-3 py-2 text-sm rounded-lg
-                     bg-white dark:bg-slate-800
-                     border border-slate-300 dark:border-slate-700
-                     text-slate-800 dark:text-slate-200">
-
-        <option value="due_asc"
-          {% if request.args.get('ordem','due_asc') == 'due_asc' %}selected{% endif %}>
-          Entrega (mais próxima)
-        </option>
-
-        <option value="due_desc"
-          {% if request.args.get('ordem','') == 'due_desc' %}selected{% endif %}>
-          Entrega (mais distante)
-        </option>
-
-      </select>
-
     </div>
-  </form>
-
-  <!-- ===== LEGENDA ===== -->
-  <div class="flex flex-wrap gap-3 text-xs">
-
-    <span class="flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-700">
-      <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
-      Atrasada
-    </span>
-
-    <span class="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 text-yellow-700">
-      <span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
-      Pendente
-    </span>
-
-    <span class="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700">
-      <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-      Em andamento
-    </span>
-
-  </div>
-
-</div>
-
-
-<!-- ======================================================= -->
-<!-- ======================== GRID ========================== -->
-<!-- ======================================================= -->
-
-{% if tarefas %}
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-
-{% for t in tarefas %}
-<div class="relative rounded-2xl p-5
-            bg-gradient-to-br from-white/95 to-slate-100/80
-            dark:from-slate-900/80 dark:to-slate-800/60
-            backdrop-blur-xl border border-slate-300 dark:border-slate-700
-            shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all">
-
-  <!-- STATUS BAR (CORRIGIDA) -->
-  <div class="absolute left-0 top-0 h-full w-1.5 rounded-l-2xl
-    {% if t.is_overdue %}
-      bg-red-600
-    {% elif t.status == 'andamento' %}
-      bg-blue-600
-    {% else %}
-      bg-yellow-500
-    {% endif %}
-  ">
-  </div>
-
-  <!-- BADGE STATUS -->
-  <div class="absolute top-3 right-3">
-    {% if t.is_overdue %}
-      <span class="px-3 py-1 text-[10px] font-bold rounded-full bg-red-600 text-white">
-        ATRASADA
-      </span>
-    {% elif t.status == 'andamento' %}
-      <span class="px-3 py-1 text-[10px] font-bold rounded-full bg-blue-600 text-white">
-        EM ANDAMENTO
-      </span>
-    {% else %}
-      <span class="px-3 py-1 text-[10px] font-bold rounded-full bg-yellow-500 text-white">
-        PENDENTE
-      </span>
-    {% endif %}
-  </div>
-
-  <div class="pl-4 space-y-4">
-
-    <!-- EMPRESA -->
-    <div class="flex items-start gap-3">
-      <div class="p-2 rounded-lg bg-blue-600/10 border border-blue-500/30">
-        <i class="fa-solid fa-building text-blue-600 text-sm"></i>
-      </div>
-
-      <div>
-        <h2 class="text-sm font-semibold text-slate-800 dark:text-white">
-          {{ t.contract.company.name if t.contract and t.contract.company else "Empresa não vinculada" }}
-        </h2>
-        <p class="text-[11px] text-slate-500">
-          {{ t.contract.company.cnpj if t.contract and t.contract.company else "CNPJ não disponível" }}
-        </p>
-      </div>
-    </div>
-
-    <!-- TAREFA -->
-    <div>
-      <h3 class="text-lg font-bold text-slate-800 dark:text-white">
-        {{ t.title }}
-      </h3>
-
-      <p class="text-sm text-slate-700 dark:text-slate-300 mt-1">
-        {{ t.description or "Sem descrição adicional." }}
-      </p>
-
-      <p class="mt-2 text-xs text-slate-500 flex items-center gap-1">
-        <i class="fa-regular fa-calendar"></i>
-        Prazo: {{ t.due_date }}
-      </p>
-    </div>
-
-    <!-- RESUMO ETAPAS (INALTERADO) -->
-    <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-      <span>
-        <i class="fa-solid fa-shoe-prints"></i>
-        {{ t.steps|length }} etapa(s)
-      </span>
-
-      {% if t.steps %}
-      <button onclick="abrirModalVerEtapas({{ t.id }})"
-              class="text-blue-600 hover:underline">
-        Ver etapas
-      </button>
-      {% endif %}
-    </div>
-
-    <!-- AÇÕES (100% IGUAIS AO SEU CÓDIGO) -->
-    <div class="pt-4 border-t border-slate-300 dark:border-slate-700 space-y-2">
-
-      <button onclick="abrirModalEtapa({{ t.id }})"
-        class="w-full py-2 rounded-lg text-xs font-semibold
-               bg-blue-600 hover:bg-blue-700 text-white
-               flex items-center justify-center gap-2">
-        <i class="fa-solid fa-plus"></i>
-        Registrar etapa
-      </button>
-
-      <form action="/task/complete/{{ t.id }}"
-            method="POST"
-            enctype="multipart/form-data"
-            class="space-y-2">
-
-        <textarea name="note" required
-          placeholder="Considerações finais"
-          class="w-full p-2 text-xs rounded-lg
-                 bg-white dark:bg-slate-800/60
-                 border border-slate-400 dark:border-slate-700"></textarea>
-
-        <input type="file" name="files[]" multiple class="text-xs">
-
-        <button
-          class="w-full py-2 rounded-lg text-xs font-semibold
-                 bg-emerald-600 hover:bg-emerald-700 text-white
-                 flex items-center justify-center gap-2">
-          <i class="fa-solid fa-check"></i>
-          Concluir atividade
-        </button>
-
-      </form>
-    </div>
-
-  </div>
-</div>
-
-<!-- MODAL VER ETAPAS (INALTERADO) -->
-<div id="modalVerEtapas-{{ t.id }}"
-     class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm
-            flex items-center justify-center px-4">
-  <div class="w-full max-w-lg bg-white dark:bg-slate-900
-              rounded-2xl shadow-2xl border border-slate-300
-              dark:border-slate-700 p-6">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-bold">Etapas da atividade</h2>
-      <button onclick="fecharModalVerEtapas({{ t.id }})">&times;</button>
-    </div>
-
-    <div class="max-h-80 overflow-y-auto space-y-3 pr-2">
-      {% for s in t.steps %}
-      <div class="relative pl-4 border-l-2 border-blue-500/40">
-        <span class="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-        <p>{{ s.description }}</p>
-        <span class="text-xs text-slate-500">
-          {{ s.created_at.strftime('%d/%m/%Y %H:%M') }}
-        </span>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</div>
-
-{% endfor %}
 </div>
 {% endif %}
 
-<!-- MODAL REGISTRAR ETAPA (INALTERADO) -->
-<div id="modalEtapa"
-     class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm
-            flex items-center justify-center px-4">
-  <div class="relative w-full max-w-md bg-white dark:bg-slate-900
-              rounded-2xl shadow-2xl border p-6">
-    <button onclick="fecharModalEtapa()" class="absolute top-4 right-4">&times;</button>
-    <form id="formEtapa" method="POST">
-      <textarea name="step_description" required rows="4"
-        class="w-full p-3 rounded-xl border"></textarea>
-      <div class="flex justify-end gap-3 mt-4">
-        <button type="button" onclick="fecharModalEtapa()">Cancelar</button>
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
-          Salvar
+
+<!-- ✅ FILTROS E LEGENDAS -->
+<div class="flex flex-col lg:flex-row items-center justify-between gap-6 mb-8 animate-premium">
+    <div class="w-full lg:w-auto flex flex-wrap items-center gap-4">
+        <form method="GET" class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center gap-3 bg-white/50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-2xl px-4 py-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Empresa</span>
+                <select name="empresa_id" onchange="this.form.submit()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-white outline-none cursor-pointer">
+                    <option value="">Todas</option>
+                    {% for empresa in empresas %}
+                    <option value="{{ empresa.id }}" {% if empresa.id|string == request.args.get('empresa_id') %}selected{% endif %}>{{ empresa.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="flex items-center gap-3 bg-white/50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-2xl px-4 py-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ordem</span>
+                <select name="ordem" onchange="this.form.submit()" class="bg-transparent text-xs font-bold text-slate-700 dark:text-white outline-none cursor-pointer">
+                    <option value="due_asc" {% if request.args.get('ordem','due_asc') == 'due_asc' %}selected{% endif %}>Mais Próximas</option>
+                    <option value="due_desc" {% if request.args.get('ordem','') == 'due_desc' %}selected{% endif %}>Mais Distantes</option>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+        <span class="px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Atrasada
+        </span>
+        <span class="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Pendente
+        </span>
+        <span class="px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span> Em Andamento
+        </span>
+    </div>
+</div>
+
+<!-- ✅ GRID DE ATIVIDADES -->
+{% if tarefas %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 animate-premium">
+{% for t in tarefas %}
+<div class="card-premium group relative flex flex-col h-full transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+    <!-- Barra Lateral de Status -->
+    <div class="absolute left-0 top-0 h-full w-2
+        {% if t.is_overdue %}bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]
+        {% elif t.status == 'andamento' %}bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]
+        {% else %}bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]{% endif %}">
+    </div>
+
+    <div class="p-8 flex-1">
+        <div class="flex justify-between items-start mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-blue-600 border border-slate-900/5">
+                    <i class="fa-solid fa-building text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Empresa</p>
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[150px]">
+                        {{ t.contract.company.name if t.contract and t.contract.company else "Não Vinculada" }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="text-right">
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Status</p>
+                <span class="text-[10px] font-bold {% if t.status == 'andamento' %}text-blue-500{% else %}text-amber-500{% endif %} uppercase tracking-tight">
+                    {{ t.status }}
+                </span>
+            </div>
+        </div>
+
+        <h3 class="text-lg font-black text-slate-800 dark:text-white tracking-tight mb-4 group-hover:text-blue-600 transition-colors">
+            {{ t.title }}
+        </h3>
+
+        <div class="space-y-4 mb-6">
+            <div class="flex items-center gap-3">
+                <i class="fa-regular fa-calendar-check text-slate-400 text-sm"></i>
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Prazo de Entrega</p>
+                    <p class="text-xs font-bold {% if t.is_overdue %}text-red-500{% else %}text-slate-700 dark:text-slate-300{% endif %}">
+                        {{ t.due_date.strftime('%d/%m/%Y') if t.due_date else 'Sem prazo' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar (Fake for aesthetic) -->
+        <div class="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden mb-6">
+            <div class="h-full {% if t.status == 'andamento' %}w-1/2 bg-blue-500{% else %}w-1/4 bg-amber-500{% endif %} transition-all duration-1000"></div>
+        </div>
+    </div>
+
+    <!-- Ação -->
+    <div class="px-8 pb-8 flex flex-wrap gap-2 mt-auto">
+        <button onclick="abrirModalEtapa({{ t.id }})" class="flex-1 py-3 bg-blue-600/10 hover:bg-blue-600 text-blue-600 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">
+            <i class="fa-solid fa-plus mr-1"></i> Etapa
         </button>
-      </div>
-    </form>
-  </div>
+        <button onclick="abrirModalFinalizar({{ t.id }})" class="flex-1 py-3 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">
+            <i class="fa-solid fa-check mr-1"></i> Concluir
+        </button>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="py-20 text-center card-premium animate-premium">
+    <div class="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i class="fa-solid fa-mug-hot text-3xl text-amber-600 animate-float"></i>
+    </div>
+    <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight mb-2">Tudo em dia!</h3>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Você não tem atividades pendentes no momento.</p>
+    <div class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900/5 dark:bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400">
+        Aproveite seu café <i class="fa-solid fa-coffee text-amber-600"></i>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.card-premium {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 2.5rem;
+}
+.dark .card-premium {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+</style>
+
+<!-- ✅ MODAIS DE AÇÃO -->
+
+<!-- MODAL REGISTRAR ETAPA -->
+<div id="modalEtapa" class="fixed inset-0 hidden items-center justify-center z-[110] p-4">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="fecharModalEtapa()"></div>
+    <div class="relative w-full max-w-md rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-900/10 dark:border-white/10 shadow-2xl overflow-hidden animate-premium">
+        <div class="p-8 border-b border-slate-900/5 dark:border-white/5 bg-blue-600/5 flex justify-between items-center">
+            <div>
+                <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Registrar Etapa</h3>
+                <p class="text-[9px] font-black text-blue-600 uppercase tracking-widest mt-0.5">Acompanhamento</p>
+            </div>
+            <button onclick="fecharModalEtapa()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form id="formEtapa" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">O que foi feito?</label>
+                <textarea name="step_description" required rows="3" class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-4 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 transition-all resize-none" placeholder="Descreva o progresso..."></textarea>
+            </div>
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Anexo (Opcional)</label>
+                <input type="file" name="file" class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-3 text-xs font-bold dark:text-white outline-none">
+            </div>
+            <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-xl shadow-blue-500/30 transition-all active:scale-95">Salvar Etapa</button>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL FINALIZAR TAREFA -->
+<div id="modalFinalizar" class="fixed inset-0 hidden items-center justify-center z-[110] p-4">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="fecharModalFinalizar()"></div>
+    <div class="relative w-full max-w-md rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-900/10 dark:border-white/10 shadow-2xl overflow-hidden animate-premium">
+        <div class="p-8 border-b border-slate-900/5 dark:border-white/5 bg-emerald-600/5 flex justify-between items-center">
+            <div>
+                <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Concluir Tarefa</h3>
+                <p class="text-[9px] font-black text-emerald-600 uppercase tracking-widest mt-0.5">Entrega Final</p>
+            </div>
+            <button onclick="fecharModalFinalizar()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form id="formFinalizar" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Parecer Final / Observações</label>
+                <textarea name="note" required rows="3" class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-4 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none" placeholder="Descreva os detalhes da conclusão..."></textarea>
+            </div>
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Comprovantes / Arquivos</label>
+                <input type="file" name="files[]" multiple class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-3 text-xs font-bold dark:text-white outline-none">
+            </div>
+            <button type="submit" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-xl shadow-emerald-500/30 transition-all active:scale-95">Finalizar Agora</button>
+        </form>
+    </div>
 </div>
 
 <script>
-function abrirModalEtapa(id){
-  document.getElementById("modalEtapa").classList.remove("hidden");
-  document.getElementById("formEtapa").action = `/task/${id}/add-step`;
+function abrirModalEtapa(id) {
+    document.getElementById("formEtapa").action = `/task/${id}/add-step`;
+    document.getElementById("modalEtapa").classList.remove("hidden");
+    document.getElementById("modalEtapa").classList.add("flex");
 }
-function fecharModalEtapa(){
-  document.getElementById("modalEtapa").classList.add("hidden");
+function fecharModalEtapa() { document.getElementById("modalEtapa").classList.add("hidden"); document.getElementById("modalEtapa").classList.remove("flex"); }
+
+function abrirModalFinalizar(id) {
+    document.getElementById("formFinalizar").action = `/task/complete/${id}`;
+    document.getElementById("modalFinalizar").classList.remove("hidden");
+    document.getElementById("modalFinalizar").classList.add("flex");
 }
-function abrirModalVerEtapas(id){
-  document.getElementById(`modalVerEtapas-${id}`).classList.remove("hidden");
-}
-function fecharModalVerEtapas(id){
-  document.getElementById(`modalVerEtapas-${id}`).classList.add("hidden");
-}
+function fecharModalFinalizar() { document.getElementById("modalFinalizar").classList.add("hidden"); document.getElementById("modalFinalizar").classList.remove("flex"); }
 </script>
 
 {% endblock %}

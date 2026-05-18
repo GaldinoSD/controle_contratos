@@ -1,0 +1,540 @@
+{% extends "base.html" %}
+{% set page_title = "Comunicados e Recursos" %}
+{% block content %}
+
+<!-- ✅ HEADER PREMIUM -->
+<div class="mb-8 animate-premium">
+    <div class="glass-premium p-8 rounded-[3rem] shadow-2xl overflow-hidden relative border border-white/20 dark:border-white/5">
+        <div class="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl"></div>
+               <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="flex items-center gap-6">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-2xl">
+                    <i class="fa-solid fa-bullhorn text-3xl"></i>
+                </div>
+                <div>
+                    <nav class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                        <span>Sistema</span>
+                        <i class="fa-solid fa-chevron-right text-[8px] opacity-30"></i>
+                        <span class="text-blue-500">Comunicação e Recursos</span>
+                    </nav>
+                    <h1 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Comunicados</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ NAVEGAÇÃO DE ABAS -->
+<div class="flex items-center gap-2 mb-8 bg-slate-900/5 dark:bg-white/5 p-1.5 rounded-[2rem] w-fit border border-slate-900/5 dark:border-white/5">
+    <button onclick="switchTab('comunicados')" id="tab-comunicados" class="tab-btn px-8 py-3 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all active-tab">
+        Comunicados
+    </button>
+    <button onclick="switchTab('manuais')" id="tab-manuais" class="tab-btn px-8 py-3 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all text-slate-500 hover:bg-white/50 dark:hover:bg-white/10">
+        Manuais
+    </button>
+    <button onclick="switchTab('automacoes')" id="tab-automacoes" class="tab-btn px-8 py-3 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all text-slate-500 hover:bg-white/50 dark:hover:bg-white/10">
+        Automações
+    </button>
+</div>
+
+<!-- ✅ CONTEÚDO: COMUNICADOS -->
+<div id="content-comunicados" class="tab-content space-y-6">
+    {% if current_user.role == 'admin' %}
+    <div class="flex justify-end mb-6">
+        <button onclick="abrirModalComunicado()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Novo Comunicado
+        </button>
+    </div>
+    {% endif %}
+
+    {% if comunicados|length == 0 %}
+    <div class="text-center py-20 card-premium">
+        <i class="fa-solid fa-envelope-open-text text-6xl text-slate-200 mb-6 block"></i>
+        <p class="text-slate-500 dark:text-slate-400 text-sm font-medium italic">Nenhum comunicado enviado.</p>
+    </div>
+    {% else %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for c in comunicados %}
+        <div class="card-premium group relative p-8 transition-all duration-500 hover:-translate-y-2">
+            <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                <i class="fa-solid fa-quote-right text-4xl"></i>
+            </div>
+            
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Enviado por</p>
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200">{{ c.sender.name }}</p>
+                    </div>
+                </div>
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{{ c.created_at.strftime('%d/%m/%Y') }}</span>
+            </div>
+
+            <h3 class="text-lg font-black text-slate-800 dark:text-white tracking-tight mb-4">{{ c.title }}</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6 line-clamp-4">{{ c.message }}</p>
+            
+            <div class="flex items-center justify-between mt-auto pt-6 border-t border-slate-900/5 dark:border-white/5">
+                <div class="flex flex-wrap gap-2">
+                    {% if c.target_type == 'all' %}
+                        <span class="px-2 py-1 bg-blue-500/10 text-blue-600 text-[8px] font-black uppercase tracking-widest rounded-lg border border-blue-500/20">Para Todos</span>
+                    {% elif c.target_type == 'internal' %}
+                        <span class="px-2 py-1 bg-indigo-500/10 text-indigo-600 text-[8px] font-black uppercase tracking-widest rounded-lg border border-indigo-500/20">Equipe Interna</span>
+                    {% elif c.target_type == 'external' %}
+                        <span class="px-2 py-1 bg-purple-500/10 text-purple-600 text-[8px] font-black uppercase tracking-widest rounded-lg border border-purple-500/20">Todas as Empresas</span>
+                    {% elif c.target_type == 'company' %}
+                        <span class="px-2 py-1 bg-amber-500/10 text-amber-600 text-[8px] font-black uppercase tracking-widest rounded-lg border border-amber-500/20">Empresa: {{ c.target_company.name if c.target_company else 'N/A' }}</span>
+                    {% elif c.target_type == 'user' %}
+                        <span class="px-2 py-1 bg-emerald-500/10 text-emerald-600 text-[8px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/20">Individual: {{ c.target_user.name if c.target_user else 'N/A' }} ({{ c.target_user.company.name if (c.target_user and c.target_user.company) else 'Interno' }})</span>
+                    {% endif %}
+                </div>
+                {% if current_user.role == 'admin' %}
+                <button onclick="deleteItem('comunicados', {{ c.id }})" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- ✅ CONTEÚDO: MANUAIS (SISTEMA) -->
+<div id="content-manuais" class="tab-content hidden space-y-10">
+    {% if current_user.role == 'admin' %}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 🛡️ MANUAL DO ADMINISTRADOR (EDITÁVEL) -->
+            <div class="card-premium p-8 flex flex-col">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-600 shadow-lg">
+                            <i class="fa-solid fa-shield-halved text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">Manual Admin</h3>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Gestão do Sistema</p>
+                        </div>
+                    </div>
+                    <button onclick="saveManual('admin')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all active:scale-95">
+                        Salvar Admin
+                    </button>
+                </div>
+                <textarea id="manual-admin-text" rows="12" class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-[1.5rem] p-6 text-sm font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-4 focus:ring-blue-500/10 transition-all resize-none font-mono flex-1" placeholder="Instruções para administradores...">{{ manual_admin.content if manual_admin else '' }}</textarea>
+            </div>
+
+            <!-- 👥 MANUAL DO COLABORADOR (EDITÁVEL) -->
+            <div class="card-premium p-8 flex flex-col">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shadow-lg">
+                            <i class="fa-solid fa-users-gear text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">Manual Colab</h3>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Uso Operacional</p>
+                        </div>
+                    </div>
+                    <button onclick="saveManual('colaborador')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all active:scale-95">
+                        Salvar Colab
+                    </button>
+                </div>
+                <textarea id="manual-colaborador-text" rows="12" class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-[1.5rem] p-6 text-sm font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all resize-none font-mono flex-1" placeholder="Instruções para colaboradores...">{{ manual_colab.content if manual_colab else '' }}</textarea>
+            </div>
+
+            <!-- 🌐 MANUAL EXTERNO (EDITÁVEL) -->
+            <div class="card-premium p-8 flex flex-col">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 shadow-lg">
+                            <i class="fa-solid fa-globe text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">Manual Externo</h3>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Portal do Cliente</p>
+                        </div>
+                    </div>
+                    <button onclick="saveManual('cliente_colaborador')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest shadow-xl shadow-indigo-500/20 transition-all active:scale-95">
+                        Salvar Externo
+                    </button>
+                </div>
+                <textarea id="manual-cliente_colaborador-text" rows="12" class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-[1.5rem] p-6 text-sm font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none font-mono flex-1" placeholder="Instruções para clientes externos...">{{ manual_externo.content if manual_externo else '' }}</textarea>
+            </div>
+        </div>
+    {% else %}
+        <!-- VISÃO USUÁRIO COMUM / EXTERNO -->
+        <div class="card-premium p-10 max-w-4xl mx-auto shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl"></div>
+            <div class="flex items-center gap-8 mb-10 relative z-10">
+                <div class="w-16 h-16 rounded-[2rem] bg-blue-600/10 flex items-center justify-center text-blue-600 shadow-2xl">
+                    <i class="fa-solid fa-book-open text-3xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Manual do Sistema</h3>
+                    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Guia de Instruções</p>
+                </div>
+            </div>
+            <div class="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{{ manual_colab.content if manual_colab else 'Manual em construção...' }}</div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- ✅ CONTEÚDO: AUTOMAÇÕES -->
+<div id="content-automacoes" class="tab-content hidden space-y-8">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Ferramentas e Automações</h2>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Recursos externos integrados</p>
+        </div>
+        {% if current_user.role == 'admin' %}
+        <button onclick="abrirModalAutomacao()" class="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95">
+            Nova Automação
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for a in automacoes %}
+        <a href="{{ a.link }}" target="_blank" class="card-premium group p-6 block hover:-translate-y-1 transition-all">
+            <div class="flex items-center justify-between mb-6">
+                <div class="w-12 h-12 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                    <i class="fa-solid fa-robot text-xl"></i>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square text-slate-300 text-xs group-hover:text-blue-500 transition-colors"></i>
+            </div>
+            <h3 class="text-sm font-black text-slate-800 dark:text-white mb-2">{{ a.title }}</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4">{{ a.description }}</p>
+            
+            {% if current_user.role == 'admin' %}
+            <div class="flex justify-end pt-4 border-t border-slate-900/5 dark:border-white/5">
+                <button onclick="event.preventDefault(); deleteItem('automacoes', {{ a.id }})" class="text-slate-300 hover:text-red-500 transition-colors">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+            </div>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ✅ MODAIS (ADMIN ONLY) -->
+{% if current_user.role == 'admin' %}
+
+<!-- NOVO COMUNICADO -->
+<div id="modalComunicado" class="fixed inset-0 hidden items-center justify-center z-[110] p-4">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="fecharModalComunicado()"></div>
+    <div class="relative w-full max-w-2xl rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-900/10 dark:border-white/10 shadow-2xl overflow-hidden animate-premium max-h-[90vh] flex flex-col">
+        <div class="p-8 border-b border-slate-900/5 dark:border-white/5 bg-blue-600/5 flex justify-between items-center shrink-0">
+            <div>
+                <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Novo Comunicado</h3>
+                <p class="text-[9px] font-black text-blue-600 uppercase tracking-widest mt-0.5">Disparo de aviso por segmento</p>
+            </div>
+            <button onclick="fecharModalComunicado()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form action="/comunicados/send" method="POST" class="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Coluna Esquerda: Dados Básicos -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Título do Aviso</label>
+                        <input name="title" required placeholder="Ex: Manutenção Programada" class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-3.5 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 transition-all">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Duração do Comunicado</label>
+                        <select name="duration" class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-3.5 text-sm font-bold dark:text-white outline-none transition-all">
+                            <option value="permanent">Permanente</option>
+                            <option value="1">1 Dia</option>
+                            <option value="3">3 Dias</option>
+                            <option value="7">7 Dias</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Mensagem</label>
+                        <textarea name="message" required rows="6" placeholder="Escreva o conteúdo do comunicado..." class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-3.5 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 transition-all resize-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita: Destinatários -->
+                <div class="space-y-6">
+                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Para quem enviar?</label>
+                    
+                    <div class="space-y-4">
+                        <!-- Público Geral -->
+                        <div class="p-4 rounded-2xl border border-slate-900/5 bg-slate-50 dark:bg-white/5 dark:border-white/5">
+                            <p class="text-[8px] font-black text-blue-600 uppercase tracking-widest mb-3">Público Geral</p>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="radio" name="target_type" value="all" checked onclick="updateSelectionUI('all')" class="w-4 h-4 text-blue-600">
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 transition-colors">Todos os Usuários</span>
+                            </label>
+                        </div>
+
+                        <!-- Equipe Interna -->
+                        <div class="p-4 rounded-2xl border border-slate-900/5 bg-slate-50 dark:bg-white/5 dark:border-white/5">
+                            <p class="text-[8px] font-black text-indigo-600 uppercase tracking-widest mb-3">Equipe Interna (Sistema)</p>
+                            <div class="space-y-3">
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input type="radio" name="target_type" value="internal" onclick="updateSelectionUI('internal')" class="w-4 h-4 text-indigo-600">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 transition-colors">Todos (Admins/Colabs)</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input type="radio" name="target_type" value="user_internal" onclick="updateSelectionUI('user_internal')" class="w-4 h-4 text-indigo-600">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 transition-colors">Individual Interno</span>
+                                </label>
+                                <div id="select_user_internal" class="hidden mt-2">
+                                    <select name="target_user_id_internal" onchange="document.getElementById('target_user_id').value = this.value" class="w-full bg-white dark:bg-slate-800 border border-slate-900/10 rounded-lg px-3 py-2 text-xs font-bold">
+                                        <option value="">Selecione...</option>
+                                        {% for u in all_users if u.role in ['admin', 'colaborador'] %}
+                                            <option value="{{ u.id }}">{{ u.name }} ({{ u.role }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Externos -->
+                        <div class="p-4 rounded-2xl border border-slate-900/5 bg-slate-50 dark:bg-white/5 dark:border-white/5">
+                            <p class="text-[8px] font-black text-purple-600 uppercase tracking-widest mb-3">Portal Externo (Empresas)</p>
+                            <div class="space-y-3">
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input type="radio" name="target_type" value="external" onclick="updateSelectionUI('external')" class="w-4 h-4 text-purple-600">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-purple-600 transition-colors">Todas as Empresas</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input type="radio" name="target_type" value="company" onclick="updateSelectionUI('company')" class="w-4 h-4 text-purple-600">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-purple-600 transition-colors">Uma Empresa Específica</span>
+                                </label>
+                                <div id="select_company" class="hidden mt-2">
+                                    <select name="target_company_id" class="w-full bg-white dark:bg-slate-800 border border-slate-900/10 rounded-lg px-3 py-2 text-xs font-bold">
+                                        <option value="">Selecione a empresa...</option>
+                                        {% for e in all_companies %}
+                                            <option value="{{ e.id }}">{{ e.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input type="radio" name="target_type" value="user_external" onclick="updateSelectionUI('user_external')" class="w-4 h-4 text-purple-600">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 group-hover:text-purple-600 transition-colors">Individual Externo</span>
+                                </label>
+                                <div id="select_user_external" class="hidden mt-2">
+                                    <select name="target_user_id_external" onchange="document.getElementById('target_user_id').value = this.value" class="w-full bg-white dark:bg-slate-800 border border-slate-900/10 rounded-lg px-3 py-2 text-xs font-bold">
+                                        <option value="">Selecione...</option>
+                                        {% for u in all_users if u.role == 'cliente_colaborador' %}
+                                            <option value="{{ u.id }}">{{ u.name }} | {{ u.company.name if u.company else 'N/A' }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="target_user_id" id="target_user_id">
+                    <!-- O backend espera target_type 'user' para individuais -->
+                    <input type="hidden" name="real_target_type" id="real_target_type" value="all">
+                </div>
+            </div>
+            
+            <div class="pt-4">
+                <button type="submit" onclick="prepareSubmit(event)" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-xl shadow-blue-500/30 transition-all active:scale-95">Disparar Comunicado Agora</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- NOVO MANUAL -->
+<div id="modalManual" class="fixed inset-0 hidden items-center justify-center z-[110] p-4">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="fecharModalManual()"></div>
+    <div class="relative w-full max-w-md rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-900/10 dark:border-white/10 shadow-2xl overflow-hidden animate-premium">
+        <div class="p-8 border-b border-slate-900/5 dark:border-white/5 bg-slate-600/5 flex justify-between items-center">
+            <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Adicionar Manual</h3>
+            <button onclick="fecharModalManual()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form action="/manuais/add" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Título do Manual</label>
+                <input name="title" required class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-3.5 text-sm font-bold dark:text-white outline-none">
+            </div>
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Destinatário do Manual</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="relative flex items-center justify-center p-4 rounded-xl border-2 border-slate-100 dark:border-white/5 cursor-pointer hover:bg-blue-50 transition-all has-[:checked]:border-blue-600 has-[:checked]:bg-blue-600/5 group">
+                        <input type="radio" name="target_role" value="admin" class="hidden">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-has-[:checked]:text-blue-600">Admin</span>
+                    </label>
+                    <label class="relative flex items-center justify-center p-4 rounded-xl border-2 border-slate-100 dark:border-white/5 cursor-pointer hover:bg-blue-50 transition-all has-[:checked]:border-blue-600 has-[:checked]:bg-blue-600/5 group">
+                        <input type="radio" name="target_role" value="colaborador" class="hidden">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-has-[:checked]:text-blue-600">Colab</span>
+                    </label>
+                    <label class="relative flex items-center justify-center p-4 rounded-xl border-2 border-slate-100 dark:border-white/5 cursor-pointer hover:bg-blue-50 transition-all has-[:checked]:border-blue-600 has-[:checked]:bg-blue-600/5 group">
+                        <input type="radio" name="target_role" value="cliente_colaborador" checked class="hidden">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-has-[:checked]:text-blue-600">Externo</span>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Arquivo (PDF)</label>
+                <input type="file" name="file" required accept=".pdf" class="w-full text-xs font-bold text-slate-400">
+            </div>
+            <button type="submit" class="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all">Salvar Manual</button>
+        </form>
+    </div>
+</div>
+
+<!-- NOVA AUTOMAÇÃO -->
+<div id="modalAutomacao" class="fixed inset-0 hidden items-center justify-center z-[110] p-4">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="fecharModalAutomacao()"></div>
+    <div class="relative w-full max-w-md rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-900/10 dark:border-white/10 shadow-2xl overflow-hidden animate-premium">
+        <div class="p-8 border-b border-slate-900/5 dark:border-white/5 bg-blue-600/5 flex justify-between items-center">
+            <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Nova Automação</h3>
+            <button onclick="fecharModalAutomacao()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form action="/automacoes/add" method="POST" class="p-8 space-y-5">
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Nome da Ferramenta</label>
+                <input name="title" required class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-3.5 text-sm font-bold dark:text-white outline-none">
+            </div>
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Link de Acesso</label>
+                <input name="link" required type="url" placeholder="https://..." class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-3.5 text-sm font-bold dark:text-white outline-none">
+            </div>
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Descrição Curta</label>
+                <textarea name="description" rows="2" class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-xl px-5 py-3.5 text-sm font-bold dark:text-white outline-none resize-none"></textarea>
+            </div>
+            <button type="submit" class="w-full py-4 bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-all">Registrar Automação</button>
+        </form>
+    </div>
+</div>
+
+{% endif %}
+
+<style>
+.active-tab {
+    background: white;
+    color: #2563eb;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+.dark .active-tab {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+</style>
+
+<script>
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active-tab', 'text-blue-600');
+        b.classList.add('text-slate-500');
+    });
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+    
+    document.getElementById('tab-' + tab).classList.add('active-tab');
+    document.getElementById('tab-' + tab).classList.remove('text-slate-500');
+    document.getElementById('content-' + tab).classList.remove('hidden');
+}
+
+function updateSelectionUI(type) {
+    // Esconde todos os selects extras
+    document.getElementById('select_user_internal').classList.add('hidden');
+    document.getElementById('select_company').classList.add('hidden');
+    document.getElementById('select_user_external').classList.add('hidden');
+    
+    // Reseta o hidden input de user_id
+    document.getElementById('target_user_id').value = '';
+    
+    // Mostra o select necessário
+    if (type === 'user_internal') {
+        document.getElementById('select_user_internal').classList.remove('hidden');
+    } else if (type === 'company') {
+        document.getElementById('select_company').classList.remove('hidden');
+    } else if (type === 'user_external') {
+        document.getElementById('select_user_external').classList.remove('hidden');
+    }
+}
+
+function prepareSubmit(e) {
+    const form = e.target.closest('form');
+    const selectedType = form.querySelector('input[name="target_type"]:checked').value;
+    
+    // O backend espera types específicos. Vamos mapear os 'user_internal' e 'user_external' para 'user'
+    let finalType = selectedType;
+    if (selectedType === 'user_internal' || selectedType === 'user_external') {
+        finalType = 'user';
+    }
+    
+    // Criamos um input hidden temporário ou alteramos o valor do original se necessário
+    // Mas para não quebrar o form original, vamos injetar um input target_type final
+    let hiddenTarget = form.querySelector('input[name="final_target_type"]');
+    if (!hiddenTarget) {
+        hiddenTarget = document.createElement('input');
+        hiddenTarget.type = 'hidden';
+        hiddenTarget.name = 'target_type'; // Sobrescreve o radio se necessário, mas melhor mudar o nome do radio
+        form.appendChild(hiddenTarget);
+    }
+}
+
+// Sobrescrevendo a função original de envio para tratar o target_type
+document.addEventListener('submit', function(e) {
+    if (e.target.action.includes('/comunicados/send')) {
+        const selectedRadio = e.target.querySelector('input[name="target_type"]:checked');
+        if (selectedRadio) {
+            const val = selectedRadio.value;
+            // Se for um dos tipos individuais, muda o valor que vai para o servidor para 'user'
+            if (val === 'user_internal' || val === 'user_external') {
+                // Criamos um novo input que será enviado com o nome correto
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'target_type_fixed';
+                hidden.value = 'user';
+                e.target.appendChild(hidden);
+                
+                // Removemos o name do radio para não conflitar
+                selectedRadio.removeAttribute('name');
+                // Adicionamos um input hidden com o nome original e valor fixo
+                const h2 = document.createElement('input');
+                h2.type = 'hidden';
+                h2.name = 'target_type';
+                h2.value = 'user';
+                e.target.appendChild(h2);
+            }
+        }
+    }
+});
+
+function saveManual(role) {
+    const content = document.getElementById(`manual-${role}-text`).value;
+    fetch('/api/manuais/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: role, content: content })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.sucesso) {
+            alert('Manual salvo com sucesso!');
+        } else {
+            alert('Erro ao salvar manual: ' + data.mensagem);
+        }
+    });
+}
+
+function deleteItem(type, id) {
+    if(!confirm('Deseja realmente excluir este item?')) return;
+    fetch(`/${type}/delete/${id}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => { if(data.sucesso) window.location.reload(); });
+}
+
+function abrirModalComunicado() { document.getElementById("modalComunicado").classList.remove("hidden"); document.getElementById("modalComunicado").classList.add("flex"); }
+function fecharModalComunicado() { document.getElementById("modalComunicado").classList.add("hidden"); document.getElementById("modalComunicado").classList.remove("flex"); }
+function abrirModalManual() { document.getElementById("modalManual").classList.remove("hidden"); document.getElementById("modalManual").classList.add("flex"); }
+function fecharModalManual() { document.getElementById("modalManual").classList.add("hidden"); document.getElementById("modalManual").classList.remove("flex"); }
+function abrirModalAutomacao() { document.getElementById("modalAutomacao").classList.remove("hidden"); document.getElementById("modalAutomacao").classList.add("flex"); }
+function fecharModalAutomacao() { document.getElementById("modalAutomacao").classList.add("hidden"); document.getElementById("modalAutomacao").classList.remove("flex"); }
+</script>
+
+{% endblock %}

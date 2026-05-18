@@ -22,7 +22,13 @@
   <script>
     tailwind.config = {
       darkMode: "class",
-      theme: { extend: {} }
+      theme: {
+        extend: {
+          boxShadow: {
+            glass: "0 18px 60px rgba(0,0,0,.45)",
+          }
+        }
+      }
     };
 
     (function () {
@@ -32,477 +38,825 @@
   </script>
 
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+      font-family: 'Outfit', sans-serif;
     }
+
+    /* ✅ SIDEBAR FIXO */
+    #sidebar {
+      width: 260px;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 50;
+      background: white;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .dark #sidebar { background: #0f172a; }
+
+    /* ✅ MAIN CONTENT ADJUSTMENT */
+    #main-content {
+      margin-left: 260px;
+      min-height: 100vh;
+      transition: padding 0.3s ease;
+    }
+
+    @media (max-width: 1024px) {
+      #sidebar {
+        transform: translateX(-100%);
+      }
+      #sidebar.mobile-open {
+        transform: translateX(0);
+        left: 0;
+      }
+      #main-content {
+        margin-left: 0;
+      }
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* ✅ NOTIFICATION DRAWER */
+    #notification-drawer {
+      width: 350px;
+      height: 100vh;
+      position: fixed;
+      right: 0;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      box-shadow: -10px 0 30px rgba(0,0,0,0.05);
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      border-left: 1px border-slate-900/10;
+    }
+    .dark #notification-drawer { background: rgba(15, 23, 42, 0.95); border-left-color: rgba(255,255,255,0.05); }
+    #notification-drawer.open { transform: translateX(0); }
+    
+    #drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    #drawer-overlay.visible { opacity: 1; pointer-events: auto; }
+
+    /* TOAST NOTIFICATION */
+    #toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .toast {
+      background: white;
+      padding: 16px 24px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+      border: 1px border-slate-900/5;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(120%);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      min-width: 300px;
+    }
+    .dark .toast {
+      background: #1e293b;
+      border-color: rgba(255,255,255,0.05);
+    }
+    .toast.show {
+      transform: translateX(0);
+    }
+    .toast-success { border-left: 4px solid #10b981; }
+    .toast-error { border-left: 4px solid #ef4444; }
+    .toast-info { border-left: 4px solid #3b82f6; }
+    .toast-warning { border-left: 4px solid #f59e0b; }
+
+    .toast-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: rgba(0,0,0,0.1);
+      width: 100%;
+      transform-origin: left;
+    }
+    .toast-success .toast-progress-bar { background: #10b981; }
+    .toast-error .toast-progress-bar { background: #ef4444; }
+    .toast-info .toast-progress-bar { background: #3b82f6; }
+    .toast-warning .toast-progress-bar { background: #f59e0b; }
+
+    @keyframes toast-progress-anim {
+      from { transform: scaleX(1); }
+      to { transform: scaleX(0); }
+    }
+    .toast-progress-bar {
+      height: 100%;
+      width: 100%;
+      animation: toast-progress-anim 4s linear forwards;
+    }
+
+    /* ✅ PREMIUM DESIGN TOKENS */
+    :root {
+      --card-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+      --card-shadow-hover: 0 20px 60px -15px rgba(0,0,0,0.1);
+    }
+    .dark :root {
+      --card-shadow: 0 10px 40px -10px rgba(0,0,0,0.3);
+      --card-shadow-hover: 0 20px 60px -15px rgba(0,0,0,0.5);
+    }
+
+    .card-premium {
+      background: white;
+      border-radius: 2rem;
+      border: 1px solid rgba(15, 23, 42, 0.05);
+      box-shadow: var(--card-shadow);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .dark .card-premium {
+      background: rgba(30, 41, 59, 0.4);
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+    .card-premium:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--card-shadow-hover);
+      border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .glass-premium {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .dark .glass-premium {
+      background: rgba(15, 23, 42, 0.7);
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-premium {
+      padding: 0.75rem 1.5rem;
+      border-radius: 1rem;
+      font-weight: 700;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn-premium:active { transform: scale(0.95); }
   </style>
 </head>
 
-<body class="h-full
-             bg-slate-100 text-slate-800
-             dark:bg-slate-950 dark:text-slate-100
-             transition-colors duration-300">
-
-<div class="min-h-screen flex">
-
-  <!-- ===================================================
-       SIDEBAR RETRÁTIL PREMIUM
-  ==================================================== -->
-  <aside
-    class="group fixed top-0 left-0 h-full
-           bg-white/90 border-r border-slate-200
-           dark:bg-slate-900/90 dark:border-slate-800
-           flex flex-col transition-all duration-300
-           w-16 hover:w-56 overflow-hidden z-50">
-
-    <!-- LOGO (maior, sempre visível no retraído, sem clique) + TOOLTIP -->
-    <div class="border-b border-slate-200 dark:border-slate-800
-                px-2 py-3 group-hover:p-4 transition-all duration-300">
-
-      <div class="relative group/logo flex items-center justify-center group-hover:justify-start
-                  gap-0 group-hover:gap-3 transition-all duration-300 select-none">
-
-        <!-- Logo MAIOR e garantida no w-16 -->
-        <div class="w-12 h-12 rounded-2xl flex items-center justify-center
-                    bg-white border border-slate-200 shadow-md
-                    dark:bg-slate-950 dark:border-slate-700
-                    cursor-default">
-          <img src="{{ url_for('static', filename='logo.png') }}"
-               alt="Logo do sistema"
-               class="w-10 h-10 object-contain">
-        </div>
-
-        <!-- Tooltip (aparece no hover da logo) -->
-        <div class="absolute left-2 top-[58px]
-                    opacity-0 translate-y-1 scale-95
-                    group-hover/logo:opacity-100 group-hover/logo:translate-y-0 group-hover/logo:scale-100
-                    pointer-events-none
-                    transition-all duration-200 ease-out
-                    z-[60]">
-          <div class="rounded-xl border border-slate-200/70 bg-white/95 shadow-xl
-                      dark:border-slate-700/70 dark:bg-slate-900/95
-                      px-3 py-2 w-max max-w-[260px]">
-
-            <div class="text-[11px] font-semibold text-slate-800 dark:text-white tracking-wide">
-              Gestão de Contratos
-            </div>
-
-            <div class="mt-1 text-[10px] text-slate-600 dark:text-slate-300">
-              Versão <span class="font-semibold text-blue-600 dark:text-blue-400">v1.1.0</span>
-            </div>
-
-            <div class="text-[10px] text-slate-500 dark:text-slate-400">
-              Desenvolvido por <span class="text-slate-800 dark:text-slate-100 font-medium">Jonatas de A. Galdino</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Texto não ocupa espaço quando retraído -->
-        <div class="max-w-0 overflow-hidden opacity-0
-                    group-hover:max-w-[200px] group-hover:opacity-100
-                    transition-all duration-300">
-          <h1 class="text-lg font-bold whitespace-nowrap text-slate-800 dark:text-white">
-            Gerenciamento
-          </h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-            Gestão de contratos
-          </p>
-        </div>
-
+<body class="min-h-screen bg-[#f8fafc] dark:bg-[#020617] transition-colors duration-300">
+  <div id="toast-container"></div>
+  <div class="flex">
+    
+    <!-- ✅ SIDEBAR LATERAL -->
+    {% if current_user.is_authenticated %}
+    <aside id="sidebar" class="border-r border-slate-900/10 dark:border-white/10 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+      
+      <!-- TOP: LOGO -->
+      <div class="p-6 flex items-center justify-center h-20 shrink-0">
+        <img src="{{ url_for('static', filename='logo.png') }}" class="h-10 w-auto object-contain drop-shadow-sm" alt="Logo">
       </div>
-    </div>
 
-    <!-- MENU -->
-    <nav class="flex-1 p-3 space-y-1 text-sm">
+      <!-- MIDDLE: MENU -->
+      <nav class="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-1.5 custom-scrollbar pb-24">
+        {% if current_user.role == 'admin' %}
+          <!-- ===================== ADMIN ===================== -->
+          <div class="py-3 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500">Gestão</div>
+          
+          <a href="/" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/' %}
+                      bg-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-chart-pie w-5 text-center text-base {% if request.path == '/' %}text-white{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Dashboard</span>
+          </a>
 
-      {% if current_user.is_authenticated %}
-      {% if current_user.role == 'admin' %}
+          <a href="/contracts" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/contracts' or '/contract/' in request.path %}
+                      bg-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-file-contract w-5 text-center text-base {% if request.path == '/contracts' or '/contract/' in request.path %}text-white{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Contratos</span>
+          </a>
 
-      <!-- DASHBOARD -->
-      <a href="{{ url_for('dashboard') }}"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg
-                hover:bg-slate-200 dark:hover:bg-slate-800/80
-                transition">
-        <i class="fa-solid fa-gauge-high text-blue-500 dark:text-blue-400 text-xl"></i>
-        <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
-          Dashboard
-        </span>
-      </a>
+          <a href="/colaboradores" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/colaboradores' %}
+                      bg-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-users w-5 text-center text-base {% if request.path == '/colaboradores' %}text-white{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Colaboradores</span>
+          </a>
 
-      <!-- TÍTULO ADMINISTRAÇÃO -->
-      <p class="text-[11px] mt-5 ml-3 font-semibold tracking-wide
-                opacity-0 group-hover:opacity-100 transition duration-300
-                text-slate-500 dark:text-slate-500">
-        Administração
-      </p>
+          <a href="/comunicados" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/comunicados' %}
+                      bg-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-bullhorn w-5 text-center text-base {% if request.path == '/comunicados' %}text-white{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Comunicados</span>
+          </a>
 
-      <a href="/contracts"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg
-                hover:bg-slate-200 dark:hover:bg-slate-800/80
-                transition">
-        <i class="fa-regular fa-folder-open text-blue-500 dark:text-blue-300 text-xl"></i>
-        <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
-          Contratos
-        </span>
-      </a>
+          <a href="/treinamentos" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/treinamentos' %}
+                      bg-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-graduation-cap w-5 text-center text-base {% if request.path == '/treinamentos' %}text-white{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Treinamentos</span>
+          </a>
 
-      <a href="/atividades"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg
-                hover:bg-slate-200 dark:hover:bg-slate-800/80
-                transition">
-        <i class="fa-solid fa-list-check text-blue-500 dark:text-blue-300 text-xl"></i>
-        <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
-          Atividades
-        </span>
-      </a>
+          <a href="/relatorios" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/relatorios' %}
+                      bg-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-chart-column w-5 text-center text-base {% if request.path == '/relatorios' %}text-white{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Relatórios</span>
+          </a>
 
-      <!-- ✅ NOVO BOTÃO: RELATÓRIOS -->
-      <a href="/relatorios"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg
-                hover:bg-slate-200 dark:hover:bg-slate-800/80
-                transition">
-        <i class="fa-solid fa-chart-column text-blue-500 dark:text-blue-300 text-xl"></i>
-        <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
-          Relatórios
-        </span>
-      </a>
+          <a href="/atividades" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/atividades' %}
+                      bg-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-clock-rotate-left w-5 text-center text-base {% if request.path == '/atividades' %}text-white{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Atividades</span>
+          </a>
 
-      <a href="/colaboradores"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg
-                hover:bg-slate-200 dark:hover:bg-slate-800/80
-                transition">
-        <i class="fa-solid fa-users text-blue-500 dark:text-blue-300 text-xl"></i>
-        <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
-          Colaboradores
-        </span>
-      </a>
+          <div class="py-3 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500 mt-6">Configurações</div>
+          
+          <a href="/administradores" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/administradores' %}
+                      bg-slate-800 dark:bg-white text-white dark:text-slate-900 shadow-xl scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-user-shield w-5 text-center text-base {% if request.path == '/administradores' %}text-white dark:text-slate-900{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Administradores</span>
+          </a>
 
-      <!-- TÍTULO CONFIGURAÇÕES -->
-      <p class="text-[11px] mt-4 ml-3 font-semibold tracking-wide
-                opacity-0 group-hover:opacity-100 transition duration-300
-                text-slate-500 dark:text-slate-500">
-        Configurações
-      </p>
+        {% elif current_user.role == 'colaborador' %}
+          <!-- ===================== COLABORADOR INTERNO ===================== -->
+          <div class="py-3 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500">Operacional</div>
+          
+          <a href="/painel-colaborador" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/painel-colaborador' %}
+                      bg-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-list-check w-5 text-center text-base {% if request.path == '/painel-colaborador' %}text-white{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Minhas Atividades</span>
+          </a>
 
-      <a href="/administradores"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg
-                hover:bg-slate-200 dark:hover:bg-slate-800/80
-                transition">
-        <i class="fa-solid fa-user-shield text-blue-500 dark:text-blue-300 text-xl"></i>
-        <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
-          Administradores
-        </span>
-      </a>
+          <a href="/treinamentos" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/treinamentos' %}
+                      bg-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-graduation-cap w-5 text-center text-base {% if request.path == '/treinamentos' %}text-white{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Treinamentos</span>
+          </a>
 
-      {% else %}
-
-      <!-- ===================== COLABORADOR ===================== -->
-
-      <a href="/painel-colaborador"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg
-                hover:bg-slate-200 dark:hover:bg-slate-800/80
-                transition">
-        <i class="fa-solid fa-list-check text-blue-500 dark:text-blue-300 text-xl"></i>
-        <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
-          Minhas Atividades
-        </span>
-      </a>
-
-      <button onclick="abrirModalSenha()"
-              class="w-full flex items-center gap-3 px-3 py-2 rounded-lg
-                     hover:bg-slate-200 dark:hover:bg-slate-800/80
-                     transition">
-        <i class="fa-solid fa-key text-blue-500 dark:text-blue-300 text-xl"></i>
-        <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
-          Alterar Senha
-        </span>
-      </button>
-
-      {% endif %}
-      {% endif %}
-
-      <!-- Sair -->
-      <a href="/logout"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg
-                hover:bg-red-100 dark:hover:bg-red-900/40
-                text-red-600 dark:text-red-400 mt-6 transition">
-        <i class="fa-solid fa-arrow-right-from-bracket text-xl"></i>
-        <span class="opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
-          Sair
-        </span>
-      </a>
-
-    </nav>
-
-    <!-- FOOTER SIDEBAR -->
-    <div class="p-4 border-t
-                border-slate-200 dark:border-slate-800
-                text-xs text-slate-500 dark:text-slate-500
-                whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
-      Sistema de Contratos • WK Consultoria
-    </div>
-
-  </aside>
-
-  <!-- ===================================================
-       CONTEÚDO PRINCIPAL
-  ==================================================== -->
-  <main class="flex-1 ml-16 group-hover:ml-56 transition-all duration-300">
-
-    <!-- HEADER COM BOTÃO DE TEMA -->
-    <header class="border-b
-                   border-slate-200 dark:border-slate-800
-                   bg-white/80 dark:bg-slate-900/80
-                   backdrop-blur">
-
-      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-
-        <div>
-          <h2 class="text-lg font-semibold
-                     text-slate-800 dark:text-white">
-            {{ page_title or 'Painel' }}
-          </h2>
-          <p class="text-xs
-                    text-slate-600 dark:text-slate-400">
-            Sistema de gestão de contratos.
-          </p>
-        </div>
-
-        <div class="flex items-center gap-4">
-
-          <!-- BOTÃO DE TEMA -->
-          <button id="themeToggle"
-                  class="p-2 rounded-lg border
-                         border-slate-300 dark:border-slate-700
-                         bg-white/80 dark:bg-slate-800/60
-                         hover:bg-slate-100 dark:hover:bg-slate-700
-                         transition">
-            <i id="temaIcone" class="fa-solid fa-moon text-blue-500 text-lg"></i>
+          <div class="py-3 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500 mt-6">Conta</div>
+          <button onclick="abrirModalSenha()" 
+             class="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white">
+            <i class="fa-solid fa-key w-5 text-center text-base text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Alterar Senha</span>
           </button>
 
-          {% if current_user.is_authenticated %}
-          <div class="flex items-center gap-3 text-xs
-                      text-slate-600 dark:text-slate-400">
-            <i class="fa-solid fa-user-shield text-blue-500 dark:text-blue-400"></i>
-            {{ current_user.name }}
+        {% elif current_user.role == 'cliente_colaborador' %}
+          <!-- ===================== PORTAL EXTERNO ===================== -->
+          <div class="py-3 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500">Portal do Cliente</div>
+          
+          <a href="/portal-externo" 
+             class="flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    {% if request.path == '/portal-externo' %}
+                      bg-blue-600 text-white shadow-xl shadow-blue-500/30 scale-[1.02]
+                    {% else %}
+                      text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white
+                    {% endif %}">
+            <i class="fa-solid fa-graduation-cap w-5 text-center text-base {% if request.path == '/portal-externo' %}text-white{% else %}text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200{% endif %} transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Meus Treinamentos</span>
+          </a>
+
+          <div class="py-3 px-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500 mt-6">Conta</div>
+          <button onclick="abrirModalSenha()" 
+             class="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group
+                    text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white">
+            <i class="fa-solid fa-key w-5 text-center text-base text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors"></i>
+            <span class="text-[13px] font-bold tracking-tight">Alterar Senha</span>
+          </button>
+        {% endif %}
+
+      </nav>
+
+      <!-- BOTTOM: ACTIONS -->
+      <div class="p-4 border-t border-slate-900/5 dark:border-white/5 space-y-1.5">
+        
+        <button id="themeToggle" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-all duration-300 group text-slate-500 dark:text-gray-400 hover:bg-slate-900/5 dark:hover:bg-white/5">
+          <i id="temaIcone" class="fa-solid fa-moon w-5 text-center text-base text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-colors"></i>
+          <span class="text-[13px] font-bold tracking-tight">Mudar Tema</span>
+        </button>
+
+        <a href="/logout" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-300 group">
+          <i class="fa-solid fa-right-from-bracket w-5 text-center text-base transition-transform group-hover:translate-x-1"></i>
+          <span class="text-[13px] font-bold tracking-tight">Sair da Conta</span>
+        </a>
+
+        <div class="flex items-center gap-3 px-4 py-4 rounded-[1.5rem] bg-slate-900/5 dark:bg-white/5 mt-4 border border-slate-900/5 dark:border-white/5">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black shrink-0 shadow-lg shadow-blue-500/20">
+            {{ (current_user.name[0] if current_user.name else current_user.email[0]) | upper }}
           </div>
-          {% endif %}
-
+          <div class="min-w-0 flex-1">
+            <div class="text-[12px] font-black text-slate-800 dark:text-white truncate uppercase tracking-tight">{{ current_user.name }}</div>
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ current_user.role }}</div>
+          </div>
         </div>
-
       </div>
-    </header>
+    </aside>
+    {% endif %}
 
-    <!-- FLASH MESSAGES -->
-    <div class="max-w-7xl mx-auto px-6 pt-4">
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div id="main-content" class="flex flex-col min-h-screen flex-1 min-w-0 bg-[#f8fafc] dark:bg-[#020617]">
+      
+      <!-- TOPBAR (Modern & Functional) -->
+      <header class="h-20 border-b border-slate-900/5 dark:border-white/5 flex items-center justify-between px-8 sticky top-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl z-40">
+        <div class="flex items-center gap-6">
+          <button id="btnMobileToggle" class="lg:hidden p-3 rounded-2xl bg-slate-900/5 dark:bg-white/5 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all active:scale-95">
+            <i class="fa-solid fa-bars-staggered text-lg"></i>
+          </button>
+          
+          <div class="flex items-center gap-4">
+            <h1 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.1em] hidden md:block">Sistema de Gestão de Contratos</h1>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <!-- ✅ RELÓGIO -->
+            <div class="flex items-center gap-3 md:gap-6 md:px-6 border-r border-slate-900/5 dark:border-white/5">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                  <i class="fa-solid fa-clock text-sm"></i>
+                </div>
+                <div id="topbar-clock" class="text-[11px] md:text-xs font-black text-slate-700 dark:text-white leading-none font-mono min-w-[65px] md:min-w-[75px] text-center">00:00:00</div>
+              </div>
+            </div>
+
+           <div class="flex items-center gap-1 sm:gap-2 pr-4 border-r border-slate-900/5 dark:border-white/5">
+             <!-- ✅ SUPORTE WHATSAPP -->
+             <a href="https://wa.me/5521995587180" target="_blank" title="Suporte Técnico"
+                class="p-2 rounded-xl text-emerald-500 hover:bg-emerald-500/10 transition-all">
+               <i class="fa-brands fa-whatsapp text-lg md:text-xl"></i>
+             </a>
+
+             <button onclick="toggleNotifications()" class="p-2 rounded-xl text-slate-400 hover:bg-slate-900/5 dark:hover:bg-white/5 transition-all relative">
+               <i class="fa-solid fa-bell text-base md:text-lg"></i>
+               <span id="notif-badge" class="hidden absolute top-1.5 right-1.5 px-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border border-white dark:border-slate-900 animate-bounce">0</span>
+             </button>
+
+             <button onclick="toggleHelp()" title="Informações e Manuais" class="p-2 rounded-xl text-slate-400 hover:bg-slate-900/5 dark:hover:bg-white/5 transition-all">
+               <i class="fa-solid fa-circle-question text-base md:text-lg"></i>
+             </button>
+
+             <!-- ✅ STATUS DO SISTEMA -->
+             <div class="flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10 ml-1 md:ml-2">
+               <span class="relative flex h-2 w-2">
+                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                 <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+               </span>
+               <span class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest hidden md:block">Online</span>
+             </div>
+           </div>
+
+           <div class="hidden lg:block text-right">
+              <div class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5">Painel de Controle</div>
+              <div class="text-xs font-bold text-slate-800 dark:text-white">{{ page_title or 'Gestão de Contratos' }}</div>
+           </div>
+           <!-- TOAST CONTAINER -->
+           <div id="toast-container" class="fixed top-6 right-6 z-[200] flex flex-col gap-3 pointer-events-none"></div>
+        </div>
+      </header>
+
+      <main class="p-4 md:p-6 lg:p-10">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- ✅ MODAL ALTERAR SENHA -->
+  <div id="modalSenha" class="fixed inset-0 hidden items-center justify-center z-[110] p-4">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="fecharModalSenha()"></div>
+    <div class="relative w-full max-w-md rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-900/10 dark:border-white/10 shadow-2xl overflow-hidden">
+        <div class="p-8 border-b border-slate-900/5 dark:border-white/5 bg-slate-500/5 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+                    <i class="fa-solid fa-key text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Alterar Senha</h3>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Segurança da conta</p>
+                </div>
+            </div>
+            <button onclick="fecharModalSenha()" class="w-10 h-10 rounded-xl hover:bg-slate-900/5 dark:hover:bg-white/5 text-slate-400 transition-all">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        
+        <div class="p-8">
+            <div id="erroSenha" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm dark:bg-red-900/40 dark:border-red-500/40 dark:text-red-100"></div>
+            
+            <form id="formSenha" class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Senha Atual</label>
+                    <input type="password" id="senhaAtual" required 
+                           class="w-full rounded-2xl px-4 py-3 border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-900/5 dark:border-white/5 outline-none focus:ring-4 focus:ring-blue-500/20 transition-all">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Nova Senha</label>
+                    <input type="password" id="novaSenha" required 
+                           class="w-full rounded-2xl px-4 py-3 border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-900/5 dark:border-white/5 outline-none focus:ring-4 focus:ring-blue-500/20 transition-all">
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Confirmar Nova Senha</label>
+                    <input type="password" id="confirmarSenha" required 
+                           class="w-full rounded-2xl px-4 py-3 border bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-900/5 dark:border-white/5 outline-none focus:ring-4 focus:ring-blue-500/20 transition-all">
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="fecharModalSenha()" class="flex-1 py-3 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">Cancelar</button>
+                    <button type="submit" class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-xl shadow-blue-500/40 transition-all active:scale-95">Salvar Senha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+  </div>
+
+  <!-- ✅ NOTIFICATION DRAWER -->
+  <div id="drawer-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[90]" onclick="toggleNotifications()"></div>
+  <aside id="notification-drawer">
+      <div class="p-6 border-b border-slate-900/5 dark:border-white/5 flex items-center justify-between">
+          <div>
+              <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Notificações</h3>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Últimos comunicados</p>
+          </div>
+          <button onclick="toggleNotifications()" class="w-10 h-10 rounded-xl hover:bg-slate-900/5 dark:hover:bg-white/5 text-slate-400 transition-all">
+              <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+      </div>
+      <div id="notif-list" class="p-4 space-y-3 overflow-y-auto h-[calc(100vh-100px)] custom-scrollbar">
+          <div class="text-center py-20">
+              <i class="fa-solid fa-bell-slash text-slate-300 text-4xl mb-4"></i>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nenhuma notificação</p>
+          </div>
+      </div>
+  </aside>
+
+  <!-- ✅ HELP MODAL -->
+  <div id="modalHelp" class="fixed inset-0 hidden items-center justify-center z-[110] p-4">
+      <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="toggleHelp()"></div>
+      <div class="relative w-full max-w-2xl rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-900/10 dark:border-white/10 shadow-2xl overflow-hidden">
+          <div class="p-8 border-b border-slate-900/5 dark:border-white/5 bg-slate-500/5 flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-2xl bg-slate-500/10 flex items-center justify-center text-slate-600">
+                      <i class="fa-solid fa-circle-info text-xl"></i>
+                  </div>
+                  <div>
+                      <h3 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Informações</h3>
+                      <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Sobre o sistema</p>
+                  </div>
+              </div>
+              <button onclick="toggleHelp()" class="w-10 h-10 rounded-xl hover:bg-slate-900/5 dark:hover:bg-white/5 text-slate-400 transition-all">
+                  <i class="fa-solid fa-xmark text-lg"></i>
+              </button>
+          </div>
+          <div class="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <div id="help-content-area" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                  Carregando instruções...
+              </div>
+              <div class="mt-10 pt-6 border-t border-slate-900/5 dark:border-white/5">
+                  <p class="font-bold text-slate-800 dark:text-white">Versão 1.2.0</p>
+                  <p class="text-xs text-slate-500 mt-1">Desenvolvido por Jonatas de A. Galdino</p>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+
+  <script>
+    /* ✅ RELÓGIO */
+    function updateClock() {
+      const now = new Date();
+      const time = now.toLocaleTimeString('pt-BR', { hour12: false });
+      const el = document.getElementById('topbar-clock');
+      if (el) el.textContent = time;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    /* ✅ TEMA */
+    const btnTema = document.getElementById("themeToggle");
+    const iconTema = document.getElementById("temaIcone");
+
+    function syncTheme() {
+      const isDark = document.documentElement.classList.contains("dark");
+      if (iconTema) {
+        iconTema.className = isDark ? "fa-solid fa-sun w-5 text-center" : "fa-solid fa-moon w-5 text-center";
+      }
+    }
+
+    if (btnTema) {
+      syncTheme();
+      btnTema.addEventListener("click", () => {
+        document.documentElement.classList.toggle("dark");
+        const next = document.documentElement.classList.contains("dark") ? "dark" : "light";
+        localStorage.setItem("theme", next);
+        syncTheme();
+      });
+    }
+
+    /* ✅ SIDEBAR MOBILE */
+    const sidebar = document.getElementById('sidebar');
+    const btnMobile = document.getElementById('btnMobileToggle');
+    if (btnMobile && sidebar) {
+      btnMobile.addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 1024 && !sidebar.contains(e.target) && !btnMobile.contains(e.target)) {
+          sidebar.classList.remove('mobile-open');
+        }
+      });
+    }
+
+    /* ✅ NOTIFICAÇÕES */
+    async function fetchNotifications() {
+        try {
+            const res = await fetch('/api/comunicados/recent');
+            const data = await res.json();
+            const list = document.getElementById('notif-list');
+            const badge = document.getElementById('notif-badge');
+            
+            if (data.comunicados && data.comunicados.length > 0) {
+                badge.textContent = data.comunicados.length;
+                badge.classList.remove('hidden');
+                
+                list.innerHTML = data.comunicados.map(c => `
+                    <div id="notif-item-${c.id}" class="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-900/5 dark:border-white/5 hover:border-blue-500/30 transition-all cursor-pointer" onclick="markAsRead(${c.id})">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[8px] font-black text-blue-600 uppercase tracking-widest">${c.sender}</span>
+                            <span class="text-[8px] font-bold text-slate-400">${c.created_at}</span>
+                        </div>
+                        <h4 class="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-tight mb-1">${c.title}</h4>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-2">${c.message}</p>
+                    </div>
+                `).join('');
+            } else {
+                badge.classList.add('hidden');
+                list.innerHTML = `
+                    <div class="text-center py-20">
+                        <i class="fa-solid fa-bell-slash text-slate-300 text-4xl mb-4"></i>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nenhuma notificação</p>
+                    </div>
+                `;
+            }
+        } catch (e) { console.error("Erro ao buscar notificações", e); }
+    }
+
+    async function markAsRead(id) {
+        try {
+            const res = await fetch(`/api/comunicados/read/${id}`, { method: 'POST' });
+            const data = await res.json();
+            if (data.sucesso) {
+                const item = document.getElementById(`notif-item-${id}`);
+                if (item) {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateX(20px)';
+                    setTimeout(() => {
+                        item.remove();
+                        // Atualiza o badge
+                        const badge = document.getElementById('notif-badge');
+                        const currentCount = parseInt(badge.textContent) || 0;
+                        if (currentCount <= 1) {
+                            badge.classList.add('hidden');
+                            document.getElementById('notif-list').innerHTML = `
+                                <div class="text-center py-20">
+                                    <i class="fa-solid fa-bell-slash text-slate-300 text-4xl mb-4"></i>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nenhuma notificação</p>
+                                </div>
+                            `;
+                        } else {
+                            badge.textContent = currentCount - 1;
+                        }
+                    }, 300);
+                }
+            }
+        } catch (e) { console.error("Erro ao marcar como lido", e); }
+    }
+
+    function toggleNotifications() {
+      const drawer = document.getElementById('notification-drawer');
+      const overlay = document.getElementById('drawer-overlay');
+      if (drawer && overlay) {
+        const isOpen = drawer.classList.contains('open');
+        if (!isOpen) fetchNotifications(); // Atualiza ao abrir
+        drawer.classList.toggle('open');
+        overlay.classList.toggle('hidden');
+      }
+    }
+
+    /* ✅ HELP */
+    async function toggleHelp() {
+      const modal = document.getElementById('modalHelp');
+      if (modal) {
+        const isHidden = modal.classList.contains('hidden');
+        if (isHidden) {
+            // Busca manual mais recente
+            try {
+                const res = await fetch('/api/manuais/help');
+                const data = await res.json();
+                const contentArea = document.getElementById('help-content-area');
+                if (data.sucesso) {
+                    contentArea.textContent = data.content;
+                } else {
+                    contentArea.textContent = data.mensagem || "Nenhuma instrução disponível.";
+                }
+            } catch(e) { console.error(e); }
+        }
+        modal.classList.toggle('hidden');
+        modal.classList.toggle('flex');
+      }
+    }
+
+    /* ✅ MODAL SENHA */
+    function abrirModalSenha() {
+      const modal = document.getElementById("modalSenha");
+      if (modal) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      }
+    }
+
+    function fecharModalSenha() {
+      const modal = document.getElementById("modalSenha");
+      if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+      document.getElementById("erroSenha")?.classList.add("hidden");
+    }
+
+    const formSenha = document.getElementById("formSenha");
+    if (formSenha) {
+      formSenha.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const senhaAtual = document.getElementById("senhaAtual").value;
+        const novaSenha = document.getElementById("novaSenha").value;
+        const confirmarSenha = document.getElementById("confirmarSenha").value;
+        const erroDiv = document.getElementById("erroSenha");
+
+        if (novaSenha !== confirmarSenha) {
+          erroDiv.textContent = "A nova senha e a confirmação não coincidem.";
+          erroDiv.classList.remove("hidden");
+          return;
+        }
+
+        try {
+          const resposta = await fetch("/alterar_senha", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              senha_atual: senhaAtual,
+              nova_senha: novaSenha
+            })
+          });
+          const resultado = await resposta.json();
+          if (!resultado.sucesso) {
+            erroDiv.textContent = resultado.mensagem;
+            erroDiv.classList.remove("hidden");
+            return;
+          }
+          fecharModalSenha();
+          showToast("Senha alterada com sucesso!", "success");
+        } catch (error) {
+          erroDiv.textContent = "Erro ao alterar senha.";
+          erroDiv.classList.remove("hidden");
+        }
+      });
+    }
+
+    /* ✅ TOAST SYSTEM */
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type} shadow-2xl relative overflow-hidden`;
+      const icons = {
+          'success': 'fa-circle-check text-emerald-500',
+          'error': 'fa-circle-xmark text-red-500',
+          'info': 'fa-circle-info text-blue-500',
+          'warning': 'fa-circle-exclamation text-amber-500'
+      };
+      const icon = icons[type] || icons.info;
+      toast.innerHTML = `
+        <i class="fa-solid ${icon} text-lg"></i>
+        <span class="text-sm font-bold text-slate-800 dark:text-white">${message}</span>
+        <div class="toast-progress">
+          <div class="toast-progress-bar"></div>
+        </div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.add('show'), 10);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+      }, 4000);
+    }
+
+    /* ✅ OVERRIDE ALERT PADRÃO */
+    window.alert = function(message) {
+      // Tenta inferir o tipo pela mensagem
+      let type = 'info';
+      if (message.toLowerCase().includes('sucesso') || message.toLowerCase().includes('salvo') || message.toLowerCase().includes('concluído')) type = 'success';
+      if (message.toLowerCase().includes('erro') || message.toLowerCase().includes('falha') || message.toLowerCase().includes('inválido')) type = 'error';
+      showToast(message, type);
+    };
+
+    /* ✅ INICIALIZAÇÃO */
+    document.addEventListener("DOMContentLoaded", function () {
+      // Flatpickr
+      const camposData = document.querySelectorAll(".flatpickr-input");
+      camposData.forEach(campo => {
+        flatpickr(campo, {
+          dateFormat: "d/m/Y",
+          locale: "pt"
+        });
+      });
+
+      // Notificações (Busca inicial silenciosa)
+      fetchNotifications();
+
+      // ✅ PROCESSAR FLASH MESSAGES (Convertendo para Toasts)
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-          <div class="space-y-2 mb-4">
-            {% for category, message in messages %}
-              <div class="px-4 py-3 rounded-lg text-sm
-                          {% if category == 'success' %}
-                            bg-emerald-100 border border-emerald-300 text-emerald-800
-                            dark:bg-emerald-900/40 dark:border-emerald-500/40 dark:text-emerald-100
-                          {% elif category == 'error' %}
-                            bg-red-100 border border-red-300 text-red-800
-                            dark:bg-red-900/40 dark:border-red-500/40 dark:text-red-100
-                          {% else %}
-                            bg-slate-100 border border-slate-300 text-slate-800
-                            dark:bg-slate-800/70 dark:border-slate-600/60 dark:text-slate-100
-                          {% endif %}">
-                {{ message }}
-              </div>
-            {% endfor %}
-          </div>
+          {% for category, message in messages %}
+            showToast("{{ message }}", "{{ 'error' if category == 'danger' or category == 'error' else category }}");
+          {% endfor %}
         {% endif %}
       {% endwith %}
-    </div>
-
-    <!-- CONTEÚDO DAS PÁGINAS FILHAS -->
-    <section class="max-w-7xl mx-auto px-6 py-6">
-      {% block content %}{% endblock %}
-    </section>
-
-  </main>
-</div>
-
-<!-- =====================================================
-     MODAL ALTERAR SENHA
-===================================================== -->
-<div id="modalSenha"
-     class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-[9999]
-            flex items-center justify-center">
-
-  <div class="bg-white text-slate-800
-              dark:bg-slate-900 dark:text-slate-100
-              w-full max-w-md p-8 rounded-2xl shadow-2xl relative
-              border border-slate-300 dark:border-slate-700">
-
-    <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-      <i class="fa-solid fa-key text-blue-600"></i>
-      Alterar Senha
-    </h2>
-
-    <div id="erroSenha"
-         class="hidden bg-red-100 border border-red-400 text-red-700
-                px-4 py-3 rounded-lg mb-4
-                dark:bg-red-900 dark:border-red-600 dark:text-red-200"></div>
-
-    <form id="formSenha">
-
-      <label class="text-sm font-semibold">Senha atual</label>
-      <input type="password" id="senhaAtual"
-             class="w-full p-3 rounded-lg border mb-4
-                    border-slate-300 dark:border-slate-700
-                    bg-white dark:bg-slate-800"
-             required>
-
-      <label class="text-sm font-semibold">Nova senha</label>
-      <input type="password" id="novaSenha"
-             class="w-full p-3 rounded-lg border mb-4
-                    border-slate-300 dark:border-slate-700
-                    bg-white dark:bg-slate-800"
-             required>
-
-      <label class="text-sm font-semibold">Confirmar nova senha</label>
-      <input type="password" id="confirmarSenha"
-             class="w-full p-3 rounded-lg border mb-6
-                    border-slate-300 dark:border-slate-700
-                    bg-white dark:bg-slate-800"
-             required>
-
-      <div class="flex justify-end gap-3">
-        <button type="button"
-                onclick="fecharModalSenha()"
-                class="px-4 py-2 rounded-lg
-                       bg-slate-200 hover:bg-slate-300
-                       dark:bg-slate-700 dark:hover:bg-slate-600">
-          Cancelar
-        </button>
-
-        <button type="submit"
-                class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
-          Salvar
-        </button>
-      </div>
-
-    </form>
-  </div>
-</div>
-
-<!-- =====================================================
-     JS — TEMA + MODAL SENHA + CALENDÁRIO
-===================================================== -->
-
-<!-- ✅ FLATPICKR (CALENDÁRIO) -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
-
-<script>
-/* ============================
-   TROCA DE TEMA
-============================ */
-const btnTema  = document.getElementById("themeToggle");
-const iconTema = document.getElementById("temaIcone");
-
-function aplicarIconeTema() {
-  if (document.documentElement.classList.contains("dark")) {
-    iconTema.classList.remove("fa-sun");
-    iconTema.classList.add("fa-moon");
-    iconTema.style.color = "#3b82f6";
-  } else {
-    iconTema.classList.remove("fa-moon");
-    iconTema.classList.add("fa-sun");
-    iconTema.style.color = "#f59e0b";
-  }
-}
-
-if (btnTema) {
-  aplicarIconeTema();
-
-  btnTema.addEventListener("click", () => {
-    const root = document.documentElement;
-    const isDark = root.classList.contains("dark");
-
-    if (isDark) {
-      root.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    } else {
-      root.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    }
-
-    aplicarIconeTema();
-  });
-}
-
-/* ============================
-   MODAL ALTERAR SENHA
-============================ */
-function abrirModalSenha() {
-  document.getElementById("modalSenha")?.classList.remove("hidden");
-}
-
-function fecharModalSenha() {
-  document.getElementById("modalSenha")?.classList.add("hidden");
-  document.getElementById("erroSenha")?.classList.add("hidden");
-}
-
-const formSenha = document.getElementById("formSenha");
-if (formSenha) {
-  formSenha.addEventListener("submit", async function(e) {
-    e.preventDefault();
-
-    const senhaAtual     = document.getElementById("senhaAtual").value;
-    const novaSenha      = document.getElementById("novaSenha").value;
-    const confirmarSenha = document.getElementById("confirmarSenha").value;
-    const erroDiv        = document.getElementById("erroSenha");
-
-    if (novaSenha !== confirmarSenha) {
-      erroDiv.textContent = "A nova senha e a confirmação não coincidem.";
-      erroDiv.classList.remove("hidden");
-      return;
-    }
-
-    const resposta = await fetch("/alterar_senha", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        senha_atual: senhaAtual,
-        nova_senha: novaSenha
-      })
     });
-
-    const resultado = await resposta.json();
-
-    if (!resultado.sucesso) {
-      erroDiv.textContent = resultado.mensagem;
-      erroDiv.classList.remove("hidden");
-      return;
-    }
-
-    fecharModalSenha();
-    alert("Senha alterada com sucesso!");
-  });
-}
-
-/* ============================
-   FLATPICKR — FILTRO DE PERÍODO
-============================ */
-document.addEventListener("DOMContentLoaded", function () {
-  const campoPeriodo = document.getElementById("periodo");
-
-  if (campoPeriodo) {
-    flatpickr(campoPeriodo, {
-      mode: "range",
-      dateFormat: "d/m/Y",
-      locale: "pt",
-      rangeSeparator: " até ",
-      allowInput: false
-    });
-  }
-});
-</script>
+  </script>
 
 </body>
 </html>

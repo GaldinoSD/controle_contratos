@@ -2,118 +2,114 @@
 <html lang="pt-BR" class="h-full">
 <head>
   <meta charset="utf-8">
-  <title>Login - Sistema de Contratos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Galdino SD</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { font-family: 'Outfit', sans-serif; }
+
+    .bg-container {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image: url("{{ url_for('static', filename='img.png') }}");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .bg-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%);
+    }
+
+    .glass-login {
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-login { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    @media (max-width: 768px) {
+      .bg-container {
+        background-image: url("{{ url_for('static', filename='imgmbl.png') }}") !important;
+      }
+    }
+  </style>
 </head>
 
-<body class="h-full flex items-center justify-center 
-             bg-gradient-to-br 
-             from-slate-100 via-slate-200 to-slate-300 
-             dark:from-slate-950 dark:via-slate-900 dark:to-slate-800
-             relative overflow-hidden 
-             text-slate-800 dark:text-white">
+<body class="h-full flex items-center justify-end pr-4 md:pr-48 relative overflow-hidden bg-slate-950">
 
-  <!-- EFEITOS DE FUNDO -->
-  <div class="absolute inset-0 pointer-events-none">
-    <div class="absolute -top-32 -left-20 w-[450px] h-[450px] 
-                bg-blue-300/30 dark:bg-blue-600/20 
-                rounded-full blur-[130px]"></div>
-
-    <div class="absolute bottom-0 right-0 w-[350px] h-[350px] 
-                bg-purple-300/20 dark:bg-purple-600/20 
-                rounded-full blur-[120px]"></div>
+  <div class="bg-container">
+    <div class="bg-overlay"></div>
   </div>
 
-  <!-- CARD GLASS -->
-  <form action="/login" method="POST"
-        class="relative z-10 w-full max-w-md backdrop-blur-2xl
-               bg-white/50 dark:bg-white/5 
-               border border-white/40 dark:border-white/10 
-               rounded-2xl shadow-2xl p-10">
+  <!-- Login Card -->
+  <div class="relative z-10 w-full max-w-[320px] md:max-w-[380px] animate-login">
+    <div class="glass-login rounded-3xl p-6 md:p-10">
+        <!-- Logo Area -->
+        <div class="flex flex-col items-center mb-6">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="w-24 h-24 object-contain mb-4 drop-shadow-2xl">
+            <h1 class="text-2xl font-bold text-white tracking-tight">Acesso ao Sistema</h1>
+        </div>
 
-    <!-- LOGO -->
-    <div class="w-full flex justify-center mb-8">
-      <img src="{{ url_for('static', filename='logo.png') }}" 
-           alt="Logo" 
-           class="w-24 h-24 object-contain opacity-95 drop-shadow-lg">
-    </div>
+        <form action="/login" method="POST" class="space-y-4">
+            <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Credencial de E-mail</label>
+                <div class="relative group">
+                    <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors"></i>
+                    <input name="email" type="email" required placeholder="exemplo@email.com"
+                           class="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-3.5 text-sm font-medium text-white outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/30 transition-all placeholder:text-slate-600">
+                </div>
+            </div>
 
-    <!-- TÍTULO -->
-    <h1 class="text-2xl text-center font-bold 
-               text-slate-700 dark:text-white/90 
-               mb-8 tracking-wide">
-      <i class="fa-solid fa-user-shield 
-                text-blue-600 dark:text-blue-400 mr-2"></i>
-      Acesso ao Sistema
-    </h1>
+            <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Senha de Acesso</label>
+                <div class="relative group">
+                    <i class="fa-solid fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors"></i>
+                    <input name="password" type="password" required placeholder="••••••••"
+                           class="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-3.5 text-sm font-medium text-white outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500/30 transition-all placeholder:text-slate-600">
+                </div>
+            </div>
 
-    <!-- EMAIL -->
-    <div class="mb-6">
-      <label class="text-sm font-medium text-slate-700 dark:text-blue-200">E-mail</label>
+            <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xs uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/30 transition-all active:scale-95 transform">
+                Entrar no Sistema
+            </button>
+        </form>
 
-      <div class="flex items-center mt-1 
-                  bg-white/60 dark:bg-white/10 
-                  border border-slate-300 dark:border-white/20 
-                  backdrop-blur rounded-xl px-4 py-3 shadow-lg">
-        <i class="fa-solid fa-envelope 
-                  text-blue-600 dark:text-blue-300 mr-3"></i>
-
-        <input name="email"
-               class="bg-transparent w-full 
-                      text-slate-800 dark:text-white
-                      placeholder-slate-500 dark:placeholder-gray-400 
-                      focus:outline-none"
-               placeholder="Digite seu e-mail" required>
-      </div>
-    </div>
-
-    <!-- SENHA -->
-    <div class="mb-10">
-      <label class="text-sm font-medium text-slate-700 dark:text-blue-200">Senha</label>
-
-      <div class="flex items-center mt-1 
-                  bg-white/60 dark:bg-white/10 
-                  border border-slate-300 dark:border-white/20 
-                  backdrop-blur rounded-xl px-4 py-3 shadow-lg">
-        <i class="fa-solid fa-lock 
-                  text-blue-600 dark:text-blue-300 mr-3"></i>
-
-        <input name="password" type="password"
-               class="bg-transparent w-full 
-                      text-slate-800 dark:text-white
-                      placeholder-slate-500 dark:placeholder-gray-400
-                      focus:outline-none"
-               placeholder="Digite sua senha" required>
-      </div>
-    </div>
-
-    <!-- BOTÃO -->
-    <button class="w-full py-3 rounded-xl font-semibold text-lg
-                   bg-blue-600 hover:bg-blue-700 text-white 
-                   shadow-xl
-                   transition-all duration-300 transform 
-                   hover:-translate-y-[2px] active:scale-95">
-      Entrar
-    </button>
-
-    <!-- ERRO -->
-    {% with mensagens = get_flashed_messages(with_categories=True) %}
-      {% if mensagens %}
-        {% for categoria, msg in mensagens %}
-          {% if categoria == 'login' %}
-            <p class="text-red-500 dark:text-red-400 text-center mt-4 font-semibold">
-              {{ msg }}
-            </p>
+        {% with mensagens = get_flashed_messages(with_categories=True) %}
+          {% if mensagens %}
+            {% for categoria, msg in mensagens %}
+              {% if categoria == 'login' %}
+                <div class="mt-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-red-500"></i>
+                    <p class="text-[10px] font-black text-red-500 uppercase tracking-widest leading-tight">
+                      {{ msg }}
+                    </p>
+                </div>
+              {% endif %}
+            {% endfor %}
           {% endif %}
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+        {% endwith %}
+        
 
-  </form>
+    </div>
+  </div>
 
 </body>
 </html>

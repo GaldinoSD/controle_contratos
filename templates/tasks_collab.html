@@ -1,189 +1,98 @@
 {% extends "base.html" %}
+{% set page_title = "Atividades Técnicas" %}
 {% block content %}
 
-<!-- ======================================================= -->
-<!-- =================== HEADER PREMIUM ==================== -->
-<!-- ======================================================= -->
+<!-- ✅ HEADER PREMIUM COLABORADOR -->
+<div class="mb-8 animate-premium">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 glass-premium p-8 rounded-[2.5rem] shadow-xl overflow-hidden relative border border-white/20 dark:border-white/5">
+        <!-- Decorativos -->
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
 
-<section class="mb-8 relative">
-
-  <div class="overflow-hidden rounded-2xl p-6 shadow-2xl 
-              backdrop-blur-xl border
-              bg-slate-900/80 dark:bg-slate-900/80 light:bg-white/70
-              border-slate-800 dark:border-slate-800 light:border-slate-300
-              relative">
-
-    <div class="absolute -top-10 -left-10 w-40 h-40 
-                bg-blue-600/20 dark:bg-blue-600/20 light:bg-blue-500/10
-                blur-3xl rounded-full opacity-30"></div>
-
-    <div class="relative flex items-center gap-4">
-
-      <div class="p-3 
-                  bg-blue-600/20 dark:bg-blue-600/20 light:bg-blue-500/10
-                  rounded-xl border 
-                  border-blue-500/30 dark:border-blue-500/30 light:border-blue-300/40 shadow">
-        <i class="fa-solid fa-list-check 
-                  text-blue-400 dark:text-blue-400 light:text-blue-600 
-                  text-2xl"></i>
-      </div>
-
-      <div>
-        <h1 class="text-3xl font-extrabold 
-                   text-white dark:text-white light:text-slate-800 tracking-tight">
-          Atividades Pendentes
-        </h1>
-
-        <p class="text-sm mt-1 
-                  text-slate-400 dark:text-slate-400 light:text-slate-600">
-          Conclua suas atividades atribuídas
-        </p>
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-
-
-<!-- ======================================================= -->
-<!-- ======================= GRID DE CARDS ================== -->
-<!-- ======================================================= -->
-
-{% if tasks %}
-
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-7">
-
-  {% for t in tasks %}
-
-  <div
-    class="relative rounded-2xl p-6 overflow-hidden
-           backdrop-blur-xl shadow-xl
-           bg-slate-900/70 dark:bg-slate-900/70 light:bg-white/70
-           border border-slate-800 dark:border-slate-800 light:border-slate-300
-           hover:shadow-blue-900/30 hover:-translate-y-[2px]
-           transition-all duration-300">
-
-    <!-- Glow interno -->
-    <div class="absolute inset-0 
-                bg-gradient-to-br 
-                from-blue-600/10 dark:from-blue-600/10 light:from-blue-500/5
-                via-transparent 
-                to-slate-900/10 dark:to-slate-900/10 light:to-slate-300/20
-                pointer-events-none"></div>
-
-    <div class="relative z-10">
-
-      <!-- EMPRESA -->
-      <h2 class="text-lg font-bold flex items-center gap-2
-                 text-white dark:text-white light:text-slate-800">
-        <i class="fa-solid fa-building 
-                  text-blue-400 dark:text-blue-400 light:text-blue-600"></i>
-        {{ t.contract.company.name }}
-      </h2>
-
-      <p class="text-sm 
-                text-slate-400 dark:text-slate-400 light:text-slate-600">
-        CNPJ: {{ t.contract.company.cnpj }}
-      </p>
-
-      <p class="mt-1 text-xs 
-                text-slate-500 dark:text-slate-500 light:text-slate-500">
-        Vigência: {{ t.contract.start_date }} → {{ t.contract.end_date }}
-      </p>
-
-      <hr class="my-4 
-                 border-slate-700/40 dark:border-slate-700/40 light:border-slate-300">
-
-      <!-- TÍTULO DA TAREFA -->
-      <h3 class="text-xl font-semibold 
-                 text-white dark:text-white light:text-slate-800">
-        {{ t.title }}
-      </h3>
-
-      <p class="mt-2 text-sm leading-relaxed
-                text-slate-300 dark:text-slate-300 light:text-slate-700">
-        {{ t.description or "Sem descrição adicional." }}
-      </p>
-
-      <p class="mt-3 text-sm flex items-center gap-2
-                text-slate-400 dark:text-slate-400 light:text-slate-600">
-        <i class="fa-regular fa-calendar 
-                  text-slate-300 dark:text-slate-300 light:text-slate-700"></i>
-        Prazo: {{ t.due_date }}
-      </p>
-
-
-      <!-- ================================================= -->
-      <!-- =============== FORMULÁRIO ====================== -->
-      <!-- ================================================= -->
-
-      <form action="/task/complete/{{ t.id }}" 
-            method="POST" 
-            enctype="multipart/form-data"
-            class="mt-6 space-y-4">
-
-        <!-- DESCRIÇÃO DO QUE FOI FEITO -->
-        <div>
-          <label class="text-sm font-medium 
-                        text-slate-300 dark:text-slate-300 light:text-slate-700">
-            Descreva o que foi feito
-          </label>
-          <textarea name="note" required
-            class="w-full p-3 text-sm rounded-xl backdrop-blur
-                   bg-slate-800/40 dark:bg-slate-800/40 light:bg-white/80
-                   text-slate-200 dark:text-slate-200 light:text-slate-900
-                   border border-slate-700 dark:border-slate-700 light:border-slate-400
-                   focus:ring-2 focus:ring-blue-400 focus:outline-none"></textarea>
+        <div class="flex items-center gap-6 relative z-10">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-blue-500/20">
+                <i class="fa-solid fa-list-check text-2xl"></i>
+            </div>
+            <div>
+                <nav class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                    <span>Área Técnica</span>
+                    <i class="fa-solid fa-chevron-right text-[8px] opacity-30"></i>
+                    <span class="text-blue-500">Tarefas Atribuídas</span>
+                </nav>
+                <h2 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Atividades Pendentes</h2>
+            </div>
         </div>
 
-        <!-- ANEXO -->
-        <div>
-          <label class="text-sm font-medium 
-                        text-slate-300 dark:text-slate-300 light:text-slate-700">
-            Anexo (opcional)
-          </label>
-          <input type="file" name="file"
-            class="w-full p-2 text-sm rounded-xl cursor-pointer backdrop-blur
-                   bg-slate-800/40 dark:bg-slate-800/40 light:bg-white/80
-                   text-slate-200 dark:text-slate-200 light:text-slate-900
-                   border border-slate-700 dark:border-slate-700 light:border-slate-400
-                   focus:outline-none">
+        <div class="flex items-center gap-4 relative z-10">
+            <div class="text-right">
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Pendente</div>
+                <div class="text-2xl font-black text-blue-600 dark:text-blue-400">{{ tasks|length }}</div>
+            </div>
         </div>
-
-        <!-- BOTÃO -->
-        <button
-          class="w-full py-2.5 rounded-xl font-semibold shadow-lg
-                 flex items-center justify-center gap-2
-                 text-white
-                 bg-emerald-600/80 hover:bg-emerald-700 
-                 dark:bg-emerald-600/80 dark:hover:bg-emerald-700
-                 light:bg-emerald-600 light:hover:bg-emerald-700
-                 transition">
-          <i class="fa-solid fa-check"></i>
-          Concluir Tarefa
-        </button>
-
-      </form>
-
     </div>
-
-  </div>
-
-  {% endfor %}
-
 </div>
 
+<!-- ✅ GRID DE TAREFAS -->
+{% if tasks %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 animate-premium">
+  {% for t in tasks %}
+  <div class="card-premium group relative flex flex-col h-full transition-all duration-500 hover:-translate-y-2 border border-slate-900/10 dark:border-white/10">
+    <!-- Status Indicator -->
+    <div class="absolute left-0 top-0 h-full w-2 bg-blue-500 rounded-r-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
 
+    <div class="p-8 flex-1">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-[1.2rem] bg-slate-50 dark:bg-white/5 flex items-center justify-center text-blue-600 border border-slate-900/5">
+                <i class="fa-solid fa-building text-lg"></i>
+            </div>
+            <div class="min-w-0">
+                <h2 class="text-sm font-black text-slate-800 dark:text-white tracking-tight truncate">{{ t.contract.company.name }}</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{ t.contract.company.cnpj }}</p>
+            </div>
+        </div>
+
+        <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight mb-3 leading-snug">{{ t.title }}</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 mb-6 leading-relaxed">{{ t.description or "Sem descrição adicional." }}</p>
+
+        <div class="flex items-center gap-3 p-4 rounded-2xl bg-slate-900/5 dark:bg-white/5 border border-slate-900/5">
+            <i class="fa-regular fa-calendar-check text-blue-500"></i>
+            <div>
+                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Data Limite</p>
+                <p class="text-xs font-black text-slate-700 dark:text-slate-200">{{ t.due_date }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form de Conclusão -->
+    <div class="p-8 pt-0 mt-auto border-t border-slate-900/5 dark:border-white/5">
+        <form action="/task/complete/{{ t.id }}" method="POST" enctype="multipart/form-data" class="mt-6 space-y-4">
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 block">Relatório de Execução</label>
+                <textarea name="note" required placeholder="O que foi realizado nesta atividade?" 
+                          class="w-full bg-slate-50 dark:bg-white/5 border border-slate-900/10 dark:border-white/10 rounded-2xl p-4 text-xs font-medium dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 transition-all resize-none h-24"></textarea>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <label class="flex-1 flex items-center gap-3 cursor-pointer group bg-slate-50 dark:bg-white/5 border border-slate-900/5 dark:border-white/5 rounded-xl px-4 py-3 hover:bg-blue-600/5 transition-all">
+                    <i class="fa-solid fa-paperclip text-slate-400 group-hover:text-blue-500"></i>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate group-hover:text-blue-500">Anexar</span>
+                    <input type="file" name="file" class="hidden">
+                </label>
+                
+                <button type="submit" class="flex-[2] py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check"></i> Finalizar
+                </button>
+            </div>
+        </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
 {% else %}
-
-<p class="text-center mt-12 text-lg 
-          text-slate-500 dark:text-slate-500 light:text-slate-600">
-  Nenhuma atividade pendente no momento.
-</p>
-
+<div class="text-center py-40 card-premium">
+    <i class="fa-solid fa-check-double text-6xl text-slate-200 mb-6 block"></i>
+    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium italic">Parabéns! Você não tem tarefas pendentes.</p>
+</div>
 {% endif %}
 
 {% endblock %}
