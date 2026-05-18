@@ -56,191 +56,586 @@
   {% set ns.total_atrasadas   = ns.total_atrasadas   + item.atrasadas %}
   {% set ns.total_contratos   = ns.total_contratos   + item.contratos %}
 {% endfor %}
-
-<!-- ✅ KPI CARDS PREMIUM -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
-    <div class="card-premium p-6 group">
-        <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 shadow-lg transition-transform group-hover:scale-110">
-                <i class="fa-solid fa-file-signature text-xl"></i>
-            </div>
-            <span class="text-[9px] font-black text-blue-500 bg-blue-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Ativos</span>
-        </div>
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Contratos</p>
-        <h3 class="text-3xl font-black text-slate-800 dark:text-white mt-1">{{ ns.total_contratos }}</h3>
-        <p class="text-[9px] text-slate-400 mt-2">Gestão ativa</p>
-    </div>
-
-    <div class="card-premium p-6 group">
-        <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-lg transition-transform group-hover:scale-110">
-                <i class="fa-solid fa-list-check text-xl"></i>
-            </div>
-            <span class="text-[9px] font-black text-slate-400 bg-slate-400/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Total Geral</span>
-        </div>
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Tarefas Registradas</p>
-        <h3 class="text-3xl font-black text-slate-800 dark:text-white mt-1">{{ ns.total_tarefas }}</h3>
-        <p class="text-[9px] text-slate-400 mt-2">Volume consolidado</p>
-    </div>
-
-    <div class="card-premium p-6 group">
-        <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 shadow-lg transition-transform group-hover:scale-110">
-                <i class="fa-solid fa-circle-check text-xl"></i>
-            </div>
-            <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Performance</span>
-        </div>
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Concluídas</p>
-        <h3 class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ ns.total_concluidas }}</h3>
-        <div class="mt-3 h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-            <div class="h-full bg-emerald-500" style="width: {{ (ns.total_concluidas / (ns.total_tarefas if ns.total_tarefas > 0 else 1) * 100) | round(0) }}%"></div>
-        </div>
-    </div>
-
-    <div class="card-premium p-6 group">
-        <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 shadow-lg transition-transform group-hover:scale-110">
-                <i class="fa-solid fa-hourglass-half text-xl"></i>
-            </div>
-            <span class="text-[9px] font-black text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Em Fila</span>
-        </div>
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Pendentes</p>
-        <h3 class="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ ns.total_pendentes }}</h3>
-        <p class="text-[9px] text-slate-400 mt-2">Aguardando execução</p>
-    </div>
-
-    <div class="card-premium p-6 group">
-        <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 shadow-lg transition-transform group-hover:scale-110">
-                <i class="fa-solid fa-circle-exclamation text-xl"></i>
-            </div>
-            <span class="text-[9px] font-black text-red-500 bg-red-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Urgente</span>
-        </div>
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Atrasadas</p>
-        <h3 class="text-3xl font-black text-red-600 dark:text-red-400 mt-1">{{ ns.total_atrasadas }}</h3>
-        <p class="text-[9px] text-red-400 mt-2">Ação imediata necessária</p>
-    </div>
-</div>
-
-<!-- ✅ GRID DE EMPRESAS -->
 {% if dados %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-  {% for item in dados %}
-    {% set total = item.total if item.total > 0 else 1 %}
-    {% set perc_concluidas = (item.concluidas / total * 100) %}
-    {% set perc_pendentes  = (item.pendentes  / total * 100) %}
-    {% set perc_atrasadas  = (item.atrasadas  / total * 100) %}
+<div class="mb-8 overflow-x-auto py-2 custom-scrollbar animate-premium">
+    <div class="flex items-center gap-4 min-w-max pb-2">
+        <!-- Botão Geral -->
+        <button onclick="switchDashboard('geral')" id="btn-tab-geral" 
+                class="flex items-center gap-3 px-6 py-3.5 rounded-2xl border transition-all duration-300 active:scale-95
+                       bg-blue-600 text-white border-blue-500 shadow-xl shadow-blue-500/20 font-black text-xs uppercase tracking-widest cursor-pointer">
+            <i class="fa-solid fa-chart-pie text-sm"></i>
+            <span>Geral (Consolidado)</span>
+        </button>
 
-    {% if item.atrasadas > 0 %}
-      {% set status_label = "Crítico" %}
-      {% set status_color = "bg-red-500/10 text-red-600 border-red-500/20" %}
-      {% set dot_color = "bg-red-500" %}
-    {% elif item.pendentes > 0 %}
-      {% set status_label = "Operacional" %}
-      {% set status_color = "bg-amber-500/10 text-amber-600 border-amber-500/20" %}
-      {% set dot_color = "bg-amber-500" %}
-    {% else %}
-      {% set status_label = "Estável" %}
-      {% set status_color = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" %}
-      {% set dot_color = "bg-emerald-500" %}
-    {% endif %}
-
-    <div class="card-premium p-8 relative overflow-hidden group h-full flex flex-col">
-      <!-- Glow decorativo no card -->
-      <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors"></div>
-
-      <div class="relative z-10 flex-1 flex flex-col">
-        <!-- Header do Card -->
-        <div class="flex items-start justify-between mb-6">
-          <div class="flex items-center gap-4">
+        {% for item in dados %}
+        <!-- Botão Empresa {{ item.empresa.name }} -->
+        <button onclick="switchDashboard('{{ item.empresa.id }}')" id="btn-tab-{{ item.empresa.id }}"
+                class="flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all duration-300 active:scale-95 cursor-pointer
+                       bg-white/50 dark:bg-slate-900/40 text-slate-600 dark:text-slate-400 border-slate-900/5 dark:border-white/5 hover:border-blue-500/20 hover:text-slate-900 dark:hover:text-white font-bold text-xs uppercase tracking-wider">
             {% if item.empresa.logo %}
-              <img src="/{{ item.empresa.logo }}" class="w-14 h-14 rounded-2xl object-cover shadow-lg border border-slate-900/5 dark:border-white/5">
+                <img src="/{{ item.empresa.logo }}" class="w-8 h-8 rounded-xl object-cover shadow-md border border-white/50 dark:border-white/5">
             {% else %}
-              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-white/5 dark:to-white/10 flex items-center justify-center text-xl font-black text-slate-500 dark:text-slate-400 border border-slate-900/5 dark:border-white/5 shadow-inner">
-                {{ item.empresa.name[0] }}
-              </div>
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 flex items-center justify-center text-xs font-black text-blue-600 dark:text-blue-400 border border-blue-500/10">
+                    {{ item.empresa.name[0] | upper }}
+                </div>
             {% endif %}
-            <div class="min-w-0">
-              <h4 class="text-lg font-black text-slate-800 dark:text-white truncate max-w-[150px]">{{ item.empresa.name }}</h4>
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">ID: #{{ item.empresa.id }}</p>
-            </div>
-          </div>
-          <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border {{ status_color }} flex items-center gap-1.5 shrink-0">
-            <span class="w-1.5 h-1.5 rounded-full {{ dot_color }}"></span>
-            {{ status_label }}
-          </span>
-        </div>
-
-        <!-- Info Grid -->
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-center justify-between">
-                <div>
-                    <p class="text-[8px] font-black text-blue-500 uppercase tracking-tighter mb-0.5">Contratos</p>
-                    <p class="text-lg font-black text-slate-800 dark:text-white">{{ item.contratos }}</p>
-                </div>
-                <i class="fa-solid fa-file-signature text-blue-200 dark:text-blue-900/50 text-xl"></i>
-            </div>
-            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-900/5 dark:border-white/5 flex items-center justify-between">
-                <div>
-                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-tighter mb-0.5">Tarefas</p>
-                    <p class="text-lg font-black text-slate-800 dark:text-white">{{ item.total }}</p>
-                </div>
-                <i class="fa-solid fa-list-ol text-slate-200 dark:text-slate-800 text-xl"></i>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3 mb-8">
-            <div class="text-center p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-                <p class="text-[8px] font-black text-emerald-500 uppercase tracking-tighter mb-1">OK</p>
-                <p class="text-sm font-black text-emerald-600 dark:text-emerald-400">{{ item.concluidas }}</p>
-            </div>
-            <div class="text-center p-3 rounded-2xl bg-amber-500/5 border border-amber-500/10">
-                <p class="text-[8px] font-black text-amber-500 uppercase tracking-tighter mb-1">Pendente</p>
-                <p class="text-sm font-black text-amber-600 dark:text-amber-400">{{ item.pendentes }}</p>
-            </div>
-            <div class="text-center p-3 rounded-2xl bg-red-500/5 border border-red-500/10">
-                <p class="text-[8px] font-black text-red-500 uppercase tracking-tighter mb-1">Alerta</p>
-                <p class="text-sm font-black text-red-600 dark:text-red-400">{{ item.atrasadas }}</p>
-            </div>
-        </div>
-
-        <!-- Progress Section -->
-        <div class="mb-8 mt-auto">
-            <div class="flex justify-between items-center mb-2">
-                <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Saúde Operacional</p>
-                <p class="text-[10px] font-black text-blue-600 dark:text-blue-400">{{ perc_concluidas | round(0) }}%</p>
-            </div>
-            <div class="w-full h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden flex shadow-inner">
-                <div class="h-full bg-emerald-500 transition-all duration-700" style="width: {{ perc_concluidas }}%"></div>
-                <div class="h-full bg-amber-400 transition-all duration-700" style="width: {{ perc_pendentes }}%"></div>
-                <div class="h-full bg-red-500 transition-all duration-700" style="width: {{ perc_atrasadas }}%"></div>
-            </div>
-        </div>
-
-        <!-- Action Footer -->
-        <div class="flex items-center justify-between pt-6 border-t border-slate-900/5 dark:border-white/5 mt-auto">
-            <div class="flex items-center gap-3">
-                <div class="flex -space-x-2">
-                    <div class="w-8 h-8 rounded-full bg-blue-600 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] text-white font-black shadow-lg">G</div>
-                    <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] text-slate-500 font-black shadow-lg">SD</div>
-                </div>
-                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Equipe Alocada</span>
-            </div>
-            <a href="/contracts" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-blue-500/20 group-hover:px-6 transition-all">
-                Painel <i class="fa-solid fa-arrow-right ml-1"></i>
-            </a>
-        </div>
-      </div>
+            <span>{{ item.empresa.name }}</span>
+        </button>
+        {% endfor %}
     </div>
-  {% endfor %}
-</div>
-{% else %}
-<div class="text-center py-40 card-premium">
-    <i class="fa-solid fa-folder-open text-6xl text-slate-200 mb-6 block"></i>
-    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium italic">
-        Nenhuma empresa com dados de tarefas cadastrados até o momento.
-    </p>
 </div>
 {% endif %}
+
+<!-- ✅ VIEW 1: DASHBOARD GERAL CONSOLIDADO -->
+<div id="view-geral" class="dashboard-view animate-premium">
+    <!-- ✅ KPI CARDS PREMIUM -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
+        <div class="card-premium p-6 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 shadow-lg transition-transform group-hover:scale-110">
+                    <i class="fa-solid fa-file-signature text-xl"></i>
+                </div>
+                <span class="text-[9px] font-black text-blue-500 bg-blue-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Ativos</span>
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Contratos</p>
+            <h3 class="text-3xl font-black text-slate-800 dark:text-white mt-1">{{ ns.total_contratos }}</h3>
+            <p class="text-[9px] text-slate-400 mt-2">Gestão ativa</p>
+        </div>
+
+        <div class="card-premium p-6 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-lg transition-transform group-hover:scale-110">
+                    <i class="fa-solid fa-list-check text-xl"></i>
+                </div>
+                <span class="text-[9px] font-black text-slate-400 bg-slate-400/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Total Geral</span>
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Tarefas Registradas</p>
+            <h3 class="text-3xl font-black text-slate-800 dark:text-white mt-1">{{ ns.total_tarefas }}</h3>
+            <p class="text-[9px] text-slate-400 mt-2">Volume consolidado</p>
+        </div>
+
+        <div class="card-premium p-6 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 shadow-lg transition-transform group-hover:scale-110">
+                    <i class="fa-solid fa-circle-check text-xl"></i>
+                </div>
+                <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Performance</span>
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Concluídas</p>
+            <h3 class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ ns.total_concluidas }}</h3>
+            <div class="mt-3 h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500" style="width: {{ (ns.total_concluidas / (ns.total_tarefas if ns.total_tarefas > 0 else 1) * 100) | round(0) }}%"></div>
+            </div>
+        </div>
+
+        <div class="card-premium p-6 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 shadow-lg transition-transform group-hover:scale-110">
+                    <i class="fa-solid fa-hourglass-half text-xl"></i>
+                </div>
+                <span class="text-[9px] font-black text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Em Fila</span>
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Pendentes</p>
+            <h3 class="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ ns.total_pendentes }}</h3>
+            <p class="text-[9px] text-slate-400 mt-2">Aguardando execução</p>
+        </div>
+
+        <div class="card-premium p-6 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 shadow-lg transition-transform group-hover:scale-110">
+                    <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                </div>
+                <span class="text-[9px] font-black text-red-500 bg-red-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Urgente</span>
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Atrasadas</p>
+            <h3 class="text-3xl font-black text-red-600 dark:text-red-400 mt-1">{{ ns.total_atrasadas }}</h3>
+            <p class="text-[9px] text-red-400 mt-2">Ação imediata necessária</p>
+        </div>
+    </div>
+
+    <!-- ✅ GRID DE EMPRESAS -->
+    {% if dados %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for item in dados %}
+        {% set total = item.total if item.total > 0 else 1 %}
+        {% set perc_concluidas = (item.concluidas / total * 100) %}
+        {% set perc_pendentes  = (item.pendentes  / total * 100) %}
+        {% set perc_atrasadas  = (item.atrasadas  / total * 100) %}
+
+        {% if item.atrasadas > 0 %}
+          {% set status_label = "Crítico" %}
+          {% set status_color = "bg-red-500/10 text-red-600 border-red-500/20" %}
+          {% set dot_color = "bg-red-500" %}
+        {% elif item.pendentes > 0 %}
+          {% set status_label = "Operacional" %}
+          {% set status_color = "bg-amber-500/10 text-amber-600 border-amber-500/20" %}
+          {% set dot_color = "bg-amber-500" %}
+        {% else %}
+          {% set status_label = "Estável" %}
+          {% set status_color = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" %}
+          {% set dot_color = "bg-emerald-500" %}
+        {% endif %}
+
+        <div class="card-premium p-8 relative overflow-hidden group h-full flex flex-col">
+          <!-- Glow decorativo no card -->
+          <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors"></div>
+
+          <div class="relative z-10 flex-1 flex flex-col">
+            <!-- Header do Card (Clicável para Dashboard da Empresa) -->
+            <div onclick="switchDashboard('{{ item.empresa.id }}')" class="flex items-start justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity">
+              <div class="flex items-center gap-4">
+                {% if item.empresa.logo %}
+                  <img src="/{{ item.empresa.logo }}" class="w-14 h-14 rounded-2xl object-cover shadow-lg border border-slate-900/5 dark:border-white/5">
+                {% else %}
+                  <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-white/5 dark:to-white/10 flex items-center justify-center text-xl font-black text-slate-500 dark:text-slate-400 border border-slate-900/5 dark:border-white/5 shadow-inner">
+                    {{ item.empresa.name[0] }}
+                  </div>
+                {% endif %}
+                <div class="min-w-0">
+                  <h4 class="text-lg font-black text-slate-800 dark:text-white truncate max-w-[150px]">{{ item.empresa.name }}</h4>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">ID: #{{ item.empresa.id }}</p>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border {{ status_color }} flex items-center gap-1.5 shrink-0">
+                <span class="w-1.5 h-1.5 rounded-full {{ dot_color }}"></span>
+                {{ status_label }}
+              </span>
+            </div>
+
+            <!-- Info Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[8px] font-black text-blue-500 uppercase tracking-tighter mb-0.5">Contratos</p>
+                        <p class="text-lg font-black text-slate-800 dark:text-white">{{ item.contratos }}</p>
+                    </div>
+                    <i class="fa-solid fa-file-signature text-blue-200 dark:text-blue-900/50 text-xl"></i>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-900/5 dark:border-white/5 flex items-center justify-between">
+                    <div>
+                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-tighter mb-0.5">Tarefas</p>
+                        <p class="text-lg font-black text-slate-800 dark:text-white">{{ item.total }}</p>
+                    </div>
+                    <i class="fa-solid fa-list-ol text-slate-200 dark:text-slate-800 text-xl"></i>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 mb-8">
+                <div class="text-center p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                    <p class="text-[8px] font-black text-emerald-500 uppercase tracking-tighter mb-1">OK</p>
+                    <p class="text-sm font-black text-emerald-600 dark:text-emerald-400">{{ item.concluidas }}</p>
+                </div>
+                <div class="text-center p-3 rounded-2xl bg-amber-500/5 border border-amber-500/10">
+                    <p class="text-[8px] font-black text-amber-500 uppercase tracking-tighter mb-1">Pendente</p>
+                    <p class="text-sm font-black text-amber-600 dark:text-amber-400">{{ item.pendentes }}</p>
+                </div>
+                <div class="text-center p-3 rounded-2xl bg-red-500/5 border border-red-500/10">
+                    <p class="text-[8px] font-black text-red-500 uppercase tracking-tighter mb-1">Alerta</p>
+                    <p class="text-sm font-black text-red-600 dark:text-red-400">{{ item.atrasadas }}</p>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="mb-8 mt-auto">
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Saúde Operacional</p>
+                    <p class="text-[10px] font-black text-blue-600 dark:text-blue-400">{{ perc_concluidas | round(0) }}%</p>
+                </div>
+                <div class="w-full h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden flex shadow-inner">
+                    <div class="h-full bg-emerald-500 transition-all duration-700" style="width: {{ perc_concluidas }}%"></div>
+                    <div class="h-full bg-amber-400 transition-all duration-700" style="width: {{ perc_pendentes }}%"></div>
+                    <div class="h-full bg-red-500 transition-all duration-700" style="width: {{ perc_atrasadas }}%"></div>
+                </div>
+            </div>
+
+            <!-- Action Footer -->
+            <div class="flex items-center justify-between pt-6 border-t border-slate-900/5 dark:border-white/5 mt-auto">
+                <div class="flex items-center gap-3">
+                    <div class="flex -space-x-2">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] text-white font-black shadow-lg">G</div>
+                        <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] text-slate-500 font-black shadow-lg">SD</div>
+                    </div>
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Equipe Alocada</span>
+                </div>
+                <button onclick="switchDashboard('{{ item.empresa.id }}')" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-blue-500/20 group-hover:px-6 transition-all cursor-pointer">
+                    Dashboard <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-40 card-premium">
+        <i class="fa-solid fa-folder-open text-6xl text-slate-200 mb-6 block"></i>
+        <p class="text-slate-500 dark:text-slate-400 text-sm font-medium italic">
+            Nenhuma empresa com dados de tarefas cadastrados até o momento.
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ✅ VIEW 2: DASHBOARDS INDIVIDUAIS DE CADA EMPRESA (Toggled via JS) -->
+{% if dados %}
+  {% for item in dados %}
+  <div id="view-company-{{ item.empresa.id }}" class="dashboard-view hidden animate-premium">
+     <!-- BANNER INDIVIDUAL DA EMPRESA -->
+     <div class="mb-8 relative overflow-hidden glass-premium p-8 rounded-[2.5rem] shadow-xl border border-white/20 dark:border-white/5">
+         <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+         <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
+         
+         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+             <div class="flex items-center gap-6">
+                 {% if item.empresa.logo %}
+                     <img src="/{{ item.empresa.logo }}" class="w-16 h-16 rounded-3xl object-cover shadow-2xl border-2 border-white dark:border-slate-800">
+                 {% else %}
+                     <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-2xl font-black shadow-2xl">
+                         {{ item.empresa.name[0] | upper }}
+                     </div>
+                 {% endif %}
+                 <div>
+                     <div class="flex flex-wrap items-center gap-3">
+                         <h2 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">{{ item.empresa.name }}</h2>
+                         
+                         {% if item.atrasadas > 0 %}
+                             <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-600 border border-red-500/20 flex items-center gap-1.5 shrink-0">
+                                 <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> Crítico
+                             </span>
+                         {% elif item.pendentes > 0 %}
+                             <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center gap-1.5 shrink-0">
+                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Operacional
+                             </span>
+                         {% else %}
+                             <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center gap-1.5 shrink-0">
+                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Estável
+                             </span>
+                         {% endif %}
+                     </div>
+                     <p class="text-xs text-slate-400 font-bold mt-1">CNPJ: {{ item.empresa.cnpj }} | ID da Empresa: #{{ item.empresa.id }}</p>
+                 </div>
+             </div>
+             
+             <div class="flex items-center gap-3">
+                 <button onclick="switchDashboard('geral')" class="px-5 py-3 bg-white/50 dark:bg-white/5 hover:bg-slate-900/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-900/5 dark:border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 cursor-pointer">
+                     <i class="fa-solid fa-arrow-left mr-1.5"></i> Voltar Geral
+                 </button>
+                 <a href="/contracts" class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/30 transition-all active:scale-95">
+                     <i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Painel do Contrato
+                 </a>
+             </div>
+         </div>
+     </div>
+
+     <!-- KPI CARDS INDIVIDUAIS -->
+     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
+         <div class="card-premium p-6 group">
+             <div class="flex items-center justify-between mb-4">
+                 <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 shadow-lg transition-transform group-hover:scale-110">
+                     <i class="fa-solid fa-file-signature text-xl"></i>
+                 </div>
+                 <span class="text-[9px] font-black text-blue-500 bg-blue-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Ativos</span>
+             </div>
+             <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Contratos</p>
+             <h3 class="text-3xl font-black text-slate-800 dark:text-white mt-1">{{ item.contratos }}</h3>
+             <p class="text-[9px] text-slate-400 mt-2">Desta empresa</p>
+         </div>
+
+         <div class="card-premium p-6 group">
+             <div class="flex items-center justify-between mb-4">
+                 <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-lg transition-transform group-hover:scale-110">
+                     <i class="fa-solid fa-list-check text-xl"></i>
+                 </div>
+                 <span class="text-[9px] font-black text-slate-400 bg-slate-400/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Volume</span>
+             </div>
+             <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Tarefas Totais</p>
+             <h3 class="text-3xl font-black text-slate-800 dark:text-white mt-1">{{ item.total }}</h3>
+             <p class="text-[9px] text-slate-400 mt-2">Demandas operacionais</p>
+         </div>
+
+         <div class="card-premium p-6 group">
+             <div class="flex items-center justify-between mb-4">
+                 <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 shadow-lg transition-transform group-hover:scale-110">
+                     <i class="fa-solid fa-circle-check text-xl"></i>
+                 </div>
+                 <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Fim</span>
+             </div>
+             <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Concluídas</p>
+             <h3 class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ item.concluidas }}</h3>
+             <div class="mt-3 h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                 <div class="h-full bg-emerald-500" style="width: {{ (item.concluidas / (item.total if item.total > 0 else 1) * 100) | round(0) }}%"></div>
+             </div>
+         </div>
+
+         <div class="card-premium p-6 group">
+             <div class="flex items-center justify-between mb-4">
+                 <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 shadow-lg transition-transform group-hover:scale-110">
+                     <i class="fa-solid fa-hourglass-half text-xl"></i>
+                 </div>
+                 <span class="text-[9px] font-black text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Fila</span>
+             </div>
+             <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Pendentes</p>
+             <h3 class="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ item.pendentes }}</h3>
+             <p class="text-[9px] text-slate-400 mt-2">Em andamento</p>
+         </div>
+
+         <div class="card-premium p-6 group">
+             <div class="flex items-center justify-between mb-4">
+                 <div class="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 shadow-lg transition-transform group-hover:scale-110">
+                     <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                 </div>
+                 <span class="text-[9px] font-black text-red-500 bg-red-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter">Atraso</span>
+             </div>
+             <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Atrasadas</p>
+             <h3 class="text-3xl font-black text-red-600 dark:text-red-400 mt-1">{{ item.atrasadas }}</h3>
+             <p class="text-[9px] text-slate-400 mt-2">Exige atenção rápida</p>
+         </div>
+     </div>
+
+     <!-- DETALHES OPERACIONAIS E MONITOR DE TAREFAS (Layout Split) -->
+     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
+         
+         <!-- COLUNA ESQUERDA: SAÚDE & CONTRATOS DA EMPRESA (5/12 cols) -->
+         <div class="lg:col-span-5 flex flex-col gap-8">
+             
+             <!-- Card 1: Saúde Operacional circular -->
+             <div class="card-premium p-8 relative overflow-hidden flex flex-col justify-between h-full">
+                 <div class="absolute -right-24 -bottom-24 w-60 h-60 bg-blue-500/5 rounded-full blur-3xl"></div>
+                 
+                 <div>
+                     <h3 class="text-base font-black text-slate-800 dark:text-white uppercase tracking-wider mb-6 flex items-center gap-2.5">
+                         <i class="fa-solid fa-chart-line text-blue-500"></i> Saúde Operacional
+                     </h3>
+                     
+                     <div class="flex flex-col items-center justify-center py-4">
+                          <div class="relative w-40 h-40 flex items-center justify-center mb-6">
+                              <!-- Círculo SVG de Progresso de Anéis Concêntricos -->
+                              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 160 160">
+                                  <!-- Anel 1 (Externo - Concluídas) -->
+                                  <circle cx="80" cy="80" r="68" stroke="currentColor" stroke-width="8" class="text-slate-100 dark:text-slate-800/40" fill="transparent"/>
+                                  <circle cx="80" cy="80" r="68" stroke="currentColor" stroke-width="8" class="text-emerald-500 transition-all duration-500" fill="transparent"
+                                          stroke-dasharray="427.26"
+                                          stroke-dashoffset="{{ 427.26 - (427.26 * (item.concluidas / (item.total if item.total > 0 else 1))) }}"
+                                          stroke-linecap="round"/>
+                                          
+                                  <!-- Anel 2 (Médio - Pendentes/Abertas) -->
+                                  <circle cx="80" cy="80" r="52" stroke="currentColor" stroke-width="8" class="text-slate-100 dark:text-slate-800/40" fill="transparent"/>
+                                  <circle cx="80" cy="80" r="52" stroke="currentColor" stroke-width="8" class="text-blue-500 transition-all duration-500" fill="transparent"
+                                          stroke-dasharray="326.73"
+                                          stroke-dashoffset="{{ 326.73 - (326.73 * (item.pendentes / (item.total if item.total > 0 else 1))) }}"
+                                          stroke-linecap="round"/>
+                                          
+                                  <!-- Anel 3 (Interno - Atrasadas) -->
+                                  <circle cx="80" cy="80" r="36" stroke="currentColor" stroke-width="8" class="text-slate-100 dark:text-slate-800/40" fill="transparent"/>
+                                  <circle cx="80" cy="80" r="36" stroke="currentColor" stroke-width="8" class="text-red-500 transition-all duration-500" fill="transparent"
+                                          stroke-dasharray="226.19"
+                                          stroke-dashoffset="{{ 226.19 - (226.19 * (item.atrasadas / (item.total if item.total > 0 else 1))) }}"
+                                          stroke-linecap="round"/>
+                              </svg>
+                              <div class="absolute flex flex-col items-center justify-center leading-none text-center">
+                                  <span class="text-2xl font-black text-slate-800 dark:text-white">{{ (item.concluidas / (item.total if item.total > 0 else 1) * 100) | round(0) }}%</span>
+                                  <span class="text-[7px] font-black text-slate-400 uppercase tracking-widest mt-1">Eficiência</span>
+                              </div>
+                          </div>
+
+                          <!-- Legenda Dinâmica Premium -->
+                          <div class="flex items-center justify-center gap-3 flex-wrap w-full">
+                              <div class="flex items-center gap-1.5 bg-emerald-500/5 border border-emerald-500/10 px-2.5 py-1 rounded-xl text-[9px] font-bold text-slate-600 dark:text-slate-300">
+                                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Concluídas: {{ item.concluidas }}
+                              </div>
+                              <div class="flex items-center gap-1.5 bg-blue-500/5 border border-blue-500/10 px-2.5 py-1 rounded-xl text-[9px] font-bold text-slate-600 dark:text-slate-300">
+                                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Abertas: {{ item.pendentes }}
+                              </div>
+                              <div class="flex items-center gap-1.5 bg-red-500/5 border border-red-500/10 px-2.5 py-1 rounded-xl text-[9px] font-bold text-slate-600 dark:text-slate-300">
+                                  <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> Atrasadas: {{ item.atrasadas }}
+                              </div>
+                          </div>
+                      </div>
+                 </div>
+
+                 <!-- Gráfico de Barras Rápidas por Prioridade -->
+                 <div class="border-t border-slate-900/5 dark:border-white/5 pt-6 space-y-4">
+                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nível de Criticidade das Tarefas</p>
+                     
+                     <!-- Alta / Urgente -->
+                     <div>
+                         <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+                             <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span> Urgente / Alta</span>
+                             <span class="dark:text-slate-300">{{ item.priority_high }} tarefas</span>
+                         </div>
+                         <div class="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                             <div class="h-full bg-red-500" style="width: {{ (item.priority_high / (item.total if item.total > 0 else 1) * 100) }}%"></div>
+                         </div>
+                     </div>
+
+                     <!-- Normal -->
+                     <div>
+                         <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+                             <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Prioridade Normal</span>
+                             <span class="dark:text-slate-300">{{ item.priority_normal }} tarefas</span>
+                         </div>
+                         <div class="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                             <div class="h-full bg-amber-500" style="width: {{ (item.priority_normal / (item.total if item.total > 0 else 1) * 100) }}%"></div>
+                         </div>
+                     </div>
+
+                     <!-- Baixa -->
+                     <div>
+                         <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+                             <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Baixa</span>
+                             <span class="dark:text-slate-300">{{ item.priority_low }} tarefas</span>
+                         </div>
+                         <div class="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                             <div class="h-full bg-blue-500" style="width: {{ (item.priority_low / (item.total if item.total > 0 else 1) * 100) }}%"></div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+
+             <!-- Card 2: Vigência e Contrato Ativo -->
+             <div class="card-premium p-8 relative overflow-hidden flex flex-col justify-between">
+                 <h3 class="text-base font-black text-slate-800 dark:text-white uppercase tracking-wider mb-6 flex items-center gap-2.5">
+                     <i class="fa-solid fa-file-invoice-dollar text-emerald-500"></i> Contratos Vigentes
+                 </h3>
+
+                 <div class="space-y-4">
+                     {% for c in item.contratos_lista %}
+                     <div class="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-900/5 dark:border-white/5">
+                         <div class="flex items-center justify-between mb-2">
+                             <span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider">Ativo</span>
+                             <span class="text-[10px] font-bold text-slate-400">ID: #{{ c.id }}</span>
+                         </div>
+                         <p class="text-xs font-bold text-slate-700 dark:text-white mb-3">{{ c.description }}</p>
+                         
+                         <div class="flex flex-wrap items-center justify-between text-[10px] text-slate-400 pt-2 border-t border-slate-900/5 dark:border-white/5 gap-2">
+                             <span>Início: <strong class="text-slate-600 dark:text-slate-200">{{ c.start_date }}</strong></span>
+                             <span>Término: <strong class="text-slate-600 dark:text-slate-200">{{ c.end_date }}</strong></span>
+                         </div>
+                     </div>
+                     {% endfor %}
+                 </div>
+             </div>
+         </div>
+         
+         <!-- COLUNA DIREITA: MONITOR DE TAREFAS CRÍTICAS / RECENTES (7/12 cols) -->
+         <div class="lg:col-span-7 card-premium p-8 relative overflow-hidden flex flex-col h-full">
+             <div class="absolute -left-24 -top-24 w-60 h-60 bg-indigo-500/5 rounded-full blur-3xl"></div>
+             
+             <div class="flex items-center justify-between mb-6 relative z-10">
+                 <h3 class="text-base font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2.5">
+                     <i class="fa-solid fa-circle-exclamation text-amber-500 animate-pulse"></i> Monitor de Tarefas Críticas
+                 </h3>
+                 <span class="text-[9px] font-black text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg uppercase tracking-wider">Últimas 5 Atualizadas</span>
+             </div>
+
+             <div class="space-y-4 flex-1 relative z-10">
+                 {% if item.recentes_tarefas %}
+                     {% for t in item.recentes_tarefas %}
+                         {% set status_col = "" %}
+                         {% set status_lbl = "" %}
+                         {% if t.status == 'concluida' %}
+                             {% set status_col = "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" %}
+                             {% set status_lbl = "Concluída" %}
+                         {% elif t.status == 'andamento' %}
+                             {% set status_col = "bg-blue-500/10 text-blue-600 border border-blue-500/20" %}
+                             {% set status_lbl = "Em Andamento" %}
+                         {% else %}
+                             {% set status_col = "bg-amber-500/10 text-amber-600 border border-amber-500/20" %}
+                             {% set status_lbl = "Pendente" %}
+                         {% endif %}
+                         
+                         {% set priority_badge = "" %}
+                         {% if t.priority in ['Urgente', 'Alta'] %}
+                             {% set priority_badge = "bg-red-500 text-white" %}
+                         {% elif t.priority == 'Normal' %}
+                             {% set priority_badge = "bg-amber-500 text-white" %}
+                         {% else %}
+                             {% set priority_badge = "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400" %}
+                         {% endif %}
+
+                         <div class="p-5 rounded-[1.5rem] bg-white/40 dark:bg-slate-900/40 border border-slate-900/5 dark:border-white/5 hover:border-blue-500/20 hover:bg-white dark:hover:bg-slate-900/80 transition-all duration-300">
+                             <div class="flex flex-wrap items-start justify-between gap-3 mb-2.5">
+                                 <div class="flex items-center gap-2.5">
+                                     <span class="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider {{ priority_badge }}">
+                                         {{ t.priority }}
+                                     </span>
+                                     <h4 class="text-sm font-black text-slate-800 dark:text-white tracking-tight">{{ t.title }}</h4>
+                                 </div>
+                                 <span class="px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest {{ status_col }}">
+                                     {{ status_lbl }}
+                                 </span>
+                             </div>
+
+                             <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">{{ t.description or "Sem descrição cadastrada." }}</p>
+
+                             <div class="flex flex-wrap items-center justify-between pt-3 border-t border-slate-900/5 dark:border-white/5 text-[10px] text-slate-400 font-semibold gap-2">
+                                 <div class="flex items-center gap-2">
+                                     <i class="fa-regular fa-calendar-days text-slate-300 dark:text-slate-500"></i>
+                                     <span>Prazo: <strong class="text-slate-600 dark:text-slate-300">{{ t.due_date }}</strong></span>
+                                 </div>
+                                 <div class="flex items-center gap-2">
+                                     {% if t.assigned_user %}
+                                         <span class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center text-[8px] font-black border border-blue-500/20" title="{{ t.assigned_user.name }}">
+                                             {{ t.assigned_user.name[:2] | upper }}
+                                         </span>
+                                         <span class="text-[9px] text-slate-500 dark:text-slate-400 font-black">{{ t.assigned_user.name }}</span>
+                                     {% else %}
+                                         <span class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-[8px] font-black border border-slate-900/10" title="Sem responsável designado">
+                                             <i class="fa-solid fa-users text-[8px]"></i>
+                                         </span>
+                                         <span class="text-[9px] text-slate-400 font-bold">Equipe Geral</span>
+                                     {% endif %}
+                                 </div>
+                             </div>
+                         </div>
+                     {% endfor %}
+                 {% else %}
+                     <div class="flex flex-col items-center justify-center py-20 text-center text-slate-400">
+                         <i class="fa-solid fa-list-check text-4xl mb-4 text-slate-200"></i>
+                         <p class="text-xs italic">Nenhuma tarefa registrada para esta empresa.</p>
+                     </div>
+                 {% endif %}
+             </div>
+         </div>
+
+     </div>
+  </div>
+  {% endfor %}
+{% endif %}
+
+<!-- ✅ SWITCH VIEWS JAVASCRIPT -->
+<script>
+function switchDashboard(companyId) {
+    // Esconde todas as views do dashboard
+    document.querySelectorAll(".dashboard-view").forEach(el => {
+        el.classList.add("hidden");
+    });
+    
+    // Reseta o estilo de todos os botões de tabulação para inativo
+    document.querySelectorAll("[id^='btn-tab-']").forEach(btn => {
+        btn.className = "flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all duration-300 active:scale-95 cursor-pointer bg-white/50 dark:bg-slate-900/40 text-slate-600 dark:text-slate-400 border-slate-900/5 dark:border-white/5 hover:border-blue-500/20 hover:text-slate-900 dark:hover:text-white font-bold text-xs uppercase tracking-wider";
+    });
+    
+    // Mostra e ativa o painel selecionado
+    if (companyId === 'geral') {
+        document.getElementById("view-geral").classList.remove("hidden");
+        const btn = document.getElementById("btn-tab-geral");
+        if (btn) {
+            btn.className = "flex items-center gap-3 px-6 py-3.5 rounded-2xl border transition-all duration-300 active:scale-95 bg-blue-600 text-white border-blue-500 shadow-xl shadow-blue-500/20 font-black text-xs uppercase tracking-widest cursor-pointer";
+        }
+    } else {
+        const view = document.getElementById(`view-company-${companyId}`);
+        if (view) {
+            view.classList.remove("hidden");
+        }
+        const btn = document.getElementById(`btn-tab-${companyId}`);
+        if (btn) {
+            btn.className = "flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all duration-300 active:scale-95 cursor-pointer bg-blue-600 text-white border-blue-500 shadow-xl shadow-blue-500/20 font-black text-xs uppercase tracking-widest";
+        }
+    }
+    
+    // Rola de volta para o topo da página com suavidade
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
 
 {% endblock %}

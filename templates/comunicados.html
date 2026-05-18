@@ -173,11 +173,19 @@
                     <i class="fa-solid fa-book-open text-3xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Manual do Sistema</h3>
-                    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Guia de Instruções</p>
+                    {% if current_user.role == 'colaborador' %}
+                        <h3 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Manual do Colaborador</h3>
+                        <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Uso Operacional e Rotinas</p>
+                    {% elif current_user.role == 'cliente_colaborador' %}
+                        <h3 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Manual Externo</h3>
+                        <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Guia do Portal de Contratos</p>
+                    {% else %}
+                        <h3 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Manual do Sistema</h3>
+                        <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Guia de Instruções</p>
+                    {% endif %}
                 </div>
             </div>
-            <div class="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{{ manual_colab.content if manual_colab else 'Manual em construção...' }}</div>
+            <div class="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{% if current_user.role == 'colaborador' %}{{ manual_colab.content if (manual_colab and manual_colab.content) else 'Manual em construção...' }}{% elif current_user.role == 'cliente_colaborador' %}{{ manual_externo.content if (manual_externo and manual_externo.content) else 'Manual em construção...' }}{% else %}Manual em construção...{% endif %}</div>
         </div>
     {% endif %}
 </div>

@@ -69,6 +69,7 @@ app.config["UPLOAD_FOLDER"] = "static/uploads"
 app.config["FOTOS_COLAB"] = "static/fotos"
 app.config["LOGO_FOLDER"] = "static/logos"
 app.config["MANUAIS_FOLDER"] = "static/manuais"
+app.config["TREINAMENTOS_FOLDER"] = "static/uploads/treinamentos"
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -95,6 +96,7 @@ def ensure_base_folders():
     os.makedirs(app.config["FOTOS_COLAB"], exist_ok=True)
     os.makedirs(app.config["LOGO_FOLDER"], exist_ok=True)
     os.makedirs(app.config["MANUAIS_FOLDER"], exist_ok=True)
+    os.makedirs(app.config["TREINAMENTOS_FOLDER"], exist_ok=True)
 
     # pastas opcionais
     os.makedirs(os.path.join(app.root_path, "static", "inbox"), exist_ok=True)
@@ -394,19 +396,32 @@ class Training(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text)
-    content_url = db.Column(db.String(255))  # Link vídeo ou PDF
+    content_url = db.Column(db.String(255))  # Link vídeo ou PDF (mantido por retrocompatibilidade)
     target_type = db.Column(db.String(20), default="all")  # all | internal | company | user
     target_company_id = db.Column(db.Integer, db.ForeignKey("company.id"), nullable=True)
     target_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     created_at = db.Column(db.DateTime, default=agora)
     
-    # Novos campos para Selo de Aprovação
     badge_icon = db.Column(db.String(50), default="fa-award")
     badge_color = db.Column(db.String(20), default="#3b82f6")
+    allow_retake = db.Column(db.Boolean, default=True)
 
     target_company = db.relationship("Company")
     target_user = db.relationship("User", foreign_keys=[target_user_id])
     questions = db.relationship("TrainingQuestion", backref="training", cascade="all, delete-orphan")
+    modules = db.relationship("TrainingModule", backref="training", cascade="all, delete-orphan", order_by="TrainingModule.order")
+
+class TrainingModule(db.Model):
+    __tablename__ = "training_module"
+    id = db.Column(db.Integer, primary_key=True)
+    training_id = db.Column(db.Integer, db.ForeignKey("training.id"), nullable=False)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text)
+    video_path = db.Column(db.String(255), nullable=True) # Vídeo enviado (.mp4, etc)
+    image_path = db.Column(db.String(255), nullable=True) # Imagem enviada (.png, .jpg, etc)
+    video_url = db.Column(db.String(255), nullable=True)  # Link externo (YouTube)
+    order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=agora)
 
 class TrainingQuestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -425,6 +440,19 @@ class TrainingProgress(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     training_id = db.Column(db.Integer, db.ForeignKey("training.id"))
     completed_at = db.Column(db.DateTime, default=agora)
+
+    user = db.relationship("User")
+    training = db.relationship("Training")
+
+class TrainingAttempt(db.Model):
+    __tablename__ = "training_attempt"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    training_id = db.Column(db.Integer, db.ForeignKey("training.id"), nullable=False)
+    score = db.Column(db.Integer, default=0)
+    total = db.Column(db.Integer, default=0)
+    passed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=agora)
 
     user = db.relationship("User")
     training = db.relationship("Training")
@@ -497,13 +525,40 @@ def tarefas_por_empresa():
             Task.due_date < hoje
         ).count()
 
+        # Adições de dados detalhados para o dashboard individual premium
+        tarefas_detalhadas = (
+            Task.query
+            .filter(Task.contract_id.in_(ids))
+            .order_by(Task.status.asc(), Task.due_date.asc(), Task.priority.desc())
+            .limit(5)
+            .all()
+        )
+
+        priority_high = Task.query.filter(Task.contract_id.in_(ids), Task.priority.in_(["Alta", "Urgente"])).count()
+        priority_normal = Task.query.filter(Task.contract_id.in_(ids), Task.priority == "Normal").count()
+        priority_low = Task.query.filter(Task.contract_id.in_(ids), Task.priority == "Baixa").count()
+
+        contratos_detalhes = []
+        for c in contratos:
+            contratos_detalhes.append({
+                "id": c.id,
+                "start_date": c.start_date,
+                "end_date": c.end_date,
+                "description": c.description or "Sem descrição cadastrada."
+            })
+
         dados.append({
             "empresa": emp,
             "contratos": len(contratos),
+            "contratos_lista": contratos_detalhes,
             "total": total,
             "concluidas": concluidas,
             "pendentes": pendentes,
-            "atrasadas": atrasadas
+            "atrasadas": atrasadas,
+            "recentes_tarefas": tarefas_detalhadas,
+            "priority_high": priority_high,
+            "priority_normal": priority_normal,
+            "priority_low": priority_low
         })
 
     return dados
@@ -2719,7 +2774,14 @@ def lista_comunicados():
     automacoes = Automation.query.order_by(Automation.title.asc()).all()
     # Pega todos os usuários para o admin poder escolher
     all_users = User.query.order_by(User.name).all()
-    all_companies = Company.query.order_by(Company.name).all()
+    all_companies = (
+        Company.query
+        .join(Contract, Contract.company_id == Company.id)
+        .filter(Company.active == True, Contract.status == "ativo")
+        .distinct()
+        .order_by(Company.name)
+        .all()
+    )
     
     return render_template(
         "comunicados.html",
@@ -2919,8 +2981,12 @@ def save_system_manual():
 @app.route("/api/manuais/help")
 @login_required
 def api_manuais_help():
-    # Pega o manual de texto para o cargo do usuário
-    role_buscada = "admin" if current_user.role == "admin" else "colaborador"
+    if current_user.role == "admin":
+        role_buscada = "admin"
+    elif current_user.role == "cliente_colaborador":
+        role_buscada = "cliente_colaborador"
+    else:
+        role_buscada = "colaborador"
     manual = SystemManual.query.filter_by(role=role_buscada).first()
     
     if not manual or not manual.content:
@@ -2937,8 +3003,9 @@ def portal_externo():
     if current_user.role != "cliente_colaborador":
         return redirect("/")
     
-    # Cliente Colaborador vê apenas os da sua empresa ou os específicos para ele
+    # Cliente Colaborador vê apenas os destinados a todos, os da sua empresa ou os específicos para ele
     treinamentos = Training.query.filter(
+        (Training.target_type == "all") |
         ((Training.target_type == "company") & (Training.target_company_id == current_user.company_id)) |
         ((Training.target_type == "user") & (Training.target_user_id == current_user.id))
     ).order_by(Training.created_at.desc()).all()
@@ -2962,20 +3029,30 @@ def list_treinamentos():
     # Admin vê tudo
     if current_user.role == "admin":
         treinamentos = Training.query.order_by(Training.created_at.desc()).all()
-        companies = Company.query.filter_by(active=True).order_by(Company.name).all()
+        companies = (
+            Company.query
+            .join(Contract, Contract.company_id == Company.id)
+            .filter(Company.active == True, Contract.status == "ativo")
+            .distinct()
+            .order_by(Company.name)
+            .all()
+        )
         users = User.query.filter(User.role != 'admin').order_by(User.name).all()
         concluidos_ids = [p.training_id for p in TrainingProgress.query.all()]
         return render_template("treinamentos.html", treinamentos=treinamentos, companies=companies, users=users, concluidos_ids=concluidos_ids)
     
-    # Colaborador Interno vê apenas os específicos para ele
+    # Colaborador Interno vê os destinados a todos, internos ou individuais
     elif current_user.role == "colaborador":
         treinamentos = Training.query.filter(
-            (Training.target_type == "user") & (Training.target_user_id == current_user.id)
+            (Training.target_type == "all") |
+            (Training.target_type == "internal") |
+            ((Training.target_type == "user") & (Training.target_user_id == current_user.id))
         ).order_by(Training.created_at.desc()).all()
     
-    # Cliente Colaborador vê apenas os da sua empresa ou os específicos para ele
+    # Cliente Colaborador vê apenas os destinados a todos, os da sua empresa ou os específicos para ele
     else:
         treinamentos = Training.query.filter(
+            (Training.target_type == "all") |
             ((Training.target_type == "company") & (Training.target_company_id == current_user.company_id)) |
             ((Training.target_type == "user") & (Training.target_user_id == current_user.id))
         ).order_by(Training.created_at.desc()).all()
@@ -2988,7 +3065,14 @@ def list_treinamentos():
     companies = []
     users = []
     if current_user.role == "admin":
-        companies = Company.query.filter_by(active=True).order_by(Company.name).all()
+        companies = (
+            Company.query
+            .join(Contract, Contract.company_id == Company.id)
+            .filter(Company.active == True, Contract.status == "ativo")
+            .distinct()
+            .order_by(Company.name)
+            .all()
+        )
         users = User.query.filter(User.role != 'admin').order_by(User.name).all()
 
     return render_template("treinamentos.html", 
@@ -3008,62 +3092,37 @@ def save_treinamento():
     id = request.form.get("id")
     title = request.form.get("title")
     description = request.form.get("description")
-    target_type = request.form.get("target_type")
-    target_company_id = request.form.get("target_company_id")
-    target_user_id = request.form.get("target_user_id")
     badge_icon = request.form.get("badge_icon", "fa-award")
     badge_color = request.form.get("badge_color", "#3b82f6")
     
-    if target_company_id == "all" or not target_company_id:
-        target_company_id = None
+    allow_retake_raw = request.form.get("allow_retake")
+    allow_retake = True
+    if allow_retake_raw is not None:
+        allow_retake = allow_retake_raw in ["1", "true", "on", True]
     
-    if target_user_id == "all" or not target_user_id:
-        target_user_id = None
-
     if id:
         t = Training.query.get(id)
         t.title = title
         t.description = description
-        t.target_type = target_type
-        t.target_company_id = target_company_id
-        t.target_user_id = target_user_id
         t.badge_icon = badge_icon
         t.badge_color = badge_color
+        t.allow_retake = allow_retake
     else:
         t = Training(
             title=title,
             description=description,
-            target_type=target_type,
-            target_company_id=target_company_id,
-            target_user_id=target_user_id,
             badge_icon=badge_icon,
-            badge_color=badge_color
+            badge_color=badge_color,
+            allow_retake=allow_retake,
+            target_type="all" # Default is 'all' until distributed
         )
         db.session.add(t)
-    
-    # Salvar Avaliação (Assessment)
-    assessment_json = request.form.get("assessment_json")
-    if assessment_json:
-        import json
-        try:
-            questions_data = json.loads(assessment_json)
-            # Limpa questões antigas e insere novas
-            TrainingQuestion.query.filter_by(training_id=t.id).delete()
-            for q_data in questions_data:
-                q = TrainingQuestion(training_id=t.id, question_text=q_data['text'])
-                db.session.add(q)
-                db.session.flush() # Para pegar o ID da questão
-                for opt_data in q_data['options']:
-                    opt = TrainingOption(
-                        question_id=q.id,
-                        option_text=opt_data['text'],
-                        is_correct=opt_data['is_correct']
-                    )
-                    db.session.add(opt)
-        except Exception as e:
-            print(f"Erro ao salvar avaliação: {e}")
 
     db.session.commit()
+    
+    if request.form.get("ajax") == "1":
+        return jsonify({"sucesso": True, "id": t.id})
+        
     flash("✅ Treinamento salvo com sucesso!", "success")
     return redirect("/treinamentos")
 
@@ -3092,6 +3151,15 @@ def submit_assessment(id):
     t = Training.query.get_or_404(id)
     answers = request.json.get("answers") # {question_id: option_id}
     
+    # Check if they already attempted and retaking is not allowed
+    if not t.allow_retake:
+        existing_attempt = TrainingAttempt.query.filter_by(user_id=current_user.id, training_id=t.id).first()
+        if existing_attempt:
+            return jsonify({
+                "sucesso": False, 
+                "mensagem": "Você já realizou a prova e este treinamento não permite refazê-la."
+            })
+            
     total_questions = len(t.questions)
     if total_questions == 0:
         # Se não tem prova, marca como concluído direto
@@ -3104,9 +3172,27 @@ def submit_assessment(id):
         if correct_opt and str(correct_opt.id) == str(user_opt_id):
             correct_count += 1
             
-    if correct_count == total_questions:
+    passed = (correct_count == total_questions)
+    
+    # Log the attempt in DB
+    attempt = TrainingAttempt(
+        user_id=current_user.id,
+        training_id=t.id,
+        score=correct_count,
+        total=total_questions,
+        passed=passed
+    )
+    db.session.add(attempt)
+    db.session.commit()
+            
+    if passed:
         return complete_training_logic(t.id)
     else:
+        if not t.allow_retake:
+            return jsonify({
+                "sucesso": False, 
+                "mensagem": f"Você acertou {correct_count} de {total_questions}. Repetição não permitida para esta prova."
+            })
         return jsonify({
             "sucesso": False, 
             "mensagem": f"Você acertou {correct_count} de {total_questions}. Tente novamente para ganhar seu selo!"
@@ -3150,6 +3236,206 @@ def delete_treinamento(id):
     db.session.delete(t)
     db.session.commit()
     return jsonify({"sucesso": True})
+
+# =====================================================
+# TREINAMENTOS — DISTRIBUIR
+# =====================================================
+@app.route("/treinamentos/distribute/<int:id>", methods=["POST"])
+@login_required
+def distribute_treinamento(id):
+    admin_only()
+    t = Training.query.get_or_404(id)
+    
+    target_type = request.form.get("target_type")
+    target_company_id = request.form.get("target_company_id")
+    target_user_id = request.form.get("target_user_id")
+    
+    if target_type == "all":
+        t.target_type = "all"
+        t.target_company_id = None
+        t.target_user_id = None
+    elif target_type == "internal":
+        t.target_type = "internal"
+        t.target_company_id = None
+        t.target_user_id = None
+    elif target_type == "company":
+        t.target_type = "company"
+        t.target_company_id = int(target_company_id) if target_company_id and target_company_id != "all" else None
+        t.target_user_id = None
+    elif target_type == "user":
+        t.target_type = "user"
+        t.target_company_id = None
+        t.target_user_id = int(target_user_id) if target_user_id and target_user_id != "all" else None
+        
+    db.session.commit()
+    flash("✅ Distribuição atualizada com sucesso!", "success")
+    return redirect("/treinamentos")
+
+# =====================================================
+# TREINAMENTOS — SALVAR QUESTÕES
+# =====================================================
+@app.route("/treinamentos/questions/save/<int:id>", methods=["POST"])
+@login_required
+def save_questions(id):
+    admin_only()
+    t = Training.query.get_or_404(id)
+    
+    assessment_json = request.form.get("assessment_json")
+    if assessment_json:
+        import json
+        try:
+            questions_data = json.loads(assessment_json)
+            # Limpa questões antigas e insere novas
+            TrainingQuestion.query.filter_by(training_id=t.id).delete()
+            for q_data in questions_data:
+                if not q_data.get('text'):
+                    continue
+                q = TrainingQuestion(training_id=t.id, question_text=q_data['text'])
+                db.session.add(q)
+                db.session.flush() # Para pegar o ID da questão
+                for opt_data in q_data['options']:
+                    if not opt_data.get('text'):
+                        continue
+                    opt = TrainingOption(
+                        question_id=q.id,
+                        option_text=opt_data['text'],
+                        is_correct=bool(opt_data.get('is_correct', False))
+                    )
+                    db.session.add(opt)
+            db.session.commit()
+            flash("✅ Questionário atualizado com sucesso!", "success")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Erro ao salvar avaliação: {e}")
+            flash("❌ Erro ao salvar questionário.", "error")
+            
+    return redirect("/treinamentos")
+
+# =====================================================
+# TREINAMENTOS — API MÓDULOS
+# =====================================================
+@app.route("/api/treinamentos/<int:id>/modules")
+@login_required
+def get_training_modules(id):
+    t = Training.query.get_or_404(id)
+    modules = []
+    for m in t.modules:
+        modules.append({
+            "id": m.id,
+            "title": m.title,
+            "description": m.description or "",
+            "video_path": m.video_path or "",
+            "image_path": m.image_path or "",
+            "video_url": m.video_url or "",
+            "order": m.order
+        })
+    return jsonify(modules)
+
+# =====================================================
+# TREINAMENTOS — SALVAR MÓDULO (WITH UPLOAD)
+# =====================================================
+@app.route("/treinamentos/module/save", methods=["POST"])
+@login_required
+def save_module():
+    admin_only()
+    
+    training_id = request.form.get("training_id")
+    module_id = request.form.get("module_id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    video_url = request.form.get("video_url")
+    order = request.form.get("order", 0)
+    
+    if not training_id:
+        return jsonify({"sucesso": False, "mensagem": "ID do treinamento é obrigatório."}), 400
+        
+    t = Training.query.get_or_404(training_id)
+    
+    # Handle file uploads
+    video_file = request.files.get("video_file")
+    image_file = request.files.get("image_file")
+    
+    video_path = None
+    image_path = None
+    
+    folder = app.config["TREINAMENTOS_FOLDER"]
+    
+    # Save video if uploaded
+    if video_file and video_file.filename != "":
+        filename = f"vid_{int(datetime.now().timestamp())}_{secure_filename(video_file.filename)}"
+        video_path = os.path.join(folder, filename)
+        video_file.save(video_path)
+        
+    # Save image if uploaded
+    if image_file and image_file.filename != "":
+        filename = f"img_{int(datetime.now().timestamp())}_{secure_filename(image_file.filename)}"
+        image_path = os.path.join(folder, filename)
+        image_file.save(image_path)
+
+    if module_id:
+        m = TrainingModule.query.get(module_id)
+        if not m:
+            return jsonify({"sucesso": False, "mensagem": "Módulo não encontrado."}), 404
+        m.title = title
+        m.description = description
+        m.video_url = video_url
+        m.order = int(order)
+        if video_path:
+            # Delete old video file if exists
+            if m.video_path and os.path.exists(m.video_path):
+                try:
+                    os.remove(m.video_path)
+                except Exception as e:
+                    print(f"Erro ao remover vídeo antigo: {e}")
+            m.video_path = video_path
+        if image_path:
+            # Delete old image file if exists
+            if m.image_path and os.path.exists(m.image_path):
+                try:
+                    os.remove(m.image_path)
+                except Exception as e:
+                    print(f"Erro ao remover imagem antiga: {e}")
+            m.image_path = image_path
+    else:
+        m = TrainingModule(
+            training_id=t.id,
+            title=title,
+            description=description,
+            video_url=video_url,
+            order=int(order),
+            video_path=video_path,
+            image_path=image_path
+        )
+        db.session.add(m)
+        
+    db.session.commit()
+    return jsonify({"sucesso": True, "mensagem": "✅ Módulo salvo com sucesso!"})
+
+# =====================================================
+# TREINAMENTOS — EXCLUIR MÓDULO
+# =====================================================
+@app.route("/treinamentos/module/delete/<int:id>", methods=["POST"])
+@login_required
+def delete_module(id):
+    admin_only()
+    m = TrainingModule.query.get_or_404(id)
+    
+    # Delete physical files
+    if m.video_path and os.path.exists(m.video_path):
+        try:
+            os.remove(m.video_path)
+        except Exception as e:
+            print(f"Erro ao remover arquivo de vídeo: {e}")
+            
+    if m.image_path and os.path.exists(m.image_path):
+        try:
+            os.remove(m.image_path)
+        except Exception as e:
+            print(f"Erro ao remover arquivo de imagem: {e}")
+            
+    db.session.delete(m)
+    db.session.commit()
+    return jsonify({"sucesso": True, "mensagem": "Módulo excluído com sucesso."})
 
 # =====================================================
 # EXECUTAR APLICAÇÃO
